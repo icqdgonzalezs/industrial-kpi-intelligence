@@ -1,13 +1,14 @@
-
 import pandas as pd
 import pytest
 
 from dashboard.quality_performance_callbacks import (
     _leer_dataframe_filtrado,
     actualizar_quality_performance,
+    crear_caption_pareto,
     crear_figura_pareto,
     crear_lote_critico,
 )
+from src.kpis import calcular_pareto
 
 
 def test_crear_figura_pareto():
@@ -43,6 +44,27 @@ def test_crear_figura_pareto():
     assert figura.data[1].y[1] == pytest.approx(
         100.0
     )
+
+
+def test_crear_caption_pareto_con_datos():
+    df = pd.DataFrame(
+        {
+            "defecto_tipo": ["Mancha", "Rayadura", "Mancha"],
+            "unidades_defectuosas": [40, 10, 20],
+        }
+    )
+    pareto = calcular_pareto(df)
+
+    caption = crear_caption_pareto(pareto)
+
+    assert "Mancha" in caption
+    assert "%" in caption
+
+
+def test_crear_caption_pareto_sin_datos():
+    caption = crear_caption_pareto(pd.DataFrame())
+
+    assert caption == "Sin defectos en el período seleccionado."
 
 
 def test_quality_performance_empty_data():
@@ -95,6 +117,11 @@ def test_quality_performance_metrics_and_pareto_are_consistent():
 
 
 def test_quality_performance_callback_contract():
+    """El callback registrado devuelve 7 outputs: 4 métricas + figura + caption + lote crítico.
+
+    Reproduce exactamente lo que hace callback_actualizar_quality_performance, verificando
+    que la figura NUNCA va a un 'children' (ese fue el bug real que rompía el render).
+    """
     df = pd.DataFrame(
         {
             "lote": ["L1", "L2"],
@@ -113,11 +140,14 @@ def test_quality_performance_callback_contract():
 
     metricas = actualizar_quality_performance(data)
     filtrado = _leer_dataframe_filtrado(data)
+    pareto = calcular_pareto(filtrado)
     figura = crear_figura_pareto(filtrado)
+    caption = crear_caption_pareto(pareto)
+    lote_critico = crear_lote_critico(filtrado)
 
-    resultado = (*metricas, figura)
+    resultado = (*metricas, figura, caption, lote_critico)
 
-    assert len(resultado) == 5
+    assert len(resultado) == 7
     assert resultado[:4] == (
         "90.0%",
         "10.0%",
@@ -125,6 +155,8 @@ def test_quality_performance_callback_contract():
         "7.0%",
     )
     assert len(resultado[4].data) == 2
+    assert isinstance(resultado[5], str)
+    assert isinstance(resultado[6], str)
 
 
 def test_quality_performance_rejects_invalid_schema():
@@ -207,16 +239,19 @@ def test_quality_performance_full_contract():
 
     metricas = actualizar_quality_performance(data)
     filtrado = _leer_dataframe_filtrado(data)
+    pareto_df = calcular_pareto(filtrado)
     pareto = crear_figura_pareto(filtrado)
+    caption = crear_caption_pareto(pareto_df)
     lote_critico = crear_lote_critico(filtrado)
 
     resultado = (
         *metricas,
         pareto,
+        caption,
         lote_critico,
     )
 
-    assert len(resultado) == 6
+    assert len(resultado) == 7
 
     assert resultado[:4] == (
         "85.0%",
@@ -227,6 +262,8 @@ def test_quality_performance_full_contract():
 
     assert len(resultado[4].data) == 2
 
-    assert resultado[5] == (
+    assert "Mancha" in resultado[5]
+
+    assert resultado[6] == (
         "Lote crítico: L3 · Tasa de defectos: 30.0%"
     )

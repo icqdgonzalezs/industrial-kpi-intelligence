@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from dash import Dash
 
 from dashboard.app_layout import crear_app_layout
@@ -52,10 +54,13 @@ operadores = ["Todos", *sorted(df["operador"].dropna().astype(str).unique())]
 
 variables_criticas = config.get("quality", {}).get("variables_criticas", {})
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 app = Dash(
     __name__,
     title="Industrial KPI Intelligence",
     suppress_callback_exceptions=True,
+    assets_folder=str(PROJECT_ROOT / "assets"),
 )
 server = app.server  # necesario para gunicorn (Render/Heroku): gunicorn dashboard.dash_app:server
 

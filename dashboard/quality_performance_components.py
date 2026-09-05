@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
 
 
 def crear_quality_performance():
@@ -76,6 +76,7 @@ def crear_quality_performance():
                 ],
                 className="quality-metrics-grid",
             ),
+            dcc.Graph(id="quality-pareto-chart"),
             html.Div(
                 [
                     html.Div(

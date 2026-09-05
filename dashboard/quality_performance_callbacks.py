@@ -79,12 +79,26 @@ def crear_lote_critico(filtrado):
     )
 
 
+def crear_caption_pareto(pareto) -> str:
+    """Resume en una frase cuál causa concentra más defectos (para el Div de texto)."""
+    if pareto.empty:
+        return "Sin defectos en el período seleccionado."
+
+    principal = pareto.iloc[0]
+
+    return (
+        f"Causa principal: '{principal['defecto']}' concentra "
+        f"{principal['porcentaje']:.1f}% de las unidades defectuosas."
+    )
+
+
 def registrar_callbacks_quality_performance(app) -> None:
     @app.callback(
         Output("quality-fpy", "children"),
         Output("quality-defect-rate", "children"),
         Output("quality-scrap-rate", "children"),
         Output("quality-rework-rate", "children"),
+        Output("quality-pareto-chart", "figure"),
         Output("quality-pareto", "children"),
         Output("quality-critical-lot", "children"),
         Input("store-datos-filtrados", "data"),
@@ -94,15 +108,22 @@ def registrar_callbacks_quality_performance(app) -> None:
 
         filtrado = _leer_dataframe_filtrado(data)
 
-        figura_pareto = go.Figure() if filtrado.empty else crear_figura_pareto(filtrado)
-        lote_critico = (
-            "Sin datos para identificar un lote crítico."
-            if filtrado.empty
-            else crear_lote_critico(filtrado)
-        )
+        if filtrado.empty:
+            return (
+                *metricas,
+                go.Figure(),
+                "Sin defectos en el período seleccionado.",
+                "Sin datos para identificar un lote crítico.",
+            )
+
+        pareto = calcular_pareto(filtrado)
+        figura_pareto = crear_figura_pareto(filtrado)
+        caption_pareto = crear_caption_pareto(pareto)
+        lote_critico = crear_lote_critico(filtrado)
 
         return (
             *metricas,
             figura_pareto,
+            caption_pareto,
             lote_critico,
         )
