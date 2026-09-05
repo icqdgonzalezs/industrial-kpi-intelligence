@@ -1,27 +1,16 @@
 from __future__ import annotations
 
-from io import StringIO
-
 import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output
 
 from dashboard.kpi_presenter import formatear_kpis
+from dashboard.utils import leer_dataframe_filtrado as _leer_dataframe_filtrado
 from src.kpis import (
     calcular_kpis_globales,
     calcular_pareto,
     identificar_lote_critico,
 )
-
-
-def _leer_dataframe_filtrado(data):
-    if not data:
-        return pd.DataFrame()
-
-    return pd.read_json(
-        StringIO(data),
-        orient="split",
-    )
 
 
 def actualizar_quality_performance(data):
@@ -66,12 +55,12 @@ def crear_figura_pareto(filtrado):
     figura.update_layout(
         title="Pareto de defectos",
         yaxis_title="Unidades defectuosas",
-        yaxis2=dict(
-            title="% acumulado",
-            overlaying="y",
-            side="right",
-            range=[0, 100],
-        ),
+        yaxis2={
+            "title": "% acumulado",
+            "overlaying": "y",
+            "side": "right",
+            "range": [0, 100],
+        },
     )
 
     return figura
@@ -105,15 +94,12 @@ def registrar_callbacks_quality_performance(app) -> None:
 
         filtrado = _leer_dataframe_filtrado(data)
 
-        if filtrado.empty:
-            figura_pareto = go.Figure()
-        else:
-            figura_pareto = crear_figura_pareto(filtrado)
-
-        if filtrado.empty:
-            lote_critico = "Sin datos para identificar un lote crítico."
-        else:
-            lote_critico = crear_lote_critico(filtrado)
+        figura_pareto = go.Figure() if filtrado.empty else crear_figura_pareto(filtrado)
+        lote_critico = (
+            "Sin datos para identificar un lote crítico."
+            if filtrado.empty
+            else crear_lote_critico(filtrado)
+        )
 
         return (
             *metricas,

@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from dash import Dash
 
-
 from dashboard.app_layout import crear_app_layout
-from dashboard.filter_engine import aplicar_filtros
+from dashboard.capability_callbacks import registrar_callbacks_capability
+from dashboard.diagnostics_callbacks import registrar_callbacks_diagnostics
+from dashboard.data_callbacks import (
+    actualizar_datos_filtrados as _actualizar_datos_filtrados,
+    registrar_callbacks_datos,
+)
+from dashboard.data_loader import cargar_datos
 from dashboard.filter_callbacks import (
     actualizar_equipos,
     actualizar_lineas,
@@ -12,18 +17,12 @@ from dashboard.filter_callbacks import (
     actualizar_turnos,
     registrar_callbacks_filtros,
 )
-from dashboard.data_loader import cargar_datos
-from dashboard.data_callbacks import (
-    actualizar_datos_filtrados as _actualizar_datos_filtrados,
-    registrar_callbacks_datos,
-)
+from dashboard.filter_engine import aplicar_filtros
 from dashboard.kpi_callbacks import (
     actualizar_kpis as _actualizar_kpis,
     registrar_callbacks_kpi,
 )
-
 from dashboard.quality_performance_callbacks import registrar_callbacks_quality_performance
-
 
 df, config = cargar_datos()
 
@@ -34,6 +33,8 @@ lineas = ["Todas", *sorted(df["linea"].dropna().astype(str).unique())]
 equipos = ["Todos", *sorted(df["equipo"].dropna().astype(str).unique())]
 turnos = ["Todos", *sorted(df["turno"].dropna().astype(str).unique())]
 operadores = ["Todos", *sorted(df["operador"].dropna().astype(str).unique())]
+
+variables_criticas = config.get("quality", {}).get("variables_criticas", {})
 
 app = Dash(
     __name__,
@@ -48,11 +49,8 @@ app.layout = crear_app_layout(
     equipos,
     turnos,
     operadores,
+    variables_criticas,
 )
-
-
-
-
 
 registrar_callbacks_filtros(
     app,
@@ -72,8 +70,13 @@ registrar_callbacks_kpi(
 registrar_callbacks_quality_performance(
     app,
 )
-
-
+registrar_callbacks_capability(
+    app,
+    variables_criticas,
+)
+registrar_callbacks_diagnostics(
+    app,
+)
 
 
 def actualizar_datos_filtrados(

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dash import dcc, html
 
+from dashboard.capability_components import crear_capability_section
 from dashboard.components_dash import crear_control_center
+from dashboard.diagnostics_components import crear_diagnostics_section
 from dashboard.kpi_components import crear_kpi_grid
 from dashboard.quality_performance_components import crear_quality_performance
 
@@ -14,6 +16,7 @@ def crear_app_layout(
     equipos: list[str],
     turnos: list[str],
     operadores: list[str],
+    variables_criticas: dict,
 ):
     return html.Div(
         [
@@ -40,7 +43,9 @@ def crear_app_layout(
                 storage_type="memory",
             ),
             crear_kpi_grid(),
+            crear_diagnostics_section(),
             crear_quality_performance(),
+            crear_capability_section(variables_criticas),
             crear_control_center(
                 (
                     fecha_min,
