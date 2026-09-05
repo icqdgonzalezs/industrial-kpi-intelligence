@@ -95,8 +95,8 @@ source venv/bin/activate   # Windows: venv\Scripts\activate
 
 pip install -r requirements.txt
 
-# Ejecutar el dashboard (desarrollo)
-python dashboard/dash_app.py
+# Ejecutar el dashboard (desarrollo) — como módulo, desde la raíz del proyecto
+python -m dashboard.dash_app
 # Abre http://127.0.0.1:8050
 
 # Ejecutar como en producción (gunicorn, el mismo comando que usa Render)
