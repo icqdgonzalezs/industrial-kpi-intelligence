@@ -235,7 +235,8 @@ def test_dataset_real_produce_diagnostico_valido():
     from src.capability import resumen_capacidad
 
     df, config = cargar_datos()
-    capacidad = resumen_capacidad(df, config["quality"]["variables_criticas"])
+    variables_criticas = config.get("quality", {}).get("variables_criticas", {})
+    capacidad = resumen_capacidad(df, variables_criticas) if variables_criticas else pd.DataFrame()
 
     resultado = generar_diagnostico(df, capacidad)
 
