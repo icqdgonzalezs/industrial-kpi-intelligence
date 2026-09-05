@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 QUALITY_PERFORMANCE_SPEC = {
     "title": "Quality Performance",
     "description": (

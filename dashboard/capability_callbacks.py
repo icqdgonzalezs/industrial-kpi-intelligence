@@ -14,7 +14,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output
 
-from dashboard.utils import leer_dataframe_filtrado
+from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.capability import resumen_capacidad
 
 
@@ -114,7 +114,7 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
         showlegend=False,
     )
 
-    return figura
+    return aplicar_tema_oscuro(figura)
 
 
 def registrar_callbacks_capability(app, variables_config: dict) -> None:

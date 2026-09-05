@@ -2,15 +2,13 @@ import pandas as pd
 import pytest
 
 from dashboard.dash_app import (
-    app,
     actualizar_datos_filtrados,
-    actualizar_lineas,
     actualizar_equipos,
-    actualizar_turnos,
-    actualizar_operadores,
     actualizar_kpis,
+    actualizar_lineas,
+    actualizar_operadores,
+    actualizar_turnos,
 )
-
 
 
 def test_actualizar_kpis_returns_expected_values():
@@ -49,11 +47,7 @@ def test_actualizar_kpis_rejects_missing_columns():
 
     with pytest.raises(ValueError, match="Faltan columnas requeridas"):
         actualizar_kpis(data)
-import pandas as pd
 
-from dashboard.dash_app import (
-    actualizar_datos_filtrados,
-)
 
 
 def test_actualizar_datos_filtrados_returns_json():

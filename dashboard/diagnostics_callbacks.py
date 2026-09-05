@@ -10,7 +10,7 @@ from __future__ import annotations
 from io import StringIO
 
 import pandas as pd
-from dash import Input, Output, html
+from dash import Input, Output
 
 from dashboard.diagnostics_components import crear_tarjeta_hallazgo
 from dashboard.utils import leer_dataframe_filtrado

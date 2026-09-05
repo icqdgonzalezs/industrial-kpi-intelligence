@@ -6,6 +6,7 @@ from dashboard.capability_components import crear_capability_section
 from dashboard.components_dash import crear_control_center
 from dashboard.diagnostics_components import crear_diagnostics_section
 from dashboard.kpi_components import crear_kpi_grid
+from dashboard.operational_analysis_components import crear_operational_analysis_section
 from dashboard.quality_performance_components import crear_quality_performance
 
 
@@ -46,6 +47,7 @@ def crear_app_layout(
             crear_diagnostics_section(),
             crear_quality_performance(),
             crear_capability_section(variables_criticas),
+            crear_operational_analysis_section(),
             crear_control_center(
                 (
                     fecha_min,

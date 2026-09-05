@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output
 
 from dashboard.kpi_presenter import formatear_kpis
+from dashboard.utils import aplicar_tema_oscuro
 from dashboard.utils import leer_dataframe_filtrado as _leer_dataframe_filtrado
 from src.kpis import (
     calcular_kpis_globales,
@@ -63,7 +63,7 @@ def crear_figura_pareto(filtrado):
         },
     )
 
-    return figura
+    return aplicar_tema_oscuro(figura)
 
 
 def crear_lote_critico(filtrado):

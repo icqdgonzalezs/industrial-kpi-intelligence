@@ -1,4 +1,3 @@
-from dash import html
 
 from dashboard.plant_overview_components import (
     crear_plant_overview,

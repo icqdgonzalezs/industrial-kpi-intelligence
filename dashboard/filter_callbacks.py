@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import pandas as pd
 from dash import Input, Output
-
 
 _DF: pd.DataFrame | None = None
 _APLICAR_FILTROS: Callable | None = None

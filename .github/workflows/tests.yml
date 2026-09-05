@@ -7,6 +7,23 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Ruff
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check .
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -21,5 +38,5 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
-      - name: Correr suite de tests
-        run: pytest tests/ -v
+      - name: Correr suite de tests con cobertura
+        run: pytest tests/ -v --cov=src --cov=dashboard --cov-report=term-missing

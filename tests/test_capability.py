@@ -183,7 +183,7 @@ def test_calcular_cp_cpk_not_capable_classification():
 def test_resumen_capacidad_requires_dataframe():
     try:
         resumen_capacidad([], {})
-        assert False
+        raise AssertionError
     except TypeError as exc:
         assert "DataFrame" in str(exc)
 
@@ -198,6 +198,6 @@ def test_resumen_capacidad_requires_configuration_keys():
             df,
             {"peso": {"lsl": 490, "usl": 510}},
         )
-        assert False
+        raise AssertionError
     except ValueError as exc:
         assert "nombre" in str(exc)

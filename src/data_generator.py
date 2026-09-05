@@ -11,10 +11,11 @@ Autor: Sistema Industrial KPI Intelligence
 Fecha: 2025-XX-XX
 """
 
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from datetime import datetime, timedelta
 import yaml
 
 # ----------------------------------------------------------------------
@@ -95,10 +96,7 @@ def assign_operator(
     operators: list[str],
 ) -> str:
     """Asigna un operador utilizando la configuración externa."""
-    if shift == "Noche":
-        operator_pool = operators[16:24]
-    else:
-        operator_pool = operators[:16]
+    operator_pool = operators[16:24] if shift == "Noche" else operators[:16]
 
     return rng.choice(operator_pool)
 
@@ -116,13 +114,14 @@ def get_defect_rate(equipment_id: str, equipment_type: str, date: datetime,
 
     # Aplicar drift events
     for event in DRIFT_EVENTS:
-        if event["equipment_id"] == equipment_id:
-            if event["start_month"] <= date.month <= event["end_month"]:
-                progress = (date.month - event["start_month"]) / (
-                    event["end_month"] - event["start_month"] + 1
-                )
-                factor = 1.0 + progress * (event["factor_increment"] - 1.0)
-                base_rate *= factor
+        if event["equipment_id"] == equipment_id and (
+            event["start_month"] <= date.month <= event["end_month"]
+        ):
+            progress = (date.month - event["start_month"]) / (
+                event["end_month"] - event["start_month"] + 1
+            )
+            factor = 1.0 + progress * (event["factor_increment"] - 1.0)
+            base_rate *= factor
 
     # Efecto específico del producto
     product_key = (equipment_id, product_id)
