@@ -44,8 +44,42 @@ Los datos son sintéticos, generados por `src/data_generator.py` con semilla fij
 | 🟡 WATCH | Capacidad de proceso | Longitud — Cpk 1.05 (Marginal) |
 
 Fórmulas (ver `src/kpis.py` y `src/capability.py`):
+FPY = (producidas - defectuosas) / producidas
+Cp = (USL - LSL) / (6 * sigma)
+Cpk = min[(USL - media)/(3sigma), (media - LSL)/(3sigma)]---
 
+## 🏗️ Arquitectura
 
+Separación estricta entre lógica analítica y presentación — regla de oro del proyecto: **`src/` nunca importa Dash, y los callbacks nunca calculan estadística.**
+
+industrial-kpi-intelligence/
+├── src/ # Lógica pura, 100% testeada, sin Dash
+│ ├── kpis.py # FPY, scrap, reproceso, Pareto, KPIs por dimensión
+│ ├── capability.py # Cp/Cpk (Six Sigma)
+│ ├── diagnostics.py # Motor de diagnóstico priorizado (el diferenciador)
+│ ├── validation.py # Data quality gate
+│ └── data_generator.py # Generador sintético (supuestos documentados)
+│
+├── dashboard/ # Capa Dash — callbacks delgados, sin lógica estadística
+│ ├── dash_app.py # Punto de entrada
+│ ├── app_layout.py # Composición del layout
+│ ├── data_loader.py # Carga dataset + config
+│ ├── utils.py # Deserialización de stores + tema Plotly compartido
+│ ├── filter_.py # Control Center (filtros)
+│ ├── kpi_.py # Grilla de KPIs
+│ ├── quality_performance_.py # FPY/scrap/reproceso + Pareto
+│ ├── capability_.py # Cp/Cpk
+│ ├── diagnostics_.py # Panel de hallazgos priorizados
+│ ├── operational_analysis_.py # Ranking comparativo + drill-down
+│ └── plant_overview*.py # Vista general de planta
+│
+├── assets/style.css # Tema visual (servido automáticamente por Dash)
+├── config/ # LSL/USL, umbrales Cpk, parámetros del generador
+├── data/calidad_muestra.csv # Dataset sintético
+├── tests/ # 195 tests — un archivo por módulo de src/ y dashboard/
+├── .github/workflows/tests.yml # CI: ruff + pytest en cada push
+├── Procfile / render.yaml # Deploy en Render (gunicorn)
+└── requirements.txt
 
 
 ---
