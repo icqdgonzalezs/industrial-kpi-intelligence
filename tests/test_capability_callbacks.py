@@ -60,11 +60,11 @@ def test_formatear_indice_infinito():
 
 
 def test_formatear_indice_none():
-    assert _formatear_indice(None) == "N/D"
+    assert _formatear_indice(None) == "Sin datos"
 
 
 def test_formatear_indice_nan():
-    assert _formatear_indice(float("nan")) == "N/D"
+    assert _formatear_indice(float("nan")) == "Sin datos"
 
 
 def test_crear_figura_capacidad_con_datos_suficientes():

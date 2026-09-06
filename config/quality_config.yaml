@@ -7,6 +7,21 @@ quality:
       excellent: 1.33
       acceptable: 1.00
 
+  # Límites de especificación para las 2 variables continuas del dataset
+  # actual (data/calidad_muestra.csv: peso_promedio, longitud_promedio).
+  # Supuestos documentados: peso reutiliza el spec de fill_weight_g más
+  # abajo (500g ±8g); longitud usa ±2.5mm sobre el target de 120mm,
+  # ambos consistentes con la media/sigma observada en el dataset.
+  variables_criticas:
+    peso_promedio:
+      nombre: "Peso"
+      lsl: 492.0
+      usl: 508.0
+    longitud_promedio:
+      nombre: "Longitud"
+      lsl: 117.5
+      usl: 122.5
+
   loss_allocation:
     scrap_ratio: 0.30
     rework_ratio: 0.70

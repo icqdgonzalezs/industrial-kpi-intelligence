@@ -37,12 +37,12 @@ def _color_por_ratio(ratio: float) -> str:
 def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
     """Construye el ranking comparativo (barras) para la dimensión seleccionada."""
     if filtrado is None or filtrado.empty:
-        return go.Figure()
+        return aplicar_tema_oscuro(go.Figure())
 
     por_dimension = calcular_kpis_por_dimension(filtrado, dimension)
 
     if por_dimension.empty:
-        return go.Figure()
+        return aplicar_tema_oscuro(go.Figure())
 
     promedio_planta = calcular_kpis_globales(filtrado)["tasa_defectos"]
 
@@ -88,7 +88,7 @@ def crear_panel_detalle(filtrado, dimension: str, valor_seleccionado: str) -> ht
 
     kpis = calcular_kpis_globales(subconjunto)
     pareto = calcular_pareto(subconjunto)
-    causa_principal = str(pareto.iloc[0]["defecto"]) if not pareto.empty else "N/D"
+    causa_principal = str(pareto.iloc[0]["defecto"]) if not pareto.empty else "Sin datos"
 
     return html.Div(
         [
@@ -121,7 +121,7 @@ def registrar_callbacks_operational_analysis(app) -> None:
         filtrado = leer_dataframe_filtrado(data)
 
         if filtrado.empty or not dimension:
-            return go.Figure()
+            return aplicar_tema_oscuro(go.Figure())
 
         return crear_figura_ranking(filtrado, dimension)
 

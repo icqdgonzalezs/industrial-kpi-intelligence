@@ -52,15 +52,15 @@ def _mensaje_estado(estado: str) -> str:
 def _formatear_indice(valor) -> str:
     """Formatea Cp/Cpk incluyendo valores infinitos."""
     if valor is None:
-        return "N/D"
+        return "Sin datos"
 
     try:
         valor_float = float(valor)
     except (TypeError, ValueError):
-        return "N/D"
+        return "Sin datos"
 
     if pd.isna(valor_float):
-        return "N/D"
+        return "Sin datos"
 
     if math.isinf(valor_float):
         return "∞"
@@ -130,7 +130,7 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         capacidad = calcular_resumen_capacidad(data, variables_config)
 
         if capacidad.empty:
-            return None, "0", "N/D", "0", "0"
+            return None, "0", "Sin datos", "0", "0"
 
         cpk = pd.to_numeric(capacidad["cpk"], errors="coerce").dropna()
         cpk_min = float(cpk.min()) if not cpk.empty else None
@@ -169,7 +169,7 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         Input("store-datos-filtrados", "data"),
     )
     def callback_actualizar_variable_seleccionada(capacidad_json, columna, data):
-        vacio = ("N/D", "N/D", "N/D", "N/D", "Sin datos para evaluar.", go.Figure(), "")
+        vacio = ("Sin datos", "Sin datos", "Sin datos", "Sin datos", "Sin datos para evaluar.", aplicar_tema_oscuro(go.Figure()), "")
 
         if not capacidad_json or not columna:
             return vacio
@@ -197,8 +197,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         return (
             _formatear_indice(fila["cp"]),
             _formatear_indice(fila["cpk"]),
-            f"{media:.3f}" if media is not None else "N/D",
-            f"{sigma:.4f}" if sigma is not None else "N/D",
+            f"{media:.3f}" if media is not None else "Sin datos",
+            f"{sigma:.4f}" if sigma is not None else "Sin datos",
             mensaje,
             figura,
             observaciones,

@@ -34,7 +34,7 @@ def crear_figura_pareto(filtrado):
     pareto = calcular_pareto(filtrado)
 
     if pareto.empty:
-        return go.Figure()
+        return aplicar_tema_oscuro(go.Figure())
 
     figura = go.Figure()
 
@@ -111,7 +111,7 @@ def registrar_callbacks_quality_performance(app) -> None:
         if filtrado.empty:
             return (
                 *metricas,
-                go.Figure(),
+                aplicar_tema_oscuro(go.Figure()),
                 "Sin defectos en el período seleccionado.",
                 "Sin datos para identificar un lote crítico.",
             )

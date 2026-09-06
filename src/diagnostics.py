@@ -98,7 +98,7 @@ def _diagnosticar_capacidad(capacidad: pd.DataFrame | None) -> list[dict]:
 
         cpk = fila.get("cpk")
         cpk_valido = pd.notna(cpk)
-        cpk_texto = f"{float(cpk):.2f}" if cpk_valido else "N/D"
+        cpk_texto = f"{float(cpk):.2f}" if cpk_valido else "Sin datos"
 
         hallazgos.append(
             {
