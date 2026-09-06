@@ -24,8 +24,7 @@ def crear_operational_analysis_section() -> html.Div:
                         className="section-title",
                     ),
                     html.P(
-                        "Ranking comparativo por dimensión operacional. "
-                        "Haz clic en una barra para ver el detalle de ese grupo.",
+                        "Clic en una barra para ver el detalle.",
                         className="section-subtitle",
                     ),
                 ],

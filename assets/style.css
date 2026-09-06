@@ -350,3 +350,18 @@ div[class*="-placeholder"] {
   background-color: var(--bg-card) !important;
   color: var(--text-primary) !important;
 }
+
+/* ---------- Tabs (navegación minimalista) ---------- */
+
+.tab {
+  background: var(--bg-app) !important;
+  color: var(--text-muted) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+.tab--selected {
+  color: var(--accent) !important;
+  border-bottom: 2px solid var(--accent) !important;
+  background: var(--bg-app) !important;
+}

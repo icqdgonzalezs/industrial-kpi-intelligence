@@ -16,8 +16,7 @@ def crear_diagnostics_section() -> html.Div:
                         className="section-title",
                     ),
                     html.P(
-                        "Hallazgos priorizados: equipos y turnos fuera de rango, "
-                        "capacidad de proceso en riesgo y concentración de defectos.",
+                        "Hallazgos priorizados por severidad.",
                         className="section-subtitle",
                     ),
                 ],

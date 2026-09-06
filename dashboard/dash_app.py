@@ -6,6 +6,7 @@ from dash import Dash
 
 from dashboard.app_layout import crear_app_layout
 from dashboard.capability_callbacks import registrar_callbacks_capability
+from dashboard.control_charts_callbacks import registrar_callbacks_control_charts
 from dashboard.data_callbacks import (
     actualizar_datos_filtrados as _actualizar_datos_filtrados,
 )
@@ -30,6 +31,7 @@ from dashboard.kpi_callbacks import (
 )
 from dashboard.operational_analysis_callbacks import registrar_callbacks_operational_analysis
 from dashboard.quality_performance_callbacks import registrar_callbacks_quality_performance
+from dashboard.tabs_callbacks import registrar_callbacks_tabs
 
 __all__ = [
     "app",
@@ -100,6 +102,12 @@ registrar_callbacks_diagnostics(
     app,
 )
 registrar_callbacks_operational_analysis(
+    app,
+)
+registrar_callbacks_control_charts(
+    app,
+)
+registrar_callbacks_tabs(
     app,
 )
 
