@@ -105,7 +105,7 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
 
     media = float(fila["media"]) if pd.notna(fila["media"]) else None
     if media is not None:
-        figura.add_vline(x=media, annotation_text="Media")
+        figura.add_vline(x=media, annotation_text="Promedio")
 
     figura.update_layout(
         height=380,

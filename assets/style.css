@@ -367,3 +367,47 @@ div[class*="-placeholder"] {
   border-bottom: 2px solid var(--accent) !important;
   background: var(--bg-app) !important;
 }
+
+/* ---------- react-dates (DatePickerRange) — override agresivo ---------- */
+
+.DateRangePicker,
+.DateRangePickerInput,
+.DateRangePickerInput__withBorder,
+.DateInput,
+.DateInput_input,
+.DateInput_input__focused {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.DateRangePickerInput_arrow_svg,
+.DateInput_fangShape {
+  fill: var(--text-muted) !important;
+}
+
+.DateRangePickerInput_calendarIcon {
+  filter: invert(0.7);
+}
+
+/* Calendario emergente (si se abre) */
+.CalendarMonth,
+.CalendarMonth_caption,
+.DayPicker,
+.DayPicker_transitionContainer,
+.CalendarMonthGrid {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.CalendarDay__default {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.CalendarDay__selected,
+.CalendarDay__selected_span {
+  background-color: var(--accent) !important;
+  color: var(--bg-app) !important;
+}

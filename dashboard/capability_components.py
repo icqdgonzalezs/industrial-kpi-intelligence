@@ -101,7 +101,7 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                     ),
                     html.Div(
                         [
-                            html.Div("Media", className="quality-metric-label"),
+                            html.Div("Promedio", className="quality-metric-label"),
                             html.Div(id="capability-media", className="quality-metric-value"),
                         ],
                         className="quality-metric-card",
