@@ -411,3 +411,28 @@ div[class*="-placeholder"] {
   background-color: var(--accent) !important;
   color: var(--bg-app) !important;
 }
+
+/* ---------- Dash Dropdown — override genérico y agresivo ---------- */
+
+div[class*="Select"],
+div[class*="select"],
+div[class*="Select"] *,
+div[class*="select"] *,
+.dash-dropdown,
+.dash-dropdown * {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+div[class*="menu"],
+div[class*="Menu"] {
+  background-color: var(--bg-card) !important;
+}
+
+div[class*="placeholder"],
+div[class*="Placeholder"],
+div[class*="singleValue"],
+div[class*="SingleValue"] {
+  color: var(--text-primary) !important;
+}
