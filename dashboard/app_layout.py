@@ -2,13 +2,8 @@ from __future__ import annotations
 
 from dash import dcc, html
 
-from dashboard.capability_components import crear_capability_section
 from dashboard.components_dash import crear_control_center
-from dashboard.control_charts_components import crear_control_charts_section
-from dashboard.diagnostics_components import crear_diagnostics_section
 from dashboard.kpi_components import crear_kpi_grid
-from dashboard.operational_analysis_components import crear_operational_analysis_section
-from dashboard.quality_performance_components import crear_quality_performance
 
 TABS = [
     ("tab-diagnostico", "Diagnóstico"),
@@ -28,14 +23,6 @@ def crear_app_layout(
     operadores: list[str],
     variables_criticas: dict,
 ):
-    contenido_por_tab = {
-        "tab-diagnostico": crear_diagnostics_section(),
-        "tab-calidad": crear_quality_performance(),
-        "tab-capacidad": crear_capability_section(variables_criticas),
-        "tab-control": crear_control_charts_section(variables_criticas),
-        "tab-operacional": crear_operational_analysis_section(),
-    }
-
     return html.Div(
         [
             html.Div(
@@ -55,15 +42,9 @@ def crear_app_layout(
                 value=TABS[0][0],
                 children=[dcc.Tab(label=label, value=tab_id) for tab_id, label in TABS],
             ),
-            html.Div(
-                [
-                    html.Div(
-                        contenido_por_tab[tab_id],
-                        id=f"{tab_id}-content",
-                        style={"display": "block" if tab_id == TABS[0][0] else "none"},
-                    )
-                    for tab_id, _ in TABS
-                ]
-            ),
+            # Contenedor único: su contenido se reemplaza por completo en cada
+            # cambio de pestaña (ver tabs_callbacks.py). Así el dcc.Graph de la
+            # pestaña activa se monta SIEMPRE visible, y Plotly lo mide bien.
+            html.Div(id="tab-content-container"),
         ]
     )

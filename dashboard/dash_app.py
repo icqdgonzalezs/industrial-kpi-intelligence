@@ -109,6 +109,7 @@ registrar_callbacks_control_charts(
 )
 registrar_callbacks_tabs(
     app,
+    variables_criticas,
 )
 
 
