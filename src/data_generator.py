@@ -7,6 +7,17 @@ variabilidad por turno y reproducibilidad garantizada (semilla fija 42).
 
 Los datos generados se guardan en data/raw/synthetic_production_data.csv
 
+Extensión (ADR-0001 / Fix OEE): además de los campos de producción y
+defectos originales, este generador ahora emite:
+- lote: identificador de lote secuencial (requerido por el contrato
+  analítico interno; no existía en versiones anteriores del generador).
+- peso_promedio, longitud_promedio: variables continuas de calidad,
+  necesarias para src/capability.py (Cp/Cpk). Supuestos documentados en
+  config/generator_config.yaml (continuous_variables).
+- planned_time_min, planned_downtime_min, unplanned_downtime_min,
+  ideal_cycle_time_sec: los 4 campos requeridos por src/oee.py. Supuestos
+  documentados en config/generator_config.yaml (oee_assumptions).
+
 Autor: Sistema Industrial KPI Intelligence
 Fecha: 2025-XX-XX
 """
@@ -46,6 +57,14 @@ PRODUCT_EFFECT = {
     (item["equipment_id"], item["product_id"]): item["factor"]
     for item in GENERATOR_CONFIG["product_effect"]
 }
+
+# NUEVO: supuestos de variables continuas y OEE.
+CONTINUOUS_VARIABLES = GENERATOR_CONFIG["continuous_variables"]
+OEE_ASSUMPTIONS = GENERATOR_CONFIG["oee_assumptions"]
+PLANNED_TIME_MIN = float(OEE_ASSUMPTIONS["planned_time_min"])
+PLANNED_DOWNTIME_MIN = float(OEE_ASSUMPTIONS["planned_downtime_min"])
+UNPLANNED_DOWNTIME_PCT_MIN = float(OEE_ASSUMPTIONS["unplanned_downtime_pct_range"]["min"])
+UNPLANNED_DOWNTIME_PCT_MAX = float(OEE_ASSUMPTIONS["unplanned_downtime_pct_range"]["max"])
 
 
 def load_plant_config() -> dict:
@@ -132,6 +151,40 @@ def get_defect_rate(equipment_id: str, equipment_type: str, date: datetime,
     limits = GENERATOR_CONFIG["generation_limits"]
     return min(max(base_rate, limits["min_defect_rate"]), limits["max_defect_rate"])
 
+
+def get_ideal_cycle_time_sec(equipment_type: str) -> float:
+    """Deriva el tiempo de ciclo ideal (seg/unidad) desde production_per_shift.
+
+    Una sola fuente de verdad: el tiempo de ciclo "de placa" del fabricante
+    es el que produciría exactamente ``production_per_shift[type]`` unidades
+    en un turno de ``PLANNED_TIME_MIN`` minutos, sin ningún paro. No se
+    hardcodea un segundo valor independiente que pudiera desalinearse.
+    """
+    base_units_per_shift = BASE_PRODUCTION.get(equipment_type, 3000)
+    return (PLANNED_TIME_MIN * 60.0) / base_units_per_shift
+
+
+def generate_continuous_variables(
+    rng: np.random.Generator,
+    n: int,
+) -> dict[str, np.ndarray]:
+    """Genera las variables continuas de calidad para ``n`` registros.
+
+    Supuesto documentado: distribución normal centrada en el target de
+    config/quality_config.yaml, sigma fijo por variable (ver
+    generator_config.yaml -> continuous_variables). No varía todavía por
+    equipment_type ni por drift event — simplificación deliberada.
+    """
+    resultado = {}
+    for nombre, parametros in CONTINUOUS_VARIABLES.items():
+        resultado[nombre] = rng.normal(
+            loc=parametros["target"],
+            scale=parametros["sigma"],
+            size=n,
+        )
+    return resultado
+
+
 def generate_production_data() -> pd.DataFrame:
     """
     Genera el dataset completo de producción y defectos.
@@ -151,13 +204,43 @@ def generate_production_data() -> pd.DataFrame:
         equipment_type = eq_row["equipment_type"]
         products = eq_row["products"]
 
+        ideal_cycle_time_sec = get_ideal_cycle_time_sec(equipment_type)
+
         for date in working_days:
             for shift in shifts:
                 # Elegir producto aleatorio de la línea
                 product_id = rng.choice(products)
 
-                # Producción base con distribución configurada por turno
+                # --- Paro no planificado (OEE) — se calcula ANTES que
+                # units_produced, porque units_produced debe depender del
+                # tiempo operativo real disponible. Generarlos de forma
+                # independiente (como en la version anterior de este
+                # generador) producia un Rendimiento saturado en 1.0 casi
+                # siempre: la produccion no reaccionaba al paro no
+                # planificado de la misma fila. Corregido aqui.
+                tiempo_produccion_planificado = PLANNED_TIME_MIN - PLANNED_DOWNTIME_MIN
+                unplanned_downtime_pct = rng.uniform(
+                    UNPLANNED_DOWNTIME_PCT_MIN, UNPLANNED_DOWNTIME_PCT_MAX
+                )
+                unplanned_downtime_min = round(
+                    tiempo_produccion_planificado * unplanned_downtime_pct, 2
+                )
+                tiempo_operativo_min = (
+                    tiempo_produccion_planificado - unplanned_downtime_min
+                )
+                tiempo_operativo_seg = tiempo_operativo_min * 60.0
+
+                # Produccion base: unidades alcanzables al ritmo IDEAL
+                # durante el tiempo operativo real, moduladas por un
+                # factor de eficiencia por turno (production_distribution)
+                # que representa perdidas de ritmo no capturadas como paro
+                # (micro-paradas, ajustes, variabilidad humana). Este
+                # factor es el que efectivamente empuja Rendimiento por
+                # debajo de 1.0 de forma realista, en vez de solo la
+                # disponibilidad.
                 base_prod = BASE_PRODUCTION.get(equipment_type, 3000)
+                unidades_alcanzables = tiempo_operativo_seg / ideal_cycle_time_sec
+
                 production_config = GENERATOR_CONFIG["shift_effects"]["production_distribution"].get(shift, {"mean": 1.0, "std": 0.02})
                 prod_factor = rng.normal(production_config["mean"], production_config["std"])
                 production_limits = GENERATOR_CONFIG["generation_limits"]
@@ -166,7 +249,8 @@ def generate_production_data() -> pd.DataFrame:
                     min(production_limits["production_factor_max"], prod_factor),
                 )
 
-                units_produced = int(round(base_prod * prod_factor))
+                units_produced = int(round(unidades_alcanzables * prod_factor))
+                units_produced = max(0, units_produced)
 
                 # Tasa de defectos
                 defect_rate = get_defect_rate(equipment_id, equipment_type, date, shift, product_id)
@@ -213,10 +297,26 @@ def generate_production_data() -> pd.DataFrame:
                     "units_scrap": units_scrap,
                     "units_rework": units_rework,
                     "defect_type": defect_type,
+                    # --- NUEVO: campos OEE (src/oee.py) ---
+                    "planned_time_min": PLANNED_TIME_MIN,
+                    "planned_downtime_min": PLANNED_DOWNTIME_MIN,
+                    "unplanned_downtime_min": unplanned_downtime_min,
+                    "ideal_cycle_time_sec": round(ideal_cycle_time_sec, 4),
                 })
 
     df = pd.DataFrame(records)
     df = df.sort_values(["timestamp", "line_id", "equipment_id"]).reset_index(drop=True)
+
+    # --- NUEVO: lote (batch id) ---
+    # Secuencial sobre el dataset ya ordenado por timestamp/línea/equipo,
+    # consistente con la convención LOT-000001 del master plan (Sección 11).
+    df["lote"] = [f"LOT-{i:06d}" for i in range(1, len(df) + 1)]
+
+    # --- NUEVO: variables continuas de calidad (capability.py) ---
+    continuas = generate_continuous_variables(rng, len(df))
+    for nombre, valores in continuas.items():
+        df[nombre] = np.round(valores, 3)
+
     return df
 
 def main():

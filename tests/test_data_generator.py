@@ -93,4 +93,86 @@ def test_main_creates_output_file(tmp_path, monkeypatch):
     df = pd.read_csv(output_path)
 
     assert not df.empty
-    assert len(df.columns) == 16
+    # 16 columnas originales + 7 nuevas: lote, peso_promedio,
+    # longitud_promedio, planned_time_min, planned_downtime_min,
+    # unplanned_downtime_min, ideal_cycle_time_sec (ver ADR-0001 / Fix OEE).
+    assert len(df.columns) == 23
+
+
+# ---------------------------------------------------------------------
+# NUEVO: columnas de OEE y variables continuas (ADR-0001 / Fix OEE)
+# ---------------------------------------------------------------------
+
+
+def test_generated_dataset_has_oee_columns():
+    df = generate_production_data()
+
+    required_oee_columns = {
+        "planned_time_min",
+        "planned_downtime_min",
+        "unplanned_downtime_min",
+        "ideal_cycle_time_sec",
+    }
+
+    assert required_oee_columns.issubset(df.columns)
+
+
+def test_generated_dataset_has_lote_column_and_is_unique():
+    df = generate_production_data()
+
+    assert "lote" in df.columns
+    assert df["lote"].is_unique
+    assert df["lote"].iloc[0] == "LOT-000001"
+
+
+def test_generated_dataset_has_continuous_quality_variables():
+    df = generate_production_data()
+
+    assert "peso_promedio" in df.columns
+    assert "longitud_promedio" in df.columns
+    assert df["peso_promedio"].between(400, 600).all()
+    assert df["longitud_promedio"].between(100, 140).all()
+
+
+def test_generated_dataset_respects_oee_physical_constraints():
+    """unplanned_downtime_min nunca puede superar el tiempo de produccion
+    planificado (planned_time_min - planned_downtime_min), o Disponibilidad
+    en src/oee.py se volveria negativa."""
+    df = generate_production_data()
+
+    tiempo_produccion_planificado = (
+        df["planned_time_min"] - df["planned_downtime_min"]
+    )
+
+    assert (df["unplanned_downtime_min"] >= 0).all()
+    assert (df["unplanned_downtime_min"] <= tiempo_produccion_planificado).all()
+    assert (df["ideal_cycle_time_sec"] > 0).all()
+    assert (df["planned_time_min"] - df["planned_downtime_min"] > 0).all()
+
+
+def test_generated_dataset_performance_is_not_saturated_at_one():
+    """Regresion: una version anterior de este generador producia
+    units_produced independiente del paro no planificado, saturando
+    Rendimiento en 1.0 para practicamente todas las filas. Verifica que
+    exista variabilidad real (no un valor constante)."""
+    from src.oee import calcular_oee
+
+    df = generate_production_data()
+    resultado = calcular_oee(df)
+
+    assert resultado["rendimiento"].std() > 0.01
+    assert resultado["rendimiento"].min() < 0.95
+
+
+def test_generated_dataset_oee_is_computable_end_to_end():
+    """El dataset generado debe poder alimentar src/oee.py sin errores,
+    con valores de OEE en un rango fisicamente valido."""
+    from src.oee import calcular_oee_ponderado
+
+    df = generate_production_data()
+    resultado = calcular_oee_ponderado(df)
+
+    assert 0.0 <= resultado["oee"] <= 1.0
+    assert 0.0 <= resultado["disponibilidad"] <= 1.0
+    assert 0.0 <= resultado["rendimiento"] <= 1.0
+    assert 0.0 <= resultado["calidad"] <= 1.0
