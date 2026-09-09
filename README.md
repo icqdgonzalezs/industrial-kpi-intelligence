@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Dash](https://img.shields.io/badge/Dash-Plotly-00CC96?logo=plotly&logoColor=white)](https://dash.plotly.com/)
 [![Tests](https://img.shields.io/badge/Tests-194%20passing-brightgreen)](tests/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/License-Elastic_License_2.0-blue)](LICENSE)
 
 **Plataforma de inteligencia operacional industrial** — convierte datos crudos de planta en KPIs, control estadístico de proceso, capacidad Six Sigma y un motor de diagnóstico que prioriza qué amerita atención primero.
 
@@ -81,6 +81,25 @@ pytest tests/ -v --cov=src --cov=dashboard   # 194 tests
 Ver [`CHANGELOG.md`](CHANGELOG.md) — cada entrada corresponde a un commit real, validado con tests y, en los bugs más delicados, con peticiones HTTP reales contra el servidor.
 
 ---
+
+## 📄 Licencia y Uso
+
+Este proyecto está licenciado bajo **Elastic License 2.0 (ELv2)**, no MIT/Apache.
+La diferencia práctica:
+
+| Perfil | ¿Qué puedes hacer? |
+|---|---|
+| **Evaluador técnico / reclutador / portafolio** | Clonar, leer, ejecutar localmente, modificar para tu propio aprendizaje o evaluación, usar como referencia en una entrevista técnica. Sin restricciones. |
+| **Empresa que quiere usarlo internamente** | Desplegarlo en tu propia infraestructura (on-premise o tu propia nube) para tu propia operación, con las mismas libertades de copia/modificación. |
+| **Empresa que quiere revenderlo como servicio hosted a terceros** | **No permitido** bajo esta licencia. Ese uso requiere un acuerdo comercial conmigo — es exactamente la actividad que la licencia protege. |
+| **Cliente pagando (Starter/Professional/Enterprise)** | Recibe una licencia de uso comercial explícita como parte del contrato de suscripción, con SLA, soporte y actualizaciones — independiente de los términos de este repositorio público. |
+
+**En una frase:** puedes leer, correr y aprender de todo el código libremente. Lo único que no puedes hacer es tomarlo y ofrecerlo como tu propio SaaS competidor. Si tu empresa quiere usarlo como producto (no solo evaluarlo), hablemos de una licencia comercial.
+
+Ver [`LICENSE`](LICENSE) para el texto legal completo.
+
+---
+
 
 ## 👤 Autor
 
