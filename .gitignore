@@ -1,14 +1,10 @@
 venv/
-.DS_Store
 __pycache__/
 *.pyc
-
 .pytest_cache/
-
-
+.DS_Store
 .env
 .env.*
 !.env.example
-
 .coverage
 estructura.txt
