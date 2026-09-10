@@ -33,6 +33,7 @@ reconstruidas ni inferidas.
 - **Docs:** master plan versionado en `docs/`, referencias NIST 6.1.3 / 6.3.1 /
   6.3.2 en `docs/nist_references/`, se retira el manual cross-project de
   quality-kpi-dashboard, `estructura.txt` excluido vía `.gitignore`.
+
 - **Tests:** 225 passing tras integrar motor OEE y generador extendido.
 
 ## Migración Streamlit → Dash
