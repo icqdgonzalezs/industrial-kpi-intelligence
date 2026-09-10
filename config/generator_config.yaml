@@ -156,3 +156,49 @@ product_effect:
   - equipment_id: "L1-FILL-01"
     product_id: "PRD-C"
     factor: 1.2
+
+# ---------------------------------------------------------------------
+# NUEVO: variables continuas de calidad (para src/capability.py).
+# Supuesto documentado: se generan 2 variables genéricas por registro,
+# consistentes con config/quality_config.yaml (quality.variables_criticas):
+# peso_promedio (target 500 g, LSL 492 / USL 508) y longitud_promedio
+# (target 120 mm, LSL 117.5 / USL 122.5). No se modela una variable
+# distinta por equipment_type todavía (simplificación deliberada,
+# documentada aquí en vez de silenciada): un refinamiento futuro podría
+# usar quality_config.yaml['variables'][equipment_type] para generar
+# variables físicamente específicas por tipo de máquina (torque, sellado,
+# etc.), pero eso requiere rediseñar capability.py para múltiples
+# variables por tipo, fuera del alcance de este fix.
+# ---------------------------------------------------------------------
+continuous_variables:
+  peso_promedio:
+    target: 500.0
+    sigma: 3.0
+  longitud_promedio:
+    target: 120.0
+    sigma: 1.2
+
+# ---------------------------------------------------------------------
+# NUEVO: supuestos de OEE (Availability / Performance) por turno y tipo
+# de equipo, requeridos por src/oee.py.
+#
+# planned_time_min: duración nominal de un turno, en minutos (8h = 480).
+# planned_downtime_min: paros planificados dentro del turno (cambios de
+#   formato, colación, mantenimiento programado). Supuesto documentado:
+#   45 min/turno para todos los equipos (no varía por tipo todavía).
+# unplanned_downtime_pct_range: rango de paro NO planificado, como % del
+#   tiempo de producción planificado restante (planned_time - planned_downtime).
+#   Se muestrea uniformemente dentro del rango por registro, para dar
+#   variabilidad realista sin un modelo de fallas explícito.
+# ideal_cycle_time_sec: derivado de production_per_shift y planned_time_min
+#   asumiendo 0 downtime (tiempo de ciclo "de placa" del fabricante):
+#   ideal_cycle_time_sec = (planned_time_min * 60) / production_per_shift[type]
+#   Este valor se calcula en el generador, no se hardcodea aquí, para
+#   mantener una sola fuente de verdad con production_per_shift.
+# ---------------------------------------------------------------------
+oee_assumptions:
+  planned_time_min: 480
+  planned_downtime_min: 45
+  unplanned_downtime_pct_range:
+    min: 0.03
+    max: 0.18

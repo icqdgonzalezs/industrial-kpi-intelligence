@@ -4,6 +4,38 @@ Todo lo registrado aquí corresponde a commits reales del repositorio,
 verificados con `pytest` y `ruff` en cada paso. No hay entradas
 reconstruidas ni inferidas.
 
+## Semana 1 — Licencia comercial, ADR-0001, motor OEE y schema extendido (2026-09-09)
+
+- **Licencia:** MIT → Elastic License 2.0 (ELv2). El README agrega la sección
+  "Licencia y Uso" (qué puede hacer un evaluador técnico vs. un cliente pagando)
+  y el badge de licencia queda actualizado. Decisión de modelo de negocio:
+  proteger el SaaS sin cerrar el código a evaluación.
+
+- **ADR-0001** (`docs/adr/0001-canonical-dataset.md`): dataset canónico =
+  `synthetic_production_*.csv` (esquema inglés, ~18k registros);
+  `calidad_muestra.csv` queda como legacy documentado. La unificación del loader
+  se resuelve por Camino A (adaptador / patrón strangler) con condición de muerte
+  del adaptador en semanas 3-4.
+
+- **Motor OEE** (`src/oee.py` + `tests/test_oee.py`): Availability × Performance ×
+  Quality según ISA-95/TPM. Disponibilidad excluye paro planificado; Performance
+  capado a 1.0 (un ciclo ideal mal configurado es error de config, no ganancia);
+  Quality reusa el FPY de `kpis.py` (una sola definición en el codebase);
+  agregación de planta ponderada por tiempo operativo, nunca promedio simple de
+  OEE. Lanza `ValueError` si el schema no trae las columnas de tiempo:
+  no inventa KPIs (regla de oro §58).
+
+- **Schema extendido** (`config/generator_config.yaml`, `src/data_generator.py`):
+  `planned_time_min`, `planned_downtime_min`, `unplanned_downtime_min`,
+  `ideal_cycle_time_sec`, con `units_produced` acoplado al tiempo operativo real
+  (fix del hallazgo de Performance saturado en 1.0).
+
+- **Docs:** master plan versionado en `docs/`, referencias NIST 6.1.3 / 6.3.1 /
+  6.3.2 en `docs/nist_references/`, se retira el manual cross-project de
+  quality-kpi-dashboard, `estructura.txt` excluido vía `.gitignore`.
+
+- **Tests:** 225 passing tras integrar motor OEE y generador extendido.
+
 ## Migración Streamlit → Dash
 
 - Arquitectura Dash completa: `src/` (lógica pura, sin Dash) + `dashboard/`
@@ -75,6 +107,7 @@ reconstruidas ni inferidas.
 
 ## Estado actual
 
-- **194 tests**, 100% pasando.
-- Cobertura ~91% en `src/` y `dashboard/`.
-- `ruff check .` limpio.
+- **225 tests**, 100% pasando.
+- Cobertura: última medida ~91% (pre-Semana 1); re-medir con
+  `pytest --cov` tras el merge de Semana 1.
+- `ruff check .`: limpio en CI; re-verificar en el push de Semana 1.
