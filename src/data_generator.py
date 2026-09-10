@@ -238,7 +238,6 @@ def generate_production_data() -> pd.DataFrame:
                 # factor es el que efectivamente empuja Rendimiento por
                 # debajo de 1.0 de forma realista, en vez de solo la
                 # disponibilidad.
-                base_prod = BASE_PRODUCTION.get(equipment_type, 3000)
                 unidades_alcanzables = tiempo_operativo_seg / ideal_cycle_time_sec
 
                 production_config = GENERATOR_CONFIG["shift_effects"]["production_distribution"].get(shift, {"mean": 1.0, "std": 0.02})
