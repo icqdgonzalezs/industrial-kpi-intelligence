@@ -1,4 +1,16 @@
-"""Layout Dash para el análisis de capacidad de proceso (Cp/Cpk)."""
+"""Layout Dash para el análisis de capacidad de proceso (Pp/Ppk).
+
+Nota de nomenclatura (NIST 6.1.3 / ISO 22514): los índices mostrados
+son Pp/Ppk (sigma overall, ddof=1), no Cp/Cpk (sigma within, MRbar/d2).
+Ver src/capability.py para la justificación técnica.
+
+Nota de IDs legacy: los IDs de los componentes (`capability-cp`,
+`capability-cpk`, `capability-cpk-minimo`) se conservan por
+compatibilidad con dashboard/capability_callbacks.py y con
+dashboard/app_layout.py. El rename de esos IDs, junto con el de los
+labels visibles a "Pp:"/"Ppk:", se completa en el refactor de
+Semana 6 (ver docs/adr/0002-naming-convention.md).
+"""
 
 from __future__ import annotations
 
@@ -30,7 +42,7 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                         className="section-title",
                     ),
                     html.P(
-                        "Evaluación de capacidad (Cp/Cpk) respecto de los "
+                        "Evaluación de capacidad (Pp/Ppk) respecto de los "
                         "límites de especificación definidos en configuración.",
                         className="section-subtitle",
                     ),
@@ -49,7 +61,7 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                     ),
                     html.Div(
                         [
-                            html.Div("Cpk mínimo", className="quality-metric-label"),
+                            html.Div("Ppk mínimo", className="quality-metric-label"),
                             html.Div(id="capability-cpk-minimo", className="quality-metric-value"),
                         ],
                         className="quality-metric-card",
@@ -87,14 +99,14 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                 [
                     html.Div(
                         [
-                            html.Div("Cp", className="quality-metric-label"),
+                            html.Div("Pp", className="quality-metric-label"),
                             html.Div(id="capability-cp", className="quality-metric-value"),
                         ],
                         className="quality-metric-card",
                     ),
                     html.Div(
                         [
-                            html.Div("Cpk", className="quality-metric-label"),
+                            html.Div("Ppk", className="quality-metric-label"),
                             html.Div(id="capability-cpk", className="quality-metric-value"),
                         ],
                         className="quality-metric-card",
