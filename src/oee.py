@@ -33,9 +33,15 @@ Definitions (ISA-95 / TPM, non-negotiable per project convention):
 
 World-class benchmark (TPM convention used for classification in this
 project, NOT a universal law):
-    OEE >= 0.85           -> "Clase mundial"
-    0.60 <= OEE < 0.85     -> "Aceptable (mejorable)"
-    OEE < 0.60             -> "Bajo (accion requerida)"
+    OEE >= 0.85           -> "world_class"
+    0.60 <= OEE < 0.85     -> "acceptable"
+    OEE < 0.60             -> "low"
+
+H2 (stable keys): clasificar_oee() returns a stable, language-independent
+key, not display text. Translation to Spanish (or any other language)
+happens exclusively in the UI presentation layer — see
+dashboard/oee_presenter.py. This module never imports Dash and never
+decides how a result is displayed; it only decides what the result IS.
 
 Required input columns per equipment/period record:
     planned_time_min        : float  (total scheduled time, minutes)
@@ -68,6 +74,10 @@ REQUIRED_OEE_COLUMNS = [
 
 UMBRAL_OEE_CLASE_MUNDIAL = 0.85
 UMBRAL_OEE_ACEPTABLE = 0.60
+
+CLASIFICACION_WORLD_CLASS = "world_class"
+CLASIFICACION_ACCEPTABLE = "acceptable"
+CLASIFICACION_LOW = "low"
 
 
 def _validar_dataframe(df: pd.DataFrame) -> None:
@@ -148,14 +158,20 @@ def _validar_integridad_oee(df: pd.DataFrame) -> None:
 def clasificar_oee(oee: float) -> str:
     """Clasifica un valor de OEE segun la convencion TPM del proyecto.
 
+    Devuelve una clave estable en ingles ("world_class", "acceptable",
+    "low"), NUNCA texto de presentacion. La traduccion a texto de UI
+    vive en dashboard/oee_presenter.py (ver H2 en el docstring del
+    modulo). Esto evita que el motor de calculo dependa del idioma en
+    que se muestra el resultado.
+
     Nota: es una convencion de reporting interna del proyecto (igual que
-    la clasificacion de Cpk en capability.py), no una ley universal.
+    la clasificacion de Ppk en capability.py), no una ley universal.
     """
     if oee >= UMBRAL_OEE_CLASE_MUNDIAL:
-        return "Clase mundial"
+        return CLASIFICACION_WORLD_CLASS
     if oee >= UMBRAL_OEE_ACEPTABLE:
-        return "Aceptable (mejorable)"
-    return "Bajo (accion requerida)"
+        return CLASIFICACION_ACCEPTABLE
+    return CLASIFICACION_LOW
 
 
 def calcular_oee_fila(
