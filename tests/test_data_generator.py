@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from src.data_generator import (
     DEFECT_TYPE_DIST,
@@ -176,3 +177,74 @@ def test_generated_dataset_oee_is_computable_end_to_end():
     assert 0.0 <= resultado["disponibilidad"] <= 1.0
     assert 0.0 <= resultado["rendimiento"] <= 1.0
     assert 0.0 <= resultado["calidad"] <= 1.0
+
+
+
+# ----------------------------------------------------------------------
+# Test de distribución de OEE — evidencia del fix de acoplamiento
+# (Semana 2, regla C.1: sin números no hay cierre)
+# ----------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def df_dataset_completo():
+    """Genera el dataset completo una sola vez para todos los tests del módulo.
+
+    scope='module' evita regenerar 18k filas por cada test.
+    Seed fija (42) garantiza reproducibilidad.
+    """
+    return generate_production_data()
+
+
+def test_performance_tiene_variabilidad_realista(df_dataset_completo):
+    """El fix de acoplamiento debe producir variabilidad real en Performance.
+
+    Antes del fix (bug histórico):
+        units_produced se generaba independiente del paro no planificado.
+        Resultado: Performance saturado en 1.0 (mean=0.9999, std≈0).
+        Un KPI sin variación no informa nada.
+
+    Después del fix:
+        units_produced nace del tiempo operativo real
+        (run_min × 60 / ideal_cycle × efficiency + ruido).
+        Performance debe tener media entre 0.50 y 0.95 y desviación > 0.05.
+
+    Si este test falla, el generador volvió a desacoplar producción de paros.
+    """
+    from src.oee import calcular_oee
+
+    df_oee = calcular_oee(df_dataset_completo)
+    perf = df_oee["rendimiento"]
+
+    assert 0.50 < perf.mean() < 0.95, (
+        f"media de Performance fuera de rango: {perf.mean():.4f}. "
+        f"¿El generador volvió a producir valores saturados en 1.0? "
+        f"Revisar src/data_generator.py, bloque 'Produccion base'."
+    )
+    assert perf.std() > 0.05, (
+        f"std de Performance demasiado bajo: {perf.std():.4f}. "
+        f"Un KPI sin variación no informa — el generador está produciendo "
+        f"filas con Performance casi idéntico."
+    )
+    assert perf.min() >= 0.0, f"Performance negativa: {perf.min():.4f}"
+    assert perf.max() <= 1.0, f"Performance > 1.0 (cap del motor roto): {perf.max():.4f}"
+
+
+def test_availability_tiene_variabilidad_realista(df_dataset_completo):
+    """Availability debe reflejar los paros no planificados aleatorios.
+
+    Rango esperado: los paros no planificados se generan con uniform(0.02, 0.15)
+    sobre el tiempo planificado, por lo que Availability debe estar entre
+    ~0.85 y ~0.98 con desviación > 0.01.
+    """
+    from src.oee import calcular_oee
+
+    df_oee = calcular_oee(df_dataset_completo)
+    avail = df_oee["disponibilidad"]
+
+    assert 0.80 < avail.mean() < 0.99, (
+        f"media de Availability fuera de rango: {avail.mean():.4f}."
+    )
+    assert avail.std() > 0.01, (
+        f"std de Availability demasiado bajo: {avail.std():.4f}."
+    )

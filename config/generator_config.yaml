@@ -10,14 +10,14 @@ shift_effects:
     Noche: 1.3
   production_distribution:
     Mañana:
-      mean: 1.0
-      std: 0.02
-    Tarde:
-      mean: 0.98
-      std: 0.03
-    Noche:
-      mean: 0.93
+      mean: 0.90
       std: 0.05
+    Tarde:
+      mean: 0.88
+      std: 0.05
+    Noche:
+      mean: 0.84
+      std: 0.06
   timestamp_hour:
     Mañana: 9
     Tarde: 15
