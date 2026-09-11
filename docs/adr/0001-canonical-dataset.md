@@ -1,7 +1,7 @@
 # ADR-0001: Dataset canónico de producción
 
-**Estado:** Aceptado
-**Fecha:** 2026-09-09
+**Estado:** Aceptado — decisión cerrada (Camino A)
+**Fecha:** 2026-09-09 (original) · 2026-09-10 (condición de muerte formalizada)
 **Decisor:** David González
 
 ## Contexto
@@ -15,34 +15,53 @@ El repositorio contiene dos datasets de producción incompatibles:
 | Generado por | Desconocido / manual (no hay generador en el repo) | `src/data_generator.py` (reproducible, seed=42, documentado) |
 | Usado hoy por | `dashboard/data_loader.py:9` (`DATA_PATH`) — **es el que alimenta la app en producción** | Ninguno — huérfano, solo referenciado por `tests/test_data_generator.py` |
 
-Esto significa que la aplicación Dash que un prospecto vería en una demo corre sobre 250 filas genéricas, mientras el generador "realista" de 18k filas descrito en el master plan (líneas, turnos, drift events, eventos de proceso) no está conectado a nada.
+La aplicación Dash que un prospecto vería en una demo corre sobre 250 filas genéricas, mientras el generador "realista" de 18k filas descrito en el master plan (líneas, turnos, drift events, eventos de proceso) no está conectado a nada.
 
 ## Decisión
 
-`synthetic_production_data.csv` / `src/data_generator.py` (esquema en inglés, reproducible) es el **dataset canónico de producto** en adelante.
+**Camino A — Adaptador / patrón strangler.**
 
-`calidad_muestra.csv` queda **retirado como fuente de la aplicación**: se conserva en el repo bajo `data/legacy/calidad_muestra.csv` con una nota en el propio archivo (o un `data/legacy/README.md`) que explique que es un dataset histórico, no usado por `dashboard/data_loader.py`.
+`synthetic_production_data.csv` / `src/data_generator.py` (esquema en inglés, reproducible) es el **dataset canónico de producto** desde esta decisión.
 
-## Riesgo de implementación identificado (no resuelto en esta sesión)
+`calidad_muestra.csv` queda **retirado como fuente de la aplicación**: se conserva en `data/legacy/calidad_muestra.csv` con nota explicativa.
 
-Este ADR decide *cuál CSV es la fuente*, pero **no implica que baste con cambiar `DATA_PATH` en `data_loader.py`**. Todo el motor analítico probado y en producción (`kpis.py`, `validation.py`, `capability.py`, `diagnostics.py`, `control_charts.py` — ~150 tests) espera el **contrato interno en español**: `lote, linea, maquina, equipo, turno, operador, unidades_producidas, unidades_defectuosas, unidades_scrap, unidades_reproceso, defecto_tipo, peso_promedio, longitud_promedio`.
+### Arquitectura del Camino A
 
-El dataset canónico en inglés no tiene hoy: `lote` (identificador de lote), variables continuas de calidad (`peso_promedio`/`longitud_promedio` no existen en `data_generator.py`), ni los 4 campos de OEE. Además, `validation.py`'s `_validar_equipo` reconstruye `equipo` como `f"L{numero_de_linea}-{maquina}"` a partir de `linea` — una regla acoplada a la convención antigua que **no aplica directamente** al esquema nuevo, donde `equipment_id` ya viene compuesto (`"L1-FILL-01"`) y `maquina` como columna separada no existe.
+1. **Nueva capa `src/schema_adapter.py`**: traduce esquema canónico EN → contrato interno ES en la frontera de carga.
+2. **Downstream sin cambios hoy**: `validation.py`, `kpis.py`, `capability.py`, `control_charts.py`, `diagnostics.py` y el dashboard siguen operando con el contrato ES. Los ~150 tests existentes siguen pasando.
+3. **El rewiring de `dashboard/data_loader.py`** (apuntar al CSV canónico + aplicar el adapter) se ejecuta en la **Semana 2B**, con CI verde como puerta.
+4. **`_validar_equipo` de `validation.py`**: se resolverá su semántica específica para el nuevo formato `equipment_id` compuesto (`"L1-FILL-01"`) durante el rewiring, con test dedicado.
 
-**Dos caminos posibles:**
+### Condición de muerte del adaptador
 
-- **Camino A (recomendado):** mantener el contrato interno en español sin tocarlo. Agregar una capa de *adaptador* en `data_loader.py` que traduzca/renombre las columnas del CSV canónico (inglés) al contrato interno (español) antes de devolver el DataFrame. Cero retrabajo sobre los ~150 tests existentes de `kpis.py/validation.py/capability.py/diagnostics.py`. Costo: escribir y testear el adaptador, y resolver específicamente la semántica de `_validar_equipo` para el nuevo formato de `equipment_id`.
-- **Camino B:** reescribir `kpis.py/validation.py/capability.py/diagnostics.py` para usar nombres en inglés directamente. Arquitectura más limpia a largo plazo (un solo esquema, no dos), pero toca ~10 archivos y ~150 tests. No justificado ahora dado el objetivo de venta en 8 semanas.
+El adaptador es **infraestructura transitoria, no permanente**. Se elimina en un commit dedicado cuando:
 
-Este ADR se cierra con la decisión del dataset canónico. La decisión Camino A vs. B, y el rediseño puntual de `_validar_equipo`, quedan como acción explícita pendiente — **no se tocó `validation.py` ni `data_loader.py` en esta sesión** para evitar romper un módulo con cobertura de tests alta sin un diseño verificado.
+- **Plazo:** Semanas 3-4 del plan de 8 semanas.
+- **Puerta:** CI verde en `main` + ADRs Semana 2 mergeados + suite > 225 tests.
+- **Trigger:** `validation.py` fue reescrito para consumir directamente el esquema canónico EN.
+- **Commit de eliminación:** un único commit `refactor: remove schema_adapter after validation.py migrated to canonical schema`, con tests que verifican que el pipeline sigue funcionando sin el adapter.
+
+Al cierre de esa eliminación, este ADR pasa a estado **Superseded** y se referencia desde el ADR que documente la migración completa.
 
 ## Consecuencias
 
-- `src/data_generator.py` se extiende (ver más abajo) para generar `lote`, `peso_promedio`, `longitud_promedio` y los 4 campos de OEE — sin lo cual `capability.py` y `oee.py` no tienen con qué alimentarse en el dataset canónico.
-- `dashboard/data_loader.py` **no se modifica todavía** — sigue apuntando a `calidad_muestra.csv` hasta que el Camino A/B esté decidido e implementado. Esto es intencional: cambiar el loader sin el adaptador rompería la app.
-- README y CHANGELOG deben documentar este ADR y el estado "pendiente de adaptador" explícitamente, para que no se repita el patrón de "decisión documentada mentalmente pero no reflejada en el código".
+### Positivas
+- Cero retrabajo sobre ~150 tests existentes durante Semanas 2-3.
+- Riesgo aislado: si el adapter falla, se corrige localmente sin tocar el motor analítico.
+- Decisión documentada con fecha de expiración — no se convierte en deuda silenciosa.
+
+### Negativas (documentadas, no silenciadas)
+- El codebase es bilingüe temporalmente (ver ADR-0002 para la convención).
+- Existe un componente (el adapter) que tiene fecha de muerte conocida y debe monitorearse.
 
 ## Alternativas consideradas
 
-- Mantener ambos datasets indefinidamente: descartado — es exactamente la ambigüedad que un auditor técnico penaliza en due diligence.
-- Migrar `calidad_muestra.csv` a inglés en vez de al revés: descartado — perdería el volumen (250 vs. 18k filas) y la reproducibilidad (seed fija) que ya tiene el generador.
+- **Mantener ambos datasets indefinidamente:** descartado — ambigüedad que un auditor técnico penaliza en due diligence.
+- **Migrar `calidad_muestra.csv` a inglés:** descartado — perdería volumen (250 vs. 18k) y reproducibilidad (seed fija).
+- **Camino B (rewrite directo del motor a inglés):** descartado para Semanas 2-3 por riesgo comercial — toca ~10 archivos y ~150 tests de golpe. Se ejecuta como refactor único en Semana 6 (ver ADR-0002).
+
+## Referencias
+
+- ADR-0002 (convención de nombres y transición bilingüe)
+- `docs/industrial-kpi-intelligence-master-plan.md` §14, §63
+- `src/schema_adapter.py` (implementación del Camino A)
