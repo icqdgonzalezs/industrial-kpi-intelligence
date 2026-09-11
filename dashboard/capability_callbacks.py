@@ -1,8 +1,19 @@
-"""Callbacks Dash para el análisis de capacidad de proceso (Cp/Cpk).
+"""Callbacks Dash para el análisis de capacidad de proceso (Pp/Ppk).
 
 Callback delgado: toda la matemática vive en src/capability.py (100%
 testeado). Aquí solo se orquesta la lectura de datos, el formato de
 presentación y la construcción del gráfico Plotly.
+
+Nota de nomenclatura (NIST 6.1.3 / ISO 22514): los índices calculados
+son Pp/Ppk (sigma overall, ddof=1), no Cp/Cpk (sigma within, MRbar/d2).
+Ver src/capability.py para la justificación técnica completa.
+
+Nota de IDs legacy: los componentes Dash conservan el nombre histórico
+("capability-cp", "capability-cpk", "capability-cpk-minimo") por
+compatibilidad con el layout en app_layout.py. El rename de esos IDs
+(y sus labels visibles "Cp:"/"Cpk:" → "Pp:"/"Ppk:") está agendado para
+el refactor de Semana 6 junto con el rename global a inglés
+(ver docs/adr/0002-naming-convention.md).
 """
 
 from __future__ import annotations
@@ -40,7 +51,7 @@ def _estado_capacidad(clasificacion: str) -> str:
 def _mensaje_estado(estado: str) -> str:
     return {
         "EXCELLENT": "El proceso presenta una capacidad robusta respecto de las especificaciones.",
-        "CAPABLE": "El proceso cumple el criterio de capacidad establecido para Cpk.",
+        "CAPABLE": "El proceso cumple el criterio de capacidad establecido para Ppk.",
         "WATCH": "El proceso requiere seguimiento para reducir el riesgo de incumplimiento.",
         "PRIORITY": "El proceso no demuestra capacidad suficiente. Se recomienda priorizar la investigación.",
         "NO DATA": "No existe información suficiente para evaluar la capacidad.",
@@ -50,7 +61,7 @@ def _mensaje_estado(estado: str) -> str:
 
 
 def _formatear_indice(valor) -> str:
-    """Formatea Cp/Cpk incluyendo valores infinitos."""
+    """Formatea Pp/Ppk incluyendo valores infinitos."""
     if valor is None:
         return "Sin datos"
 
@@ -69,7 +80,7 @@ def _formatear_indice(valor) -> str:
 
 
 def calcular_resumen_capacidad(data, variables_config: dict) -> pd.DataFrame:
-    """Calcula Cp/Cpk para el universo filtrado actual."""
+    """Calcula Pp/Ppk para el universo filtrado actual."""
     filtrado = leer_dataframe_filtrado(data)
 
     if filtrado.empty:
@@ -132,8 +143,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         if capacidad.empty:
             return None, "0", "Sin datos", "0", "0"
 
-        cpk = pd.to_numeric(capacidad["cpk"], errors="coerce").dropna()
-        cpk_min = float(cpk.min()) if not cpk.empty else None
+        ppk = pd.to_numeric(capacidad["ppk"], errors="coerce").dropna()
+        ppk_min = float(ppk.min()) if not ppk.empty else None
 
         marginales = int(
             capacidad["clasificacion"]
@@ -151,7 +162,7 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         return (
             capacidad.to_json(orient="split"),
             str(len(capacidad)),
-            _formatear_indice(cpk_min),
+            _formatear_indice(ppk_min),
             str(marginales),
             str(no_capaces),
         )
@@ -195,8 +206,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         observaciones = f"{n:,} observaciones utilizadas en el cálculo."
 
         return (
-            _formatear_indice(fila["cp"]),
-            _formatear_indice(fila["cpk"]),
+            _formatear_indice(fila["pp"]),
+            _formatear_indice(fila["ppk"]),
             f"{media:.3f}" if media is not None else "Sin datos",
             f"{sigma:.4f}" if sigma is not None else "Sin datos",
             mensaje,

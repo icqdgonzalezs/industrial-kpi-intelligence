@@ -26,7 +26,7 @@ def test_calcular_resumen_capacidad_returns_dataframe():
     resultado = calcular_resumen_capacidad(data, VARIABLES_CONFIG)
 
     assert not resultado.empty
-    assert "cpk" in resultado.columns
+    assert "ppk" in resultado.columns
     assert resultado.iloc[0]["columna"] == "peso_promedio"
 
 
