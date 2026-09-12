@@ -1,10 +1,13 @@
 """Callbacks Dash del análisis operacional comparativo (drill-down).
 
-Callback delgado: la agregación por dimensión y el Pareto ya existen en
-src/kpis.py (100% testeado). Reutiliza los umbrales de hotspot de
+La agregación por dimensión y el Pareto ya existen en src/kpis.py
+(100% testeado). Este módulo reutiliza los umbrales de hotspot de
 src/diagnostics.py para que el color del ranking sea consistente con
 el motor de diagnóstico — una sola fuente de verdad para "qué es
 prioritario".
+
+Anotación "Promedio de planta" a 14px según ISA-101 (legibilidad
+industrial desde 1m de distancia).
 """
 
 from __future__ import annotations
@@ -65,6 +68,8 @@ def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
         y=promedio_planta * 100,
         line_dash="dash",
         annotation_text="Promedio de planta",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
     )
 
     figura.update_layout(

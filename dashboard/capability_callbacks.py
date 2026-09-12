@@ -4,16 +4,11 @@ Callback delgado: toda la matemática vive en src/capability.py (100%
 testeado). Aquí solo se orquesta la lectura de datos, el formato de
 presentación y la construcción del gráfico Plotly.
 
-Nota de nomenclatura (NIST 6.1.3 / ISO 22514): los índices calculados
-son Pp/Ppk (sigma overall, ddof=1), no Cp/Cpk (sigma within, MRbar/d2).
-Ver src/capability.py para la justificación técnica completa.
+IDs alineados a Pp/Ppk: `capability-pp`, `capability-ppk`,
+`capability-ppk-minimo` (sincronizados con dashboard/capability_components.py).
 
-Nota de IDs legacy: los componentes Dash conservan el nombre histórico
-("capability-cp", "capability-cpk", "capability-cpk-minimo") por
-compatibilidad con el layout en app_layout.py. El rename de esos IDs
-(y sus labels visibles "Cp:"/"Cpk:" → "Pp:"/"Ppk:") está agendado para
-el refactor de Semana 6 junto con el rename global a inglés
-(ver docs/adr/0002-naming-convention.md).
+Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
+LSL, USL y Promedio usan 14px para ser legibles desde 1m de distancia.
 """
 
 from __future__ import annotations
@@ -104,19 +99,40 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
             x=serie,
             nbinsx=24,
             name="Observaciones",
-            opacity=0.82,
+            opacity=0.85,
+            marker={
+                "color": "#00d4ff",
+                "line": {"color": "#38bdf8", "width": 1},
+            },
         )
     )
 
     lsl = float(fila["lsl"])
     usl = float(fila["usl"])
 
-    figura.add_vline(x=lsl, line_dash="dash", annotation_text="LSL")
-    figura.add_vline(x=usl, line_dash="dash", annotation_text="USL")
+    figura.add_vline(
+        x=lsl,
+        line_dash="dash",
+        annotation_text="LSL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
+    figura.add_vline(
+        x=usl,
+        line_dash="dash",
+        annotation_text="USL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
 
     media = float(fila["media"]) if pd.notna(fila["media"]) else None
     if media is not None:
-        figura.add_vline(x=media, annotation_text="Promedio")
+        figura.add_vline(
+            x=media,
+            annotation_text="Promedio",
+            annotation_font_size=14,
+            annotation_font_color="#e6edf3",
+        )
 
     figura.update_layout(
         height=380,
@@ -132,7 +148,7 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
     @app.callback(
         Output("store-capacidad", "data"),
         Output("capability-total-variables", "children"),
-        Output("capability-cpk-minimo", "children"),
+        Output("capability-ppk-minimo", "children"),
         Output("capability-marginales", "children"),
         Output("capability-no-capaces", "children"),
         Input("store-datos-filtrados", "data"),
@@ -168,8 +184,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         )
 
     @app.callback(
-        Output("capability-cp", "children"),
-        Output("capability-cpk", "children"),
+        Output("capability-pp", "children"),
+        Output("capability-ppk", "children"),
         Output("capability-media", "children"),
         Output("capability-sigma", "children"),
         Output("capability-estado", "children"),
@@ -180,7 +196,11 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         Input("store-datos-filtrados", "data"),
     )
     def callback_actualizar_variable_seleccionada(capacidad_json, columna, data):
-        vacio = ("Sin datos", "Sin datos", "Sin datos", "Sin datos", "Sin datos para evaluar.", aplicar_tema_oscuro(go.Figure()), "")
+        vacio = (
+            "Sin datos", "Sin datos", "Sin datos", "Sin datos",
+            "Sin datos para evaluar.",
+            aplicar_tema_oscuro(go.Figure()), "",
+        )
 
         if not capacidad_json or not columna:
             return vacio

@@ -2,8 +2,13 @@ from __future__ import annotations
 
 from dash import dcc, html
 
+from dashboard.capability_components import crear_capability_section
 from dashboard.components_dash import crear_control_center
+from dashboard.control_charts_components import crear_control_charts_section
+from dashboard.diagnostics_components import crear_diagnostics_section
 from dashboard.kpi_components import crear_kpi_grid
+from dashboard.operational_analysis_components import crear_operational_analysis_section
+from dashboard.quality_performance_components import crear_quality_performance
 
 TABS = [
     ("tab-diagnostico", "Diagnóstico"),
@@ -42,9 +47,39 @@ def crear_app_layout(
                 value=TABS[0][0],
                 children=[dcc.Tab(label=label, value=tab_id) for tab_id, label in TABS],
             ),
-            # Contenedor único: su contenido se reemplaza por completo en cada
-            # cambio de pestaña (ver tabs_callbacks.py). Así el dcc.Graph de la
-            # pestaña activa se monta SIEMPRE visible, y Plotly lo mide bien.
-            html.Div(id="tab-content-container"),
+            # Pre-montamos las 5 secciones al arranque y solo alternamos su
+            # visibilidad con `display`. Cada dcc.Graph lleva altura explícita
+            # en su propio layout, así que no mide 0x0 aunque el padre esté
+            # oculto — y los callbacks encuentran sus componentes siempre.
+            html.Div(
+                [
+                    html.Div(
+                        crear_diagnostics_section(),
+                        id="section-diagnostico",
+                        style={"display": "block"},
+                    ),
+                    html.Div(
+                        crear_quality_performance(),
+                        id="section-calidad",
+                        style={"display": "none"},
+                    ),
+                    html.Div(
+                        crear_capability_section(variables_criticas),
+                        id="section-capacidad",
+                        style={"display": "none"},
+                    ),
+                    html.Div(
+                        crear_control_charts_section(variables_criticas),
+                        id="section-control",
+                        style={"display": "none"},
+                    ),
+                    html.Div(
+                        crear_operational_analysis_section(),
+                        id="section-operacional",
+                        style={"display": "none"},
+                    ),
+                ],
+                id="tab-content-container",
+            ),
         ]
     )

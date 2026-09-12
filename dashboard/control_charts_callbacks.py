@@ -1,4 +1,11 @@
-"""Callbacks de la carta de control I-MR. Toda la matemática vive en src/control_charts.py."""
+"""Callbacks de la carta de control I-MR.
+
+Toda la matemática vive en src/control_charts.py. Este módulo solo
+orquesta la lectura de datos y la construcción de las figuras Plotly.
+
+Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
+CL, UCL, LCL y MR-bar usan 14px para ser legibles desde 1m de distancia.
+"""
 
 from __future__ import annotations
 
@@ -13,24 +20,70 @@ from src.control_charts import (
 )
 
 COLOR_OOC = "#ef4444"
-COLOR_NORMAL = "#38bdf8"
+COLOR_NORMAL = "#e6edf3"
 
 
 def crear_figura_i(serie, limites, fuera_control) -> go.Figure:
     colores = [COLOR_OOC if f else COLOR_NORMAL for f in fuera_control]
-    figura = go.Figure(go.Scatter(x=list(range(len(serie))), y=serie, mode="lines+markers", marker_color=colores))
-    figura.add_hline(y=limites["media"], line_color="#94a3b8", annotation_text="CL")
-    figura.add_hline(y=limites["ucl"], line_dash="dash", annotation_text="UCL")
-    figura.add_hline(y=limites["lcl"], line_dash="dash", annotation_text="LCL")
+    figura = go.Figure(
+        go.Scatter(
+            x=list(range(len(serie))),
+            y=serie,
+            mode="lines+markers",
+            line={"color": "#00d4ff", "width": 1.5},
+            marker={"size": 5, "color": colores},
+        )
+    )
+    figura.add_hline(
+        y=limites["media"],
+        line={"color": "#8b949e", "dash": "dot"},
+        annotation_text="CL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
+    figura.add_hline(
+        y=limites["ucl"],
+        line={"color": "#ef4444", "dash": "dash", "width": 1},
+        annotation_text="UCL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
+    figura.add_hline(
+        y=limites["lcl"],
+        line={"color": "#ef4444", "dash": "dash", "width": 1},
+        annotation_text="LCL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
     figura.update_layout(title="Carta I (Individuals)", yaxis_title="Valor")
     return aplicar_tema_oscuro(figura)
 
 
 def crear_figura_mr(mr, mr_bar) -> go.Figure:
     ucl_mr = mr_bar * 3.267
-    figura = go.Figure(go.Scatter(x=list(range(len(mr))), y=mr, mode="lines+markers"))
-    figura.add_hline(y=mr_bar, line_color="#94a3b8", annotation_text="MR-bar")
-    figura.add_hline(y=ucl_mr, line_dash="dash", annotation_text="UCL")
+    figura = go.Figure(
+        go.Scatter(
+            x=list(range(len(mr))),
+            y=mr,
+            mode="lines+markers",
+            line={"color": "#00d4ff", "width": 1.5},
+            marker={"size": 5, "color": "#e6edf3"},
+        )
+    )
+    figura.add_hline(
+        y=mr_bar,
+        line={"color": "#8b949e", "dash": "dot"},
+        annotation_text="MR-bar",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
+    figura.add_hline(
+        y=ucl_mr,
+        line={"color": "#ef4444", "dash": "dash", "width": 1},
+        annotation_text="UCL",
+        annotation_font_size=14,
+        annotation_font_color="#e6edf3",
+    )
     figura.update_layout(title="Carta MR (Rango Móvil)", yaxis_title="Rango móvil")
     return aplicar_tema_oscuro(figura)
 

@@ -1,39 +1,43 @@
-"""Callback de navegación: renderiza el contenido de la pestaña activa.
+"""Callback de navegación: alterna la visibilidad de la pestaña activa.
 
-Decisión de arquitectura importante: el contenido de cada pestaña se monta
-bajo demanda (Output "children"), no se pre-monta y se esconde con CSS.
-Un dcc.Graph dentro de un contenedor con display:none mide 0x0 al momento
-de dibujarse y queda invisible para siempre, incluso al volverse visible
-después. Montar el contenido solo cuando la pestaña está activa evita ese
-problema de raíz.
+Decisión de arquitectura: las 5 secciones se pre-montan al arranque y el
+callback solo alterna `display` entre "block" y "none". Esto resuelve el
+problema inverso del patrón "montar bajo demanda":
+
+- Montar bajo demanda: la primera vez que se entra a una pestaña funciona,
+  pero los callbacks registrados al arranque referencian componentes que
+  aún no existen → ReferenceError de Dash ("nonexistent object was used in
+  an Input of a Dash callback").
+
+- Pre-montar + alternar display: todos los componentes existen siempre,
+  los callbacks encuentran sus Input/Output, y los dcc.Graph con altura
+  explícita no miden 0x0 porque su altura viene del layout, no del padre
+  oculto. Plotly respeta esa altura cuando el contenedor pasa a "block".
 """
 
 from __future__ import annotations
 
 from dash import Input, Output
 
-from dashboard.capability_components import crear_capability_section
-from dashboard.control_charts_components import crear_control_charts_section
-from dashboard.diagnostics_components import crear_diagnostics_section
-from dashboard.operational_analysis_components import crear_operational_analysis_section
-from dashboard.quality_performance_components import crear_quality_performance
+SECCIONES = ("diagnostico", "calidad", "capacidad", "control", "operacional")
+
+TAB_A_SECCION = {
+    "tab-diagnostico": "diagnostico",
+    "tab-calidad": "calidad",
+    "tab-capacidad": "capacidad",
+    "tab-control": "control",
+    "tab-operacional": "operacional",
+}
 
 
 def registrar_callbacks_tabs(app, variables_criticas: dict) -> None:
-    constructores = {
-        "tab-diagnostico": crear_diagnostics_section,
-        "tab-calidad": crear_quality_performance,
-        "tab-capacidad": lambda: crear_capability_section(variables_criticas),
-        "tab-control": lambda: crear_control_charts_section(variables_criticas),
-        "tab-operacional": crear_operational_analysis_section,
-    }
-
     @app.callback(
-        Output("tab-content-container", "children"),
+        [Output(f"section-{seccion}", "style") for seccion in SECCIONES],
         Input("tabs-principal", "value"),
     )
     def callback_cambiar_tab(tab_activo):
-        constructor = constructores.get(tab_activo)
-        if constructor is None:
-            return None
-        return constructor()
+        seccion_activa = TAB_A_SECCION.get(tab_activo, "diagnostico")
+        return [
+            {"display": "block"} if seccion == seccion_activa else {"display": "none"}
+            for seccion in SECCIONES
+        ]

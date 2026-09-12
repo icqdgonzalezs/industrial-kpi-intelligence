@@ -1,47 +1,62 @@
-/* ============================================================
-   Industrial KPI Intelligence — tema "sala de control"
-   Paleta compartida con dashboard/utils.py (aplicar_tema_oscuro):
-   fondo tarjeta #1e293b, texto #e2e8f0, grilla #334155, acento #38bdf8
-   ============================================================ */
+/* ============================================================================
+   Industrial KPI Intelligence — tema "Industrial 4.0 / Sala de control"
+   
+   Paleta (coincide con dashboard/utils.py → aplicar_tema_oscuro):
+     Fondo app       #0a0e14   (casi negro azulado)
+     Fondo cards     #131820   
+     Fondo hover     #1a2029   
+     Bordes          #1f2733   
+     Texto primario  #e6edf3
+     Texto muted     #8b949e
+     Acento          #00d4ff   (cian eléctrico)
+   ============================================================================ */
 
 :root {
-  --bg-app: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #253449;
-  --border-subtle: #334155;
-  --text-primary: #e2e8f0;
-  --text-muted: #94a3b8;
-  --accent: #38bdf8;
+  --bg-app: #0a0e14;
+  --bg-card: #131820;
+  --bg-card-hover: #1a2029;
+  --bg-elevated: #0f1419;
+  --border-subtle: #1f2733;
+  --border-strong: #2d3748;
+  --text-primary: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #00d4ff;
+  --accent-2: #38bdf8;
+  --accent-glow: rgba(0, 212, 255, 0.15);
   --color-priority: #ef4444;
-  --color-priority-bg: rgba(239, 68, 68, 0.12);
   --color-watch: #f59e0b;
-  --color-watch-bg: rgba(245, 158, 11, 0.12);
   --color-info: #22c55e;
-  --color-info-bg: rgba(34, 197, 94, 0.12);
 }
+
+* { box-sizing: border-box; }
 
 body {
   background-color: var(--bg-app);
   color: var(--text-primary);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---------- Header ---------- */
+/* ============================================================================
+   Header
+   ============================================================================ */
 
 .app-header {
   padding: 32px 40px 24px;
   border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 24px;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.02) 0%, transparent 100%);
 }
 
 .platform-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   color: var(--accent);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .hero-title {
@@ -49,6 +64,7 @@ body {
   font-weight: 700;
   margin: 0 0 6px;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .hero-subtitle {
@@ -57,21 +73,19 @@ body {
   margin: 0;
 }
 
-/* ---------- Secciones ---------- */
+/* ============================================================================
+   Secciones
+   ============================================================================ */
 
-.dashboard-section {
-  padding: 8px 40px 48px;
-}
-
-.section-header {
-  margin-bottom: 16px;
-}
+.dashboard-section { padding: 8px 40px 48px; }
+.section-header { margin-bottom: 16px; }
 
 .section-title {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 4px;
+  letter-spacing: -0.005em;
 }
 
 .section-subtitle,
@@ -84,12 +98,14 @@ body {
 .section-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
 }
 
-/* ---------- Grillas de tarjetas (KPI / quality metrics) ---------- */
+/* ============================================================================
+   Tarjetas KPI / métricas
+   ============================================================================ */
 
 .kpi-grid,
 .quality-metrics-grid {
@@ -103,23 +119,24 @@ body {
 .quality-metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 16px 18px;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .kpi-card:hover,
 .quality-metric-card:hover {
   background: var(--bg-card-hover);
+  border-color: var(--border-strong);
 }
 
 .kpi-label,
 .quality-metric-label {
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  opacity: 0.85;
+  text-transform: uppercase;
   margin-bottom: 8px;
 }
 
@@ -129,21 +146,16 @@ body {
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-.quality-metric-card.severity-priority {
-  border-left: 3px solid var(--color-priority);
-}
+.quality-metric-card.severity-priority { border-left: 3px solid var(--color-priority); }
+.quality-metric-card.severity-watch    { border-left: 3px solid var(--color-watch); }
+.quality-metric-card.severity-info     { border-left: 3px solid var(--color-info); }
 
-.quality-metric-card.severity-watch {
-  border-left: 3px solid var(--color-watch);
-}
-
-.quality-metric-card.severity-info {
-  border-left: 3px solid var(--color-info);
-}
-
-/* ---------- Tarjetas de análisis (Pareto, capacidad, resumen ejecutivo) ---------- */
+/* ============================================================================
+   Tarjetas de análisis
+   ============================================================================ */
 
 .quality-analysis-grid {
   display: grid;
@@ -155,14 +167,16 @@ body {
 .quality-analysis-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 16px 20px;
   font-size: 14px;
   color: var(--text-primary);
   margin: 0 40px 24px;
 }
 
-/* ---------- Diagnostics: lista de hallazgos ---------- */
+/* ============================================================================
+   Diagnostics
+   ============================================================================ */
 
 .diagnostics-findings-list {
   display: flex;
@@ -175,21 +189,13 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-left-width: 4px;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 12px 16px;
 }
 
-.finding-card.finding-priority {
-  border-left-color: var(--color-priority);
-}
-
-.finding-card.finding-watch {
-  border-left-color: var(--color-watch);
-}
-
-.finding-card.finding-info {
-  border-left-color: var(--color-info);
-}
+.finding-card.finding-priority { border-left-color: var(--color-priority); }
+.finding-card.finding-watch    { border-left-color: var(--color-watch); }
+.finding-card.finding-info     { border-left-color: var(--color-info); }
 
 .finding-header {
   display: flex;
@@ -201,34 +207,22 @@ body {
 .finding-badge {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--border-subtle);
   color: var(--text-primary);
 }
 
-.finding-priority .finding-badge {
-  background: var(--color-priority);
-  color: #fff;
-}
-
-.finding-watch .finding-badge {
-  background: var(--color-watch);
-  color: #1e293b;
-}
-
-.finding-info .finding-badge {
-  background: var(--color-info);
-  color: #1e293b;
-}
+.finding-priority .finding-badge { background: var(--color-priority); color: #fff; }
+.finding-watch .finding-badge    { background: var(--color-watch); color: #0a0e14; }
+.finding-info .finding-badge     { background: var(--color-info); color: #0a0e14; }
 
 .finding-category {
   font-size: 10px;
   color: var(--text-muted);
-  opacity: 0.7;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 .finding-title {
@@ -244,12 +238,15 @@ body {
   line-height: 1.5;
 }
 
-/* ---------- Control Center (filtros) ---------- */
+/* ============================================================================
+   Control Center (filtros)
+   ============================================================================ */
 
 .control-center {
-  background: var(--bg-card);
+  background: var(--bg-elevated);
   border-top: 1px solid var(--border-subtle);
-  padding: 24px 40px 40px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 24px 40px 32px;
   margin-top: 8px;
 }
 
@@ -271,23 +268,30 @@ body {
 .filter-control label {
   font-size: 12px;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .control-button {
   background: var(--accent);
-  color: #0f172a;
+  color: #0a0e14;
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
   font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
 }
 
 .control-button:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.15);
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
-/* ---------- Plant Overview ---------- */
+/* ============================================================================
+   Plant Overview
+   ============================================================================ */
 
 .plant-equipment-grid {
   display: grid;
@@ -299,7 +303,7 @@ body {
 .plant-equipment-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px 16px;
 }
 
@@ -313,9 +317,9 @@ body {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 4px;
   margin-bottom: 6px;
 }
 
@@ -325,114 +329,867 @@ body {
   color: var(--text-muted);
 }
 
-/* ---------- Dash core components: Dropdown, DatePicker ---------- */
-
-.Select-control,
-.dash-dropdown .Select-control,
-div[class*="-control"] {
-  background-color: var(--bg-card) !important;
-  border-color: var(--border-subtle) !important;
-  color: var(--text-primary) !important;
-}
-
-.Select-menu-outer {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-}
-
-.Select-value-label,
-.Select-placeholder,
-div[class*="-singleValue"],
-div[class*="-placeholder"] {
-  color: var(--text-primary) !important;
-}
-
-.DateInput_input,
-.DateRangePickerInput {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-}
-
-/* ---------- Tabs (navegación minimalista) ---------- */
+/* ============================================================================
+   Tabs
+   ============================================================================ */
 
 .tab {
   background: var(--bg-app) !important;
   color: var(--text-muted) !important;
   border: none !important;
   border-bottom: 2px solid transparent !important;
+  padding: 12px 20px !important;
+  font-weight: 500 !important;
+  transition: color 0.15s ease !important;
 }
+
+.tab:hover { color: var(--text-primary) !important; }
 
 .tab--selected {
   color: var(--accent) !important;
   border-bottom: 2px solid var(--accent) !important;
   background: var(--bg-app) !important;
+  font-weight: 600 !important;
 }
 
-/* ---------- react-dates (DatePickerRange) — override agresivo ---------- */
+/* ============================================================================
+   Gráficos Plotly — contenedor y fondo
+   ============================================================================ */
 
-.DateRangePicker,
-.DateRangePickerInput,
-.DateRangePickerInput__withBorder,
-.DateInput,
-.DateInput_input,
-.DateInput_input__focused {
-  background-color: var(--bg-card) !important;
-  border-color: var(--border-subtle) !important;
-  color: var(--text-primary) !important;
+.dash-graph {
+  min-height: 420px !important;
+  background-color: #131820 !important;
+  border-radius: 8px !important;
 }
 
-.DateRangePickerInput_arrow_svg,
-.DateInput_fangShape {
+.js-plotly-plot,
+.js-plotly-plot .plotly,
+.js-plotly-plot .main-svg {
+  background-color: transparent !important;
+}
+
+.modebar {
+  background-color: transparent !important;
+}
+
+.modebar-btn path {
   fill: var(--text-muted) !important;
 }
 
-.DateRangePickerInput_calendarIcon {
-  filter: invert(0.7);
+.modebar-btn:hover path {
+  fill: var(--accent) !important;
 }
 
-/* Calendario emergente (si se abre) */
-.CalendarMonth,
-.CalendarMonth_caption,
-.DayPicker,
-.DayPicker_transitionContainer,
-.CalendarMonthGrid {
+/* ============================================================================
+   Dash Dropdown (react-select v1) — clases EXACTAS, sin wildcards
+   NO usar div[class*="Select"] * (rompe contraste en otros componentes)
+   ============================================================================ */
+
+.dash-dropdown .Select-control {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 6px !important;
+  color: var(--text-primary) !important;
+}
+
+.dash-dropdown .Select-control:hover {
+  border-color: var(--border-strong) !important;
+}
+
+.dash-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+.dash-dropdown .Select.is-open > .Select-control {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 16px var(--accent-glow) !important;
+}
+
+.dash-dropdown .Select.is-open > .Select-control {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select--single > .Select-control .Select-value {
+  color: var(--text-primary) !important;
+  background-color: transparent !important;
+}
+
+.dash-dropdown .Select-placeholder {
+  color: var(--text-muted) !important;
+  background-color: transparent !important;
+}
+
+.dash-dropdown .Select-input > input {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.dash-dropdown .Select-input > input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.dash-dropdown .Select-arrow-zone {
+  color: var(--text-muted) !important;
+}
+
+.dash-dropdown .Select-arrow {
+  border-top-color: var(--text-muted) !important;
+}
+
+.dash-dropdown .is-open .Select-arrow,
+.dash-dropdown .Select-arrow-zone:hover > .Select-arrow {
+  border-top-color: var(--accent) !important;
+}
+
+.dash-dropdown .Select-menu-outer {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-top: none !important;
+  border-bottom-left-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+  margin-top: -1px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dash-dropdown .Select-menu {
+  background-color: var(--bg-card) !important;
+}
+
+.dash-dropdown .VirtualizedSelectOption {
   background-color: var(--bg-card) !important;
   color: var(--text-primary) !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+
+.dash-dropdown .VirtualizedSelectFocusedOption {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--accent) !important;
+}
+
+.dash-dropdown .VirtualizedSelectSelectedOption {
+  background-color: rgba(0, 212, 255, 0.15) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+.dash-dropdown .Select-noresults {
+  background-color: var(--bg-card) !important;
+  color: var(--text-muted) !important;
+}
+
+.dash-dropdown .Select-value {
+  background-color: var(--bg-card-hover) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ============================================================================
+   DatePickerRange (react-dates) — fondo oscuro completo
+   ============================================================================ */
+
+.DateRangePickerInput,
+.DateRangePickerInput__withBorder {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 6px !important;
+}
+
+.DateInput {
+  background-color: var(--bg-card) !important;
+}
+
+.DateInput_input {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+}
+
+.DateInput_input__focused {
+  border-bottom: 2px solid var(--accent) !important;
+}
+
+.DateInput_input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.DateRangePickerInput_arrow_svg,
+.DateRangePickerInput_calendarIcon_svg {
+  fill: var(--text-muted) !important;
+}
+
+/* Calendario emergente */
+.DayPicker,
+.DayPicker_transitionContainer,
+.CalendarMonthGrid,
+.CalendarMonth,
+.CalendarMonth_caption,
+.CalendarMonth_caption strong,
+.DayPicker_weekHeader,
+.DayPicker_weekHeader_li small,
+.DayPickerNavigation_button__default {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.DayPickerNavigation_svg__horizontal {
+  fill: var(--text-muted) !important;
 }
 
 .CalendarDay__default {
   background-color: var(--bg-card) !important;
-  border-color: var(--border-subtle) !important;
+  border: 1px solid var(--border-subtle) !important;
   color: var(--text-primary) !important;
+}
+
+.CalendarDay__default:hover {
+  background-color: var(--bg-card-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
 }
 
 .CalendarDay__selected,
-.CalendarDay__selected_span {
+.CalendarDay__selected:hover,
+.CalendarDay__selected_span,
+.CalendarDay__selected_span:hover {
   background-color: var(--accent) !important;
-  color: var(--bg-app) !important;
+  border-color: var(--accent) !important;
+  color: #0a0e14 !important;
+  font-weight: 700 !important;
 }
 
-/* ---------- Dash Dropdown — override genérico y agresivo ---------- */
-
-div[class*="Select"],
-div[class*="select"],
-div[class*="Select"] *,
-div[class*="select"] *,
-.dash-dropdown,
-.dash-dropdown * {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-subtle) !important;
+.CalendarDay__blocked_out_of_range {
+  color: var(--text-muted) !important;
+  opacity: 0.3 !important;
 }
 
-div[class*="menu"],
-div[class*="Menu"] {
-  background-color: var(--bg-card) !important;
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-app); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--bg-app);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+
+
+
+/* ============================================================================
+   FIX DEFINITIVO: react-dates DatePickerRange — calendario emergente
+   react-dates aplica estilos inline con especificidad alta; se requiere
+   encadenar selectores + !important en cada propiedad de fondo y color.
+   ============================================================================ */
+
+/* Wrapper posicionado del calendario emergente */
+.DateRangePicker_picker,
+.DateRangePicker_picker .DayPicker,
+.DateRangePicker_picker .DayPicker > div,
+.DateRangePicker_picker .DayPicker_transitionContainer,
+.DateRangePicker_picker .CalendarMonthGrid,
+.DateRangePicker_picker .CalendarMonthGrid > div {
+  background-color: #131820 !important;
+  background: #131820 !important;
+  color: #e6edf3 !important;
 }
 
-div[class*="placeholder"],
-div[class*="Placeholder"],
-div[class*="singleValue"],
-div[class*="SingleValue"] {
-  color: var(--text-primary) !important;
+/* Caption "January 2025" / "February 2025" */
+.DateRangePicker_picker .CalendarMonth_caption,
+.DateRangePicker_picker .CalendarMonth_caption strong,
+.DateRangePicker_picker .CalendarMonth_caption span {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  font-weight: 600 !important;
+}
+
+/* Selects nativos dentro del caption (mes / año) */
+.DateRangePicker_picker .CalendarMonth_caption select,
+.DateRangePicker_picker select {
+  background-color: #0f1419 !important;
+  color: #e6edf3 !important;
+  border: 1px solid #1f2733 !important;
+  border-radius: 4px !important;
+}
+
+/* Encabezado de semana (Su Mo Tu We Th Fr Sa) */
+.DateRangePicker_picker .DayPicker_weekHeader,
+.DateRangePicker_picker .DayPicker_weekHeader_li,
+.DateRangePicker_picker .DayPicker_weekHeader_li small {
+  background-color: #131820 !important;
+  color: #8b949e !important;
+  border-color: #1f2733 !important;
+}
+
+/* Cada celda de día */
+.DateRangePicker_picker .CalendarDay__default,
+.DateRangePicker_picker .CalendarDay__default_2,
+.DateRangePicker_picker .CalendarDay {
+  background-color: #131820 !important;
+  background: #131820 !important;
+  border: 1px solid #1f2733 !important;
+  color: #e6edf3 !important;
+}
+
+/* Día hover */
+.DateRangePicker_picker .CalendarDay__default:hover,
+.DateRangePicker_picker .CalendarDay:hover {
+  background-color: #1a2029 !important;
+  background: #1a2029 !important;
+  border-color: #00d4ff !important;
+  color: #00d4ff !important;
+}
+
+/* Día seleccionado (rango inicial/final) */
+.DateRangePicker_picker .CalendarDay__selected,
+.DateRangePicker_picker .CalendarDay__selected_span,
+.DateRangePicker_picker .CalendarDay__hovered_span {
+  background-color: #00d4ff !important;
+  background: #00d4ff !important;
+  border-color: #00d4ff !important;
+  color: #0a0e14 !important;
+  font-weight: 700 !important;
+}
+
+/* Rango entre fechas seleccionadas */
+.DateRangePicker_picker .CalendarDay__selected_span,
+.DateRangePicker_picker .CalendarDay__hovered_span {
+  background-color: rgba(0, 212, 255, 0.25) !important;
+  background: rgba(0, 212, 255, 0.25) !important;
+  color: #e6edf3 !important;
+}
+
+/* Días fuera de rango */
+.DateRangePicker_picker .CalendarDay__blocked_out_of_range,
+.DateRangePicker_picker .CalendarDay__blocked_calendar {
+  background-color: #0f1419 !important;
+  color: #8b949e !important;
+  opacity: 0.4 !important;
+}
+
+/* Flechas de navegación ←  → */
+.DateRangePicker_picker .DayPickerNavigation_button__default,
+.DateRangePicker_picker .DayPickerNavigation_button {
+  background-color: #131820 !important;
+  border: none !important;
+}
+
+.DateRangePicker_picker .DayPickerNavigation_button:hover {
+  background-color: #1a2029 !important;
+}
+
+.DateRangePicker_picker .DayPickerNavigation_svg__horizontal {
+  fill: #8b949e !important;
+}
+
+.DateRangePicker_picker .DayPickerNavigation_button:hover .DayPickerNavigation_svg__horizontal {
+  fill: #00d4ff !important;
+}
+
+/* Wrapper exterior de todo el popup */
+.DayPicker_portal,
+.DateRangePicker_picker__portal,
+.DateRangePicker_picker__fullScreenPortal {
+  background-color: transparent !important;
+}
+
+/* Bordes del popup */
+.DateRangePicker_picker .DayPicker,
+.DateRangePicker_picker .DayPicker_transitionContainer {
+  border: 1px solid #2d3748 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ============================================================================
+   FIX: react-select v1 SIN dependencia del wrapper .dash-dropdown
+   (la versión de Dash de este proyecto no envuelve los dcc.Dropdown con
+   esa clase — se necesita apuntar directo a las clases de react-select)
+   ============================================================================ */
+
+.Select-control {
+  background-color: #131820 !important;
+  border: 1px solid #1f2733 !important;
+  border-radius: 6px !important;
+  color: #e6edf3 !important;
+  min-height: 38px !important;
+}
+
+.Select-control:hover {
+  border-color: #2d3748 !important;
+}
+
+.is-focused:not(.is-open) > .Select-control,
+.is-open > .Select-control,
+.Select.is-focused > .Select-control,
+.Select.is-open > .Select-control {
+  border-color: #00d4ff !important;
+  box-shadow: 0 0 0 1px #00d4ff, 0 0 16px rgba(0, 212, 255, 0.15) !important;
+}
+
+.Select.is-open > .Select-control {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Valor y placeholder */
+.Select-value-label,
+.Select--single > .Select-control .Select-value,
+.Select-value {
+  color: #e6edf3 !important;
+  background-color: transparent !important;
+}
+
+.Select-placeholder {
+  color: #8b949e !important;
+  background-color: transparent !important;
+}
+
+/* Input "Search" */
+.Select-input > input {
+  background-color: transparent !important;
+  color: #e6edf3 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.Select-input > input::placeholder {
+  color: #8b949e !important;
+}
+
+/* Flecha */
+.Select-arrow {
+  border-top-color: #8b949e !important;
+}
+
+.is-open .Select-arrow,
+.Select-arrow-zone:hover > .Select-arrow {
+  border-top-color: #00d4ff !important;
+}
+
+.Select-arrow-zone {
+  color: #8b949e !important;
+  background-color: transparent !important;
+}
+
+/* Menú desplegable */
+.Select-menu-outer {
+  background-color: #131820 !important;
+  border: 1px solid #2d3748 !important;
+  border-top: none !important;
+  border-bottom-left-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+  margin-top: -1px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+}
+
+.Select-menu {
+  background-color: #131820 !important;
+}
+
+/* Opciones */
+.VirtualizedSelectOption {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+
+.VirtualizedSelectFocusedOption {
+  background-color: #1a2029 !important;
+  color: #00d4ff !important;
+}
+
+.VirtualizedSelectSelectedOption {
+  background-color: rgba(0, 212, 255, 0.15) !important;
+  color: #00d4ff !important;
+  font-weight: 600 !important;
+}
+
+.Select-noresults {
+  background-color: #131820 !important;
+  color: #8b949e !important;
+}
+
+
+/* ============================================================================
+   FIX DEFINITIVO Dash 4.x: react-select v5 classnames
+   Dash 2.5+ migró dcc.Dropdown de react-select v1 → v5.
+   Los classnames usan prefijo `react-select__` (BEM-style), no `.Select-*`.
+   ============================================================================ */
+
+/* ---------- Contenedor cerrado (el que muestra "Todos") ---------- */
+
+.react-select__control,
+div[class*="react-select"][class*="__control"] {
+  background-color: #131820 !important;
+  border: 1px solid #1f2733 !important;
+  border-radius: 6px !important;
+  color: #e6edf3 !important;
+  min-height: 38px !important;
+  box-shadow: none !important;
+}
+
+.react-select__control:hover,
+div[class*="react-select"][class*="__control"]:hover {
+  border-color: #2d3748 !important;
+}
+
+.react-select__control--is-focused,
+.react-select__control--menu-is-open,
+div[class*="react-select"][class*="__control--is-focused"],
+div[class*="react-select"][class*="__control--menu-is-open"] {
+  border-color: #00d4ff !important;
+  box-shadow: 0 0 0 1px #00d4ff, 0 0 16px rgba(0, 212, 255, 0.15) !important;
+  background-color: #131820 !important;
+}
+
+/* ---------- Valor seleccionado ("Todos") ---------- */
+
+.react-select__single-value,
+div[class*="react-select"][class*="__single-value"] {
+  color: #e6edf3 !important;
+  background-color: transparent !important;
+}
+
+/* ---------- Placeholder ---------- */
+
+.react-select__placeholder,
+div[class*="react-select"][class*="__placeholder"] {
+  color: #8b949e !important;
+  background-color: transparent !important;
+}
+
+/* ---------- Input de búsqueda ---------- */
+
+.react-select__input-container,
+.react-select__input,
+div[class*="react-select"][class*="__input-container"],
+div[class*="react-select"][class*="__input"] {
+  color: #e6edf3 !important;
+  background-color: transparent !important;
+}
+
+.react-select__input input,
+div[class*="react-select"] input {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #e6edf3 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.react-select__input input::placeholder {
+  color: #8b949e !important;
+}
+
+/* ---------- Flechas / indicadores ---------- */
+
+.react-select__indicator,
+.react-select__dropdown-indicator,
+.react-select__clear-indicator,
+.react-select__indicator-separator,
+div[class*="react-select"][class*="__indicator"] {
+  color: #8b949e !important;
+  background-color: transparent !important;
+}
+
+.react-select__indicator svg,
+.react-select__dropdown-indicator svg {
+  fill: #8b949e !important;
+  color: #8b949e !important;
+}
+
+.react-select__control--is-focused .react-select__dropdown-indicator svg,
+.react-select__control--menu-is-open .react-select__dropdown-indicator svg {
+  fill: #00d4ff !important;
+}
+
+.react-select__indicator-separator,
+div[class*="react-select"][class*="__indicator-separator"] {
+  background-color: #1f2733 !important;
+}
+
+/* ---------- Menú desplegable (abierto) ---------- */
+
+.react-select__menu,
+div[class*="react-select"][class*="__menu"] {
+  background-color: #131820 !important;
+  border: 1px solid #2d3748 !important;
+  border-top: none !important;
+  border-radius: 0 0 6px 6px !important;
+  margin-top: -1px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  color: #e6edf3 !important;
+}
+
+.react-select__menu-list,
+div[class*="react-select"][class*="__menu-list"] {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  padding: 4px 0 !important;
+}
+
+/* ---------- Cada opción ---------- */
+
+.react-select__option,
+div[class*="react-select"][class*="__option"] {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+
+.react-select__option--is-focused,
+div[class*="react-select"][class*="__option--is-focused"] {
+  background-color: #1a2029 !important;
+  color: #00d4ff !important;
+}
+
+.react-select__option--is-selected,
+div[class*="react-select"][class*="__option--is-selected"] {
+  background-color: rgba(0, 212, 255, 0.15) !important;
+  color: #00d4ff !important;
+  font-weight: 600 !important;
+}
+
+.react-select__option:active {
+  background-color: #1a2029 !important;
+}
+
+/* ---------- No results ---------- */
+
+.react-select__menu-notice--no-options,
+div[class*="react-select"][class*="__menu-notice"] {
+  background-color: #131820 !important;
+  color: #8b949e !important;
+  padding: 12px !important;
+}
+
+/* ---------- Multi-value chips (si los usás) ---------- */
+
+.react-select__multi-value,
+div[class*="react-select"][class*="__multi-value"] {
+  background-color: #1a2029 !important;
+  border: 1px solid #2d3748 !important;
+  color: #e6edf3 !important;
+  border-radius: 4px !important;
+}
+
+.react-select__multi-value__label {
+  color: #e6edf3 !important;
+  background-color: transparent !important;
+}
+
+.react-select__multi-value__remove:hover {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+}
+
+/* ---------- Wrapper por si Dash genera div con clase react-select ---------- */
+
+div[class*="react-select"] {
+  color: #e6edf3 !important;
+}
+
+/* ---------- Fallback: input con id react-select-* ---------- */
+
+input[id^="react-select-"] {
+  background-color: transparent !important;
+  color: #e6edf3 !important;
+}
+
+
+/* ============================================================================
+   FIX DEFINITIVO Dash 4.x — Sobrescribir variables CSS globales de Dash
+   Dash 4.4.1 usa componentes propios (.dash-dropdown, .dash-datepicker)
+   que heredan de las siguientes variables en :root. Cambiarlas aquí
+   actualiza TODOS los componentes Dash automáticamente.
+   ============================================================================ */
+
+:root {
+  /* Fondo de los componentes (era #fff → causa del blanco) */
+  --Dash-Fill-Inverse-Strong: #131820;
+  --Dash-Fill-Inverse-Weak: #1a2029;
+  --Dash-Fill-Interactive-Strong: #00d4ff;
+  --Dash-Fill-Interactive-Weak: rgba(0, 212, 255, 0.15);
+  --Dash-Fill-Primary-Hover: rgba(0, 212, 255, 0.10);
+  --Dash-Fill-Primary-Active: rgba(0, 212, 255, 0.20);
+  --Dash-Fill-Disabled: rgba(255, 255, 255, 0.06);
+
+  /* Texto (era azul oscuro sobre blanco → ilegible sobre oscuro) */
+  --Dash-Text-Primary: #e6edf3;
+  --Dash-Text-Strong: #e6edf3;
+  --Dash-Text-Weak: #8b949e;
+  --Dash-Text-Disabled: #8b949e;
+
+  /* Bordes y sombras */
+  --Dash-Stroke-Strong: #2d3748;
+  --Dash-Stroke-Weak: #1f2733;
+  --Dash-Shading-Strong: rgba(0, 0, 0, 0.5);
+  --Dash-Shading-Weak: rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Refuerzo específico para el dropdown ---------- */
+
+.dash-dropdown {
+  background-color: #131820 !important;
+  border: 1px solid #1f2733 !important;
+  border-radius: 6px !important;
+  color: #e6edf3 !important;
+}
+
+.dash-dropdown:hover {
+  border-color: #2d3748 !important;
+}
+
+.dash-dropdown:focus,
+.dash-dropdown[data-state="open"] {
+  border-color: #00d4ff !important;
+  outline: 1px solid #00d4ff !important;
+  box-shadow: 0 0 0 1px #00d4ff, 0 0 16px rgba(0, 212, 255, 0.15) !important;
+}
+
+.dash-dropdown-value,
+.dash-dropdown-value-item {
+  color: #e6edf3 !important;
+  background-color: transparent !important;
+}
+
+.dash-dropdown-placeholder {
+  color: #8b949e !important;
+}
+
+.dash-dropdown-content {
+  background-color: #131820 !important;
+  border: 1px solid #2d3748 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  color: #e6edf3 !important;
+}
+
+.dash-dropdown-option,
+.dash-options-list-option {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  padding: 8px 12px !important;
+}
+
+.dash-dropdown-option:hover,
+.dash-options-list-option:hover,
+.dash-options-list-option:focus-within {
+  background-color: #1a2029 !important;
+  color: #00d4ff !important;
+}
+
+.dash-dropdown-search,
+.dash-dropdown-search-container {
+  background-color: #0f1419 !important;
+  border-color: #2d3748 !important;
+  color: #e6edf3 !important;
+}
+
+.dash-dropdown-trigger-icon,
+.dash-dropdown-search-icon,
+.dash-dropdown-clear {
+  color: #8b949e !important;
+  fill: #8b949e !important;
+}
+
+/* ---------- Refuerzo específico para el date picker ---------- */
+
+.dash-datepicker {
+  background-color: #131820 !important;
+  color: #e6edf3 !important;
+  border-radius: 6px !important;
+}
+
+.dash-datepicker-input-wrapper,
+.dash-datepicker-content {
+  background-color: #131820 !important;
+  border-color: #2d3748 !important;
+  color: #e6edf3 !important;
+}
+
+.dash-datepicker-input {
+  background-color: transparent !important;
+  color: #e6edf3 !important;
+}
+
+.dash-datepicker-input::placeholder {
+  color: #8b949e !important;
+}
+
+.dash-datepicker-caret-icon,
+.dash-datepicker-range-arrow {
+  color: #8b949e !important;
+  fill: #8b949e !important;
+}
+
+.dash-datepicker-calendar-wrapper,
+.dash-datepicker-portal .dash-datepicker-calendar-wrapper {
+  background-color: #131820 !important;
+  border-color: #2d3748 !important;
+  color: #e6edf3 !important;
+}
+
+.dash-datepicker-calendar th,
+.dash-datepicker-calendar td {
+  color: #8b949e !important;
+  background-color: transparent !important;
+}
+
+.dash-datepicker-calendar td.dash-datepicker-calendar-date-inside {
+  color: #e6edf3 !important;
+}
+
+.dash-datepicker-calendar td:hover {
+  background-color: #1a2029 !important;
+  color: #00d4ff !important;
+}
+
+.dash-datepicker-calendar td.dash-datepicker-calendar-date-selected {
+  background-color: #00d4ff !important;
+  color: #0a0e14 !important;
+  font-weight: 700 !important;
+}
+
+.dash-datepicker-calendar td.dash-datepicker-calendar-date-highlighted {
+  background-color: rgba(0, 212, 255, 0.2) !important;
+  color: #e6edf3 !important;
+}
+
+.dash-datepicker-calendar td.dash-datepicker-calendar-date-disabled {
+  opacity: 0.35 !important;
+}
+
+.dash-datepicker-month-nav {
+  color: #00d4ff !important;
+  background: transparent !important;
+}
+
+.dash-datepicker-month-nav:hover {
+  background: rgba(0, 212, 255, 0.15) !important;
+}
+
+.dash-datepicker-controls,
+.dash-datepicker-month-sizer {
+  color: #e6edf3 !important;
+  background-color: #131820 !important;
+}
+
+.dash-datepicker-controls .dash-dropdown {
+  background-color: #0f1419 !important;
+  border-color: #2d3748 !important;
+  color: #e6edf3 !important;
 }
