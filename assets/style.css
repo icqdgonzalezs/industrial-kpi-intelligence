@@ -1193,3 +1193,294 @@ input[id^="react-select-"] {
   border-color: #2d3748 !important;
   color: #e6edf3 !important;
 }
+
+
+/* ============================================================================
+   TIPOGRAFÍA INDUSTRIAL — Sección DIAGNÓSTICO
+   Calibrada según ISA-101: legible desde 1m por operador de 55+ años.
+   Reemplaza la escala default (10-12px) por escala industrial (13-20px).
+   ============================================================================ */
+
+/* ---------- Encabezado de sección ---------- */
+
+.dashboard-section .section-title {
+  font-size: 22px !important;     /* era ~18px — el título principal */
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.dashboard-section .section-subtitle,
+.dashboard-section .section-caption {
+  font-size: 15px !important;     /* era ~13px */
+  color: var(--text-muted) !important;
+}
+
+/* ---------- Tarjetas de métricas (PRIORITARIOS / EN SEGUIMIENTO / INFORMATIVOS) ---------- */
+
+.quality-metric-card {
+  padding: 20px 22px !important;  /* más aire alrededor */
+}
+
+.quality-metric-label {
+  font-size: 13px !important;     /* era ~11px */
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  margin-bottom: 10px !important;
+}
+
+.quality-metric-value {
+  font-size: 38px !important;     /* era ~30px — los números grandes importan */
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+}
+
+/* ---------- Tarjeta de resumen ejecutivo ---------- */
+
+.quality-analysis-card {
+  font-size: 16px !important;     /* era ~14px */
+  line-height: 1.6 !important;
+  padding: 18px 22px !important;
+}
+
+/* ---------- Tarjetas de hallazgos (findings) ---------- */
+
+.finding-card {
+  padding: 16px 20px !important;  /* más espacio interior */
+}
+
+/* Badges PRIORITY / WATCH / INFO */
+.finding-badge {
+  font-size: 12px !important;     /* era ~10px */
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+}
+
+/* Categoría (PARETO DE DEFECTOS / CAPACIDAD DE PROCESO / EQUIPO / LOTE CRÍTICO) */
+.finding-category {
+  font-size: 12px !important;     /* era ~10px */
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--text-muted) !important;
+}
+
+/* Título del hallazgo (Causa dominante: Mancha / Variable: Peso / Equipo: L1-M04) */
+.finding-title {
+  font-size: 17px !important;     /* era ~14px */
+  font-weight: 700 !important;
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+  color: var(--text-primary) !important;
+}
+
+/* Mensaje descriptivo */
+.finding-message {
+  font-size: 15px !important;     /* era ~13px */
+  line-height: 1.65 !important;   /* interlineado industrial */
+  color: var(--text-muted) !important;
+}
+
+/* Lista de hallazgos — más espacio entre tarjetas */
+.diagnostics-findings-list {
+  gap: 14px !important;           /* era 10px */
+  padding: 0 40px 16px !important;
+}
+
+
+/* ============================================================================
+   TIPOGRAFÍA INDUSTRIAL — Header principal + KPI Cards
+   Escala "sala de control": legible a 1m de distancia por operador 55+.
+   Por encima del mínimo ISA-101 para máxima jerarquía visual.
+   ============================================================================ */
+
+/* ---------- Header completo ---------- */
+
+.app-header {
+  padding: 40px 40px 32px !important;      /* más aire alrededor */
+  margin-bottom: 32px !important;
+}
+
+/* Etiqueta pequeña arriba: "INDUSTRIAL ANALYTICS PLATFORM" */
+.platform-label {
+  font-size: 16px !important;              /* era 11px → +45% */
+  font-weight: 700 !important;
+  letter-spacing: 0.22em !important;       /* más espaciado, aire premium */
+  margin-bottom: 14px !important;
+}
+
+/* Título principal: "🏭 Industrial KPI Intelligence" */
+.hero-title {
+  font-size: 46px !important;              /* era 28px → +64% */
+  font-weight: 800 !important;             /* extra-bold para autoridad visual */
+  letter-spacing: -0.02em !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  text-shadow: 0 0 40px rgba(0, 212, 255, 0.08) !important;  /* glow sutil industrial */
+}
+
+/* ---------- Grid de KPIs (Producción, FPY, Defectos, Scrap) ---------- */
+
+.kpi-grid {
+  gap: 20px !important;                    /* más separación entre tarjetas */
+  padding: 0 40px 32px !important;
+}
+
+.kpi-card {
+  padding: 24px 26px !important;           /* más aire interior */
+  border-radius: 10px !important;
+}
+
+/* Etiqueta de cada KPI: "PRODUCCIÓN TOTAL", "FPY", etc. */
+.kpi-label {
+  font-size: 14px !important;              /* era 11px → +27% */
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  margin-bottom: 12px !important;
+}
+
+/* Valor numérico: "249,752", "95.4%", etc. */
+.kpi-value {
+  font-size: 46px !important;              /* era 30px → +53% */
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.05 !important;
+}
+
+/* ============================================================================
+   TIPOGRAFÍA INDUSTRIAL — Control Center (filtros + botón)
+   Calibrado ISA-101: los controles de operación requieren tamaño táctil
+   y visual superior al texto de lectura estándar.
+   ============================================================================ */
+
+/* ---------- Tarjeta contenedora del Control Center ---------- */
+
+.control-center {
+  padding: 32px 40px 40px !important;     /* más aire vertical */
+}
+
+/* Título "🎛️ Control Center" */
+.control-center .section-header h3 {
+  font-size: 22px !important;             /* era ~18px */
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+/* Subtítulo "Define el universo operativo..." */
+.control-center .section-header p {
+  font-size: 15px !important;             /* era ~13px */
+  color: var(--text-muted) !important;
+}
+
+/* ---------- Labels encima de cada filtro ---------- */
+/* "PERÍODO", "LÍNEA", "EQUIPO", "TURNO", "OPERADOR" */
+
+.control-center .filter-control label,
+.filter-control label {
+  font-size: 14px !important;             /* era ~12px → +17% */
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--text-muted) !important;
+  margin-bottom: 10px !important;
+}
+
+/* ---------- Botón "Restaurar filtros" ---------- */
+
+.control-button {
+  font-size: 15px !important;             /* era ~13px → +15% */
+  font-weight: 700 !important;
+  padding: 12px 24px !important;          /* más alto y ancho */
+  border-radius: 8px !important;
+  letter-spacing: 0.02em !important;
+  min-height: 44px !important;            /* touch target estándar iOS/Android */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.control-button:hover {
+  filter: brightness(1.15) !important;
+  box-shadow: 0 0 24px var(--accent-glow) !important;
+  transform: translateY(-1px) !important;
+}
+
+.control-button:active {
+  transform: translateY(0) !important;
+}
+
+/* ---------- Contenedor de cada filtro (más aire) ---------- */
+
+.filter-control {
+  gap: 8px !important;                     /* más separación label/input */
+  margin-bottom: 20px !important;
+  padding: 0 40px !important;
+}
+
+/* ---------- Grid del Control Center (espaciado entre filtros) ---------- */
+
+.control-center .control-grid {
+  gap: 20px !important;                    /* era 16px → +25% */
+}
+
+/* ---------- Dropdowns y DatePicker — aumentar altura del input ---------- */
+/* Dash 4.x: los inputs se achican por default (~32px). Los subimos a 42px
+   para que coincidan con el botón y sean más cómodos de operar. */
+
+.dash-dropdown-trigger,
+.dash-datepicker-input-wrapper {
+  min-height: 42px !important;
+  padding: 0 16px !important;
+}
+
+/* Texto dentro del dropdown / datepicker */
+.dash-dropdown-value,
+.dash-dropdown-value-item,
+.dash-datepicker-input {
+  font-size: 15px !important;             /* era ~14px → +7% */
+  font-weight: 500 !important;
+}
+
+
+/* ============================================================================
+   JERARQUÍA VISUAL — 3 niveles (Siemens HMI style)
+   Nivel 1: header 46px · Nivel 2: KPIs top 40px · Nivel 3: KPIs tab 36px
+   ============================================================================ */
+
+/* KPIs del top — reducir de 46px a 40px (Nivel 2) */
+.kpi-value {
+  font-size: 40px !important;
+  font-weight: 700 !important;
+}
+
+/* KPIs dentro de cada tab — reducir a 36px (Nivel 3) */
+.quality-metric-value {
+  font-size: 36px !important;
+  font-weight: 700 !important;
+}
+
+/* ============================================================================
+   COLORES SEMÁNTICOS — Estado del KPI (ISA-101 at-a-glance cognition)
+   Verde = ok · Ámbar = atención · Rojo = acción requerida
+   ============================================================================ */
+
+.kpi-value--success,
+.quality-metric-value--success {
+  color: #22c55e !important;      /* verde industrial */
+}
+
+.kpi-value--warning,
+.quality-metric-value--warning {
+  color: #f59e0b !important;      /* ámbar */
+}
+
+.kpi-value--danger,
+.quality-metric-value--danger {
+  color: #ef4444 !important;      /* rojo */
+}
+
+.kpi-value--neutral,
+.quality-metric-value--neutral {
+  color: #e6edf3 !important;      /* blanco (default) */
+}

@@ -25,21 +25,7 @@ def actualizar_kpis(data):
 
 
 def construir_kpi_cards(data):
-    """Construye los 4 valores del KPI top como html.Span con color semántico.
-
-    Envuelve actualizar_kpis() sin modificarla: actualizar_kpis() sigue
-    devolviendo strings planas (así lo esperan los tests existentes en
-    tests/test_dash_app.py — cambiar su firma los habría roto). Esta
-    función es la que efectivamente se conecta al Output de Dash.
-
-    Nota de diseño: recalcula calcular_kpis_globales() sobre el mismo
-    DataFrame que ya calculó actualizar_kpis() internamente. Es
-    redundante (dos pasadas sobre los mismos datos), pero es el precio
-    deliberado de no tocar la función ya probada — para un dataset de
-    este tamaño el costo es despreciable; si se vuelve un cuello de
-    botella real, se revisita con un perfil de performance real, no
-    especulativamente.
-    """
+    """Construye los 4 valores del KPI top como html.Span con color semántico."""
     produccion, fpy, defectos, scrap = actualizar_kpis(data)
 
     filtrado = leer_dataframe_filtrado(data)

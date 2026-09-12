@@ -1,7 +1,5 @@
-
-
 # ---------------------------------------------------------------------
-# clasificar_kpis (nuevo — sistema de color semántico del top)
+# clasificar_kpis (color semántico del top)
 # ---------------------------------------------------------------------
 
 
@@ -28,11 +26,15 @@ def test_clasificar_kpis_defectos_y_scrap_son_lower_is_better():
 
     base = {"fpy": 1.0}
 
-    resultado_bueno = clasificar_kpis({**base, "tasa_defectos": 0.02, "tasa_scrap": 0.005})
+    resultado_bueno = clasificar_kpis(
+        {**base, "tasa_defectos": 0.02, "tasa_scrap": 0.005}
+    )
     assert resultado_bueno["defectos"] == "success"
     assert resultado_bueno["scrap"] == "success"
 
-    resultado_malo = clasificar_kpis({**base, "tasa_defectos": 0.08, "tasa_scrap": 0.03})
+    resultado_malo = clasificar_kpis(
+        {**base, "tasa_defectos": 0.08, "tasa_scrap": 0.03}
+    )
     assert resultado_malo["defectos"] == "danger"
     assert resultado_malo["scrap"] == "danger"
 
