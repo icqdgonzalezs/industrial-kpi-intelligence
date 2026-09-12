@@ -173,10 +173,10 @@ product_effect:
 continuous_variables:
   peso_promedio:
     target: 500.0
-    sigma: 3.0
+    sigma: 2.0
   longitud_promedio:
     target: 120.0
-    sigma: 1.2
+    sigma: 0.63
 
 # ---------------------------------------------------------------------
 # NUEVO: supuestos de OEE (Availability / Performance) por turno y tipo
