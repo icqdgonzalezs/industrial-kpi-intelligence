@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Dash](https://img.shields.io/badge/Dash-Plotly-00CC96?logo=plotly&logoColor=white)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-244%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-263%20passing-brightgreen)](tests/)
 [![License](https://img.shields.io/badge/License-Elastic_License_2.0-blue)](LICENSE)
 
 **Panel de control de KPIs de calidad industrial** con cálculo real de FPY, tasas de scrap/reproceso, diagrama de Pareto, comparación operacional (línea/turno/máquina), análisis de capacidad de proceso (**Pp/Ppk**, NIST 6.1.3) y motor OEE (**Availability × Performance × Quality**, ISA-95/TPM).
