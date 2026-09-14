@@ -8,7 +8,9 @@ IDs alineados a Pp/Ppk: `capability-pp`, `capability-ppk`,
 `capability-ppk-minimo` (sincronizados con dashboard/capability_components.py).
 
 Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
-LSL, USL y Promedio usan 14px para ser legibles desde 1m de distancia.
+los labels LSL, USL y Promedio usan 13px y viven ARRIBA del área de
+trazado (yref='paper') para no superponerse con las barras del
+histograma. Ver _agregar_linea_con_label para la justificación técnica.
 """
 
 from __future__ import annotations
@@ -84,8 +86,51 @@ def calcular_resumen_capacidad(data, variables_config: dict) -> pd.DataFrame:
     return resumen_capacidad(filtrado, variables_config)
 
 
+def _agregar_linea_con_label(
+    figura: go.Figure,
+    x: float,
+    texto: str,
+    color_linea: str,
+    color_label: str,
+) -> None:
+    """Agrega una línea vertical + label anclado FUERA del área de trazado.
+
+    El label se ancla con yref='paper' en y=1.02 (2% por encima del borde
+    superior del plot) para no superponerse con las barras del histograma.
+    add_vline(annotation_text=...) coloca la anotación DENTRO del plot al
+    tope de la línea — con distribuciones centradas, ese tope cae sobre
+    las barras más altas y el texto se vuelve ilegible.
+
+    Requiere reservar margen superior (t) en update_layout; ver
+    crear_figura_capacidad para el valor usado.
+    """
+    figura.add_vline(
+        x=x,
+        line={"color": color_linea, "dash": "dash", "width": 1.2},
+    )
+    figura.add_annotation(
+        x=x,
+        xref="x",
+        y=1.02,
+        yref="paper",
+        text=texto,
+        showarrow=False,
+        font={"size": 13, "color": color_label},
+        xanchor="center",
+        yanchor="bottom",
+    )
+
+
 def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure:
-    """Construye el histograma de distribución con límites de especificación."""
+    """Construye el histograma de distribución con límites de especificación.
+
+    Diseño visual (ISA-101 / HMI):
+    - Los labels LSL/USL/Promedio viven ARRIBA del área de trazado
+      (yref='paper') para no tapar las barras del histograma.
+    - Promedio en cian (acento del histograma) para distinguirlo
+      visualmente de los límites de especificación (LSL/USL en gris).
+    - Se reserva margen superior (t=50) para alojar los 3 labels.
+    """
     columna = str(fila["columna"])
     serie = pd.to_numeric(filtrado[columna], errors="coerce").dropna()
 
@@ -109,29 +154,30 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
 
     lsl = float(fila["lsl"])
     usl = float(fila["usl"])
-
-    figura.add_vline(
-        x=lsl,
-        line_dash="dash",
-        annotation_text="LSL",
-        annotation_font_size=14,
-        annotation_font_color="#e6edf3",
-    )
-    figura.add_vline(
-        x=usl,
-        line_dash="dash",
-        annotation_text="USL",
-        annotation_font_size=14,
-        annotation_font_color="#e6edf3",
-    )
-
     media = float(fila["media"]) if pd.notna(fila["media"]) else None
+
+    _agregar_linea_con_label(
+        figura,
+        x=lsl,
+        texto="LSL",
+        color_linea="#8b949e",
+        color_label="#8b949e",
+    )
+    _agregar_linea_con_label(
+        figura,
+        x=usl,
+        texto="USL",
+        color_linea="#8b949e",
+        color_label="#8b949e",
+    )
+
     if media is not None:
-        figura.add_vline(
+        _agregar_linea_con_label(
+            figura,
             x=media,
-            annotation_text="Promedio",
-            annotation_font_size=14,
-            annotation_font_color="#e6edf3",
+            texto="Promedio",
+            color_linea="#00d4ff",
+            color_label="#00d4ff",
         )
 
     figura.update_layout(
@@ -139,6 +185,7 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
         xaxis_title=str(fila["variable"]),
         yaxis_title="Frecuencia",
         showlegend=False,
+        margin={"t": 50, "b": 60, "l": 60, "r": 40},
     )
 
     return aplicar_tema_oscuro(figura)
