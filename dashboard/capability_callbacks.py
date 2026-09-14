@@ -7,11 +7,18 @@ presentación y la construcción del gráfico Plotly.
 IDs alineados a Pp/Ppk: `capability-pp`, `capability-ppk`,
 `capability-ppk-minimo` (sincronizados con dashboard/capability_components.py).
 
-Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
-labels LSL/USL/Promedio en 16px bold blanco, legibles a 1-2 m del
-monitor. La diferenciación entre Promedio y los límites de especificación
-se hace por el color de la LÍNEA (cian vs gris), no por el label —
-así todos los textos quedan estandarizados visualmente.
+Diseño visual (ISA-101 / HMI industrial):
+  - Labels LSL/USL/Promedio: blanco (#e6edf3), bold, 16px — legibles a
+    1-2 m del monitor.
+  - Las 3 líneas de referencia (LSL, USL, Promedio) comparten color gris
+    (#8b949e), estilo dashed y ancho 1.8px. La diferenciación semántica
+    queda en el LABEL y en la POSICIÓN (centro vs bordes), no en el color.
+    Motivo técnico: el cian del histograma camufla cualquier línea cian
+    que lo cruce — gris neutro garantiza contraste en los 3 casos.
+  - Convención HMI: solo los datos medidos (barras) van en línea sólida;
+    las referencias calculadas son siempre discontinuas (dashed).
+  - Ancho 1.8px: por debajo de 1.5px los guiones se vuelven difíciles de
+    seguir a distancia por el promedio visual del ojo (ISA-101).
 
 Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
@@ -35,12 +42,12 @@ from src.capability import resumen_capacidad
 # Constantes visuales (ISA-101: legibles a 1-2 m de distancia)
 # ---------------------------------------------------------------------
 
-COLOR_SPEC_LIMIT = "#8b949e"    # gris para LSL/USL (contexto, no focal)
-COLOR_MEAN_LINE = "#00d4ff"     # cian para Promedio (focal, mismo acento del histograma)
-COLOR_LABEL = "#e6edf3"         # blanco primario (mismo que texto del dashboard)
-FONT_SIZE_LABEL = 16            # px — mínimo ISA-101 para 1 m
+COLOR_REFERENCE_LINE = "#8b949e"  # gris neutro para las 3 líneas de referencia
+COLOR_LABEL = "#e6edf3"           # blanco primario (mismo que texto del dashboard)
+FONT_SIZE_LABEL = 16              # px — mínimo ISA-101 para 1 m
 FONT_FAMILY = "Inter, SF Pro Display, Segoe UI, sans-serif"
-MARGEN_SUPERIOR_PLOT = 55       # px — espacio para los 3 labels
+ANCHO_LINEA_REFERENCIA = 1.8      # px — ISA-101 pide ≥1.5px para dashed a distancia
+MARGEN_SUPERIOR_PLOT = 55         # px — espacio para los 3 labels
 
 
 def _estado_capacidad(clasificacion: str) -> str:
@@ -107,19 +114,24 @@ def _agregar_linea_con_label(
     figura: go.Figure,
     x: float,
     texto: str,
-    color_linea: str,
-    dash: str = "dash",
 ) -> None:
-    """Agrega una línea vertical + label estandarizado arriba del plot.
+    """Agrega una línea vertical de referencia + label estandarizado.
 
-    Todos los labels usan el mismo estilo (blanco, bold, 16px) para
-    mantener consistencia visual ISA-101. La diferenciación entre Promedio
-    y los límites de especificación se hace por el color de la LÍNEA, no
-    por el color del texto.
+    Las 3 líneas (LSL, USL, Promedio) comparten color gris neutro, estilo
+    dashed y ancho 1.8px. La diferenciación entre ellas se hace por el
+    LABEL (blanco, bold, arriba del plot) y por la POSICIÓN en el eje X,
+    no por color. Motivo: el cian del histograma camufla cualquier línea
+    cian que lo cruce — gris neutro garantiza contraste en los 3 casos.
 
-    Bold se logra vía HTML `<b>` — Plotly no expone `font.weight` en el
-    schema de annotations (solo color, family, size). El tag `<b>` es la
-    forma canónica de negrita en anotaciones Plotly.
+    Convención HMI: solo los datos medidos van en línea sólida; las
+    referencias calculadas (spec limits, mean) son siempre discontinuas.
+
+    El ancho de línea (1.8px) está calibrado según ISA-101 para
+    legibilidad a 1-2 m: por debajo de 1.5px los guiones se vuelven
+    difíciles de seguir a distancia por el promedio visual del ojo.
+
+    Bold en el label vía HTML `<b>` — Plotly no expone `font.weight` en
+    el schema de annotations (solo color, family, size).
 
     El label se ancla con yref='paper' en y=1.02 (2% por encima del borde
     superior) para no superponerse con las barras del histograma.
@@ -132,7 +144,11 @@ def _agregar_linea_con_label(
     """
     figura.add_vline(
         x=x,
-        line={"color": color_linea, "dash": dash, "width": 1.4},
+        line={
+            "color": COLOR_REFERENCE_LINE,
+            "dash": "dash",
+            "width": ANCHO_LINEA_REFERENCIA,
+        },
     )
     figura.add_annotation(
         x=x,
@@ -158,8 +174,8 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
     - Los labels LSL/USL/Promedio viven ARRIBA del área de trazado
       (yref='paper') para no tapar las barras del histograma.
     - Los 3 labels son blancos, bold, 16px — legibles a 1-2 m.
-    - Las LÍNEAS sí están diferenciadas: LSL/USL gris dashed (spec),
-      Promedio cian solid (focal).
+    - Las 3 LÍNEAS de referencia son grises, dashed y de ancho 1.8px.
+      La diferenciación entre ellas la hace el label y la posición.
     - Se reserva margen superior (t=55) para alojar los 3 labels.
     """
     columna = str(fila["columna"])
@@ -187,29 +203,11 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
     usl = float(fila["usl"])
     media = float(fila["media"]) if pd.notna(fila["media"]) else None
 
-    _agregar_linea_con_label(
-        figura,
-        x=lsl,
-        texto="LSL",
-        color_linea=COLOR_SPEC_LIMIT,
-        dash="dash",
-    )
-    _agregar_linea_con_label(
-        figura,
-        x=usl,
-        texto="USL",
-        color_linea=COLOR_SPEC_LIMIT,
-        dash="dash",
-    )
+    _agregar_linea_con_label(figura, x=lsl, texto="LSL")
+    _agregar_linea_con_label(figura, x=usl, texto="USL")
 
     if media is not None:
-        _agregar_linea_con_label(
-            figura,
-            x=media,
-            texto="Promedio",
-            color_linea=COLOR_MEAN_LINE,
-            dash="solid",
-        )
+        _agregar_linea_con_label(figura, x=media, texto="Promedio")
 
     figura.update_layout(
         height=380,
