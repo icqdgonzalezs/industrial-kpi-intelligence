@@ -8,9 +8,15 @@ IDs alineados a Pp/Ppk: `capability-pp`, `capability-ppk`,
 `capability-ppk-minimo` (sincronizados con dashboard/capability_components.py).
 
 Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
-los labels LSL, USL y Promedio usan 13px y viven ARRIBA del área de
-trazado (yref='paper') para no superponerse con las barras del
-histograma. Ver _agregar_linea_con_label para la justificación técnica.
+labels LSL/USL/Promedio en 16px bold blanco, legibles a 1-2 m del
+monitor. La diferenciación entre Promedio y los límites de especificación
+se hace por el color de la LÍNEA (cian vs gris), no por el label —
+así todos los textos quedan estandarizados visualmente.
+
+Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
+annotations (solo `color`, `family`, `size`). La negrita se logra
+envolviendo el texto en `<b>...</b>` — Plotly renderiza un subset de
+HTML permitido dentro de `text`.
 """
 
 from __future__ import annotations
@@ -24,6 +30,17 @@ from dash import Input, Output
 
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.capability import resumen_capacidad
+
+# ---------------------------------------------------------------------
+# Constantes visuales (ISA-101: legibles a 1-2 m de distancia)
+# ---------------------------------------------------------------------
+
+COLOR_SPEC_LIMIT = "#8b949e"    # gris para LSL/USL (contexto, no focal)
+COLOR_MEAN_LINE = "#00d4ff"     # cian para Promedio (focal, mismo acento del histograma)
+COLOR_LABEL = "#e6edf3"         # blanco primario (mismo que texto del dashboard)
+FONT_SIZE_LABEL = 16            # px — mínimo ISA-101 para 1 m
+FONT_FAMILY = "Inter, SF Pro Display, Segoe UI, sans-serif"
+MARGEN_SUPERIOR_PLOT = 55       # px — espacio para los 3 labels
 
 
 def _estado_capacidad(clasificacion: str) -> str:
@@ -91,12 +108,21 @@ def _agregar_linea_con_label(
     x: float,
     texto: str,
     color_linea: str,
-    color_label: str,
+    dash: str = "dash",
 ) -> None:
-    """Agrega una línea vertical + label anclado FUERA del área de trazado.
+    """Agrega una línea vertical + label estandarizado arriba del plot.
+
+    Todos los labels usan el mismo estilo (blanco, bold, 16px) para
+    mantener consistencia visual ISA-101. La diferenciación entre Promedio
+    y los límites de especificación se hace por el color de la LÍNEA, no
+    por el color del texto.
+
+    Bold se logra vía HTML `<b>` — Plotly no expone `font.weight` en el
+    schema de annotations (solo color, family, size). El tag `<b>` es la
+    forma canónica de negrita en anotaciones Plotly.
 
     El label se ancla con yref='paper' en y=1.02 (2% por encima del borde
-    superior del plot) para no superponerse con las barras del histograma.
+    superior) para no superponerse con las barras del histograma.
     add_vline(annotation_text=...) coloca la anotación DENTRO del plot al
     tope de la línea — con distribuciones centradas, ese tope cae sobre
     las barras más altas y el texto se vuelve ilegible.
@@ -106,16 +132,20 @@ def _agregar_linea_con_label(
     """
     figura.add_vline(
         x=x,
-        line={"color": color_linea, "dash": "dash", "width": 1.2},
+        line={"color": color_linea, "dash": dash, "width": 1.4},
     )
     figura.add_annotation(
         x=x,
         xref="x",
         y=1.02,
         yref="paper",
-        text=texto,
+        text=f"<b>{texto}</b>",
         showarrow=False,
-        font={"size": 13, "color": color_label},
+        font={
+            "size": FONT_SIZE_LABEL,
+            "color": COLOR_LABEL,
+            "family": FONT_FAMILY,
+        },
         xanchor="center",
         yanchor="bottom",
     )
@@ -127,9 +157,10 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
     Diseño visual (ISA-101 / HMI):
     - Los labels LSL/USL/Promedio viven ARRIBA del área de trazado
       (yref='paper') para no tapar las barras del histograma.
-    - Promedio en cian (acento del histograma) para distinguirlo
-      visualmente de los límites de especificación (LSL/USL en gris).
-    - Se reserva margen superior (t=50) para alojar los 3 labels.
+    - Los 3 labels son blancos, bold, 16px — legibles a 1-2 m.
+    - Las LÍNEAS sí están diferenciadas: LSL/USL gris dashed (spec),
+      Promedio cian solid (focal).
+    - Se reserva margen superior (t=55) para alojar los 3 labels.
     """
     columna = str(fila["columna"])
     serie = pd.to_numeric(filtrado[columna], errors="coerce").dropna()
@@ -160,15 +191,15 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
         figura,
         x=lsl,
         texto="LSL",
-        color_linea="#8b949e",
-        color_label="#8b949e",
+        color_linea=COLOR_SPEC_LIMIT,
+        dash="dash",
     )
     _agregar_linea_con_label(
         figura,
         x=usl,
         texto="USL",
-        color_linea="#8b949e",
-        color_label="#8b949e",
+        color_linea=COLOR_SPEC_LIMIT,
+        dash="dash",
     )
 
     if media is not None:
@@ -176,8 +207,8 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
             figura,
             x=media,
             texto="Promedio",
-            color_linea="#00d4ff",
-            color_label="#00d4ff",
+            color_linea=COLOR_MEAN_LINE,
+            dash="solid",
         )
 
     figura.update_layout(
@@ -185,7 +216,7 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
         xaxis_title=str(fila["variable"]),
         yaxis_title="Frecuencia",
         showlegend=False,
-        margin={"t": 50, "b": 60, "l": 60, "r": 40},
+        margin={"t": MARGEN_SUPERIOR_PLOT, "b": 60, "l": 60, "r": 40},
     )
 
     return aplicar_tema_oscuro(figura)
