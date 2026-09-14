@@ -17,6 +17,7 @@ from src.control_charts import (
     calcular_limites_control,
     calcular_moving_range,
     detectar_fuera_de_control,
+    resumen_control_estadistico,
 )
 
 COLOR_OOC = "#ef4444"
@@ -98,7 +99,11 @@ def registrar_callbacks_control_charts(app) -> None:
     )
     def callback_actualizar_control(data, columna):
         filtrado = leer_dataframe_filtrado(data)
-        vacio = ("Sin datos.", aplicar_tema_oscuro(go.Figure()), aplicar_tema_oscuro(go.Figure()))
+        vacio = (
+            "Sin datos.",
+            aplicar_tema_oscuro(go.Figure()),
+            aplicar_tema_oscuro(go.Figure()),
+        )
 
         if filtrado.empty or not columna or columna not in filtrado.columns:
             return vacio
@@ -111,12 +116,7 @@ def registrar_callbacks_control_charts(app) -> None:
         fuera_control = detectar_fuera_de_control(serie, limites)
         mr = calcular_moving_range(serie).dropna().reset_index(drop=True)
 
-        n_fuera = int(fuera_control.sum())
-        estado = (
-            f"{n_fuera} punto(s) fuera de control (Regla Western Electric #1)."
-            if n_fuera
-            else "Proceso en control estadístico — sin puntos fuera de límites."
-        )
+        estado = resumen_control_estadistico(serie, limites)["mensaje"]
 
         return (
             estado,
