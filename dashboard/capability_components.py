@@ -8,11 +8,29 @@ IDs alineados a la nomenclatura correcta: `capability-pp`,
 `capability-ppk`, `capability-ppk-minimo`. Este rename se aplicó en el
 Bloque UX-1/UX-2 para sincronizar layout y callbacks con el mismo
 naming (ver docs/adr/0002-naming-convention.md).
+
+Incluye 4 KPIs de rendimiento respecto a especificación (% dentro,
+% bajo LSL, % sobre USL, PPM total) que convierten el histograma en
+herramienta de decisión — ver src/capability.calcular_rendimiento_spec.
 """
 
 from __future__ import annotations
 
 from dash import dcc, html
+
+
+def _crear_card_metrica(
+    label: str,
+    componente_id: str,
+) -> html.Div:
+    """Helper: card estándar (label arriba, valor debajo)."""
+    return html.Div(
+        [
+            html.Div(label, className="quality-metric-label"),
+            html.Div(id=componente_id, className="quality-metric-value"),
+        ],
+        className="quality-metric-card",
+    )
 
 
 def crear_capability_section(variables_config: dict) -> html.Div:
@@ -50,34 +68,10 @@ def crear_capability_section(variables_config: dict) -> html.Div:
             dcc.Store(id="store-capacidad"),
             html.Div(
                 [
-                    html.Div(
-                        [
-                            html.Div("Variables evaluadas", className="quality-metric-label"),
-                            html.Div(id="capability-total-variables", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
-                    html.Div(
-                        [
-                            html.Div("Ppk mínimo", className="quality-metric-label"),
-                            html.Div(id="capability-ppk-minimo", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
-                    html.Div(
-                        [
-                            html.Div("Variables marginales", className="quality-metric-label"),
-                            html.Div(id="capability-marginales", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
-                    html.Div(
-                        [
-                            html.Div("Variables no capaces", className="quality-metric-label"),
-                            html.Div(id="capability-no-capaces", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
+                    _crear_card_metrica("Variables evaluadas", "capability-total-variables"),
+                    _crear_card_metrica("Ppk mínimo", "capability-ppk-minimo"),
+                    _crear_card_metrica("Variables marginales", "capability-marginales"),
+                    _crear_card_metrica("Variables no capaces", "capability-no-capaces"),
                 ],
                 className="quality-metrics-grid",
             ),
@@ -95,27 +89,9 @@ def crear_capability_section(variables_config: dict) -> html.Div:
             ),
             html.Div(
                 [
-                    html.Div(
-                        [
-                            html.Div("Pp", className="quality-metric-label"),
-                            html.Div(id="capability-pp", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
-                    html.Div(
-                        [
-                            html.Div("Ppk", className="quality-metric-label"),
-                            html.Div(id="capability-ppk", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
-                    html.Div(
-                        [
-                            html.Div("Promedio", className="quality-metric-label"),
-                            html.Div(id="capability-media", className="quality-metric-value"),
-                        ],
-                        className="quality-metric-card",
-                    ),
+                    _crear_card_metrica("Pp", "capability-pp"),
+                    _crear_card_metrica("Ppk", "capability-ppk"),
+                    _crear_card_metrica("Promedio", "capability-media"),
                     html.Div(
                         [
                             html.Div(
@@ -126,6 +102,15 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                         ],
                         className="quality-metric-card",
                     ),
+                ],
+                className="quality-metrics-grid",
+            ),
+            html.Div(
+                [
+                    _crear_card_metrica("Dentro de spec", "capability-pct-dentro"),
+                    _crear_card_metrica("Bajo LSL", "capability-pct-bajo-lsl"),
+                    _crear_card_metrica("Sobre USL", "capability-pct-sobre-usl"),
+                    _crear_card_metrica("PPM total", "capability-ppm-total"),
                 ],
                 className="quality-metrics-grid",
             ),

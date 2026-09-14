@@ -4,26 +4,17 @@ Callback delgado: toda la matemática vive en src/capability.py (100%
 testeado). Aquí solo se orquesta la lectura de datos, el formato de
 presentación y la construcción del gráfico Plotly.
 
-IDs alineados a Pp/Ppk: `capability-pp`, `capability-ppk`,
-`capability-ppk-minimo` (sincronizados con dashboard/capability_components.py).
-
 Diseño visual (ISA-101 / HMI industrial):
   - Labels LSL/USL/Promedio: blanco (#e6edf3), bold, 16px — legibles a
     1-2 m del monitor.
-  - Las 3 líneas de referencia (LSL, USL, Promedio) comparten color gris
-    (#8b949e), estilo dashed y ancho 1.8px. La diferenciación semántica
-    queda en el LABEL y en la POSICIÓN (centro vs bordes), no en el color.
-    Motivo técnico: el cian del histograma camufla cualquier línea cian
-    que lo cruce — gris neutro garantiza contraste en los 3 casos.
-  - Convención HMI: solo los datos medidos (barras) van en línea sólida;
-    las referencias calculadas son siempre discontinuas (dashed).
-  - Ancho 1.8px: por debajo de 1.5px los guiones se vuelven difíciles de
-    seguir a distancia por el promedio visual del ojo (ISA-101).
+  - Las 3 líneas de referencia comparten color gris neutro, estilo
+    dashed y ancho 1.8px. La diferenciación semántica queda en el
+    LABEL y en la POSICIÓN, no en el color.
+  - Convención HMI: solo los datos medidos (barras) van en línea sólida.
 
 Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
-envolviendo el texto en `<b>...</b>` — Plotly renderiza un subset de
-HTML permitido dentro de `text`.
+envolviendo el texto en `<b>...</b>`.
 """
 
 from __future__ import annotations
@@ -33,10 +24,10 @@ from io import StringIO
 
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output
+from dash import Input, Output, html
 
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
-from src.capability import resumen_capacidad
+from src.capability import calcular_rendimiento_spec, resumen_capacidad
 
 # ---------------------------------------------------------------------
 # Constantes visuales (ISA-101: legibles a 1-2 m de distancia)
@@ -48,6 +39,19 @@ FONT_SIZE_LABEL = 16              # px — mínimo ISA-101 para 1 m
 FONT_FAMILY = "Inter, SF Pro Display, Segoe UI, sans-serif"
 ANCHO_LINEA_REFERENCIA = 1.8      # px — ISA-101 pide ≥1.5px para dashed a distancia
 MARGEN_SUPERIOR_PLOT = 55         # px — espacio para los 3 labels
+
+# Mapeo clasificación de rendimiento → modificador CSS de color
+CSS_CLASS_POR_RENDIMIENTO = {
+    "world_class": "success",
+    "acceptable": "warning",
+    "low": "danger",
+    "sin_datos": "neutral",
+}
+
+
+# ---------------------------------------------------------------------
+# Helpers de formato
+# ---------------------------------------------------------------------
 
 
 def _estado_capacidad(clasificacion: str) -> str:
@@ -100,6 +104,20 @@ def _formatear_indice(valor) -> str:
     return f"{valor_float:.2f}"
 
 
+def _span_rendimiento(valor: str, clasificacion: str) -> html.Span:
+    """Construye el <span> con clase semántica según clasificación PPM."""
+    modificador = CSS_CLASS_POR_RENDIMIENTO.get(clasificacion, "neutral")
+    return html.Span(
+        valor,
+        className=f"quality-metric-value quality-metric-value--{modificador}",
+    )
+
+
+# ---------------------------------------------------------------------
+# Datos y figura
+# ---------------------------------------------------------------------
+
+
 def calcular_resumen_capacidad(data, variables_config: dict) -> pd.DataFrame:
     """Calcula Pp/Ppk para el universo filtrado actual."""
     filtrado = leer_dataframe_filtrado(data)
@@ -120,24 +138,13 @@ def _agregar_linea_con_label(
     Las 3 líneas (LSL, USL, Promedio) comparten color gris neutro, estilo
     dashed y ancho 1.8px. La diferenciación entre ellas se hace por el
     LABEL (blanco, bold, arriba del plot) y por la POSICIÓN en el eje X,
-    no por color. Motivo: el cian del histograma camufla cualquier línea
-    cian que lo cruce — gris neutro garantiza contraste en los 3 casos.
-
-    Convención HMI: solo los datos medidos van en línea sólida; las
-    referencias calculadas (spec limits, mean) son siempre discontinuas.
-
-    El ancho de línea (1.8px) está calibrado según ISA-101 para
-    legibilidad a 1-2 m: por debajo de 1.5px los guiones se vuelven
-    difíciles de seguir a distancia por el promedio visual del ojo.
+    no por color.
 
     Bold en el label vía HTML `<b>` — Plotly no expone `font.weight` en
     el schema de annotations (solo color, family, size).
 
-    El label se ancla con yref='paper' en y=1.02 (2% por encima del borde
-    superior) para no superponerse con las barras del histograma.
-    add_vline(annotation_text=...) coloca la anotación DENTRO del plot al
-    tope de la línea — con distribuciones centradas, ese tope cae sobre
-    las barras más altas y el texto se vuelve ilegible.
+    El label se ancla con yref='paper' en y=1.02 para no superponerse
+    con las barras del histograma.
 
     Requiere reservar margen superior (t) en update_layout; ver
     crear_figura_capacidad para el valor usado.
@@ -220,6 +227,11 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
     return aplicar_tema_oscuro(figura)
 
 
+# ---------------------------------------------------------------------
+# Callbacks
+# ---------------------------------------------------------------------
+
+
 def registrar_callbacks_capability(app, variables_config: dict) -> None:
     @app.callback(
         Output("store-capacidad", "data"),
@@ -267,6 +279,10 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         Output("capability-estado", "children"),
         Output("capability-grafico", "figure"),
         Output("capability-observaciones", "children"),
+        Output("capability-pct-dentro", "children"),
+        Output("capability-pct-bajo-lsl", "children"),
+        Output("capability-pct-sobre-usl", "children"),
+        Output("capability-ppm-total", "children"),
         Input("store-capacidad", "data"),
         Input("capability-variable-selector", "value"),
         Input("store-datos-filtrados", "data"),
@@ -276,6 +292,10 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
             "Sin datos", "Sin datos", "Sin datos", "Sin datos",
             "Sin datos para evaluar.",
             aplicar_tema_oscuro(go.Figure()), "",
+            _span_rendimiento("—", "sin_datos"),
+            _span_rendimiento("—", "sin_datos"),
+            _span_rendimiento("—", "sin_datos"),
+            _span_rendimiento("—", "sin_datos"),
         )
 
         if not capacidad_json or not columna:
@@ -301,6 +321,14 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         n = int(fila["n"]) if pd.notna(fila["n"]) else 0
         observaciones = f"{n:,} observaciones utilizadas en el cálculo."
 
+        rendimiento = calcular_rendimiento_spec(
+            filtrado[columna] if not filtrado.empty else pd.Series([], dtype=float),
+            lsl=float(fila["lsl"]),
+            usl=float(fila["usl"]),
+        )
+
+        clase = rendimiento["clasificacion"]
+
         return (
             _formatear_indice(fila["pp"]),
             _formatear_indice(fila["ppk"]),
@@ -309,4 +337,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
             mensaje,
             figura,
             observaciones,
+            _span_rendimiento(f"{rendimiento['pct_dentro']:.2f}%", clase),
+            _span_rendimiento(f"{rendimiento['pct_bajo_lsl']:.2f}%", clase),
+            _span_rendimiento(f"{rendimiento['pct_sobre_usl']:.2f}%", clase),
+            _span_rendimiento(f"{rendimiento['ppm_total']:,}", clase),
         )

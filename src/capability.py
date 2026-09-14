@@ -180,3 +180,111 @@ def resumen_capacidad(
         filas.append(resultado)
 
     return pd.DataFrame(filas)
+
+
+
+
+
+# ---------------------------------------------------------------------
+# Rendimiento respecto a especificación (% dentro, PPM)
+#
+# Complementa a Pp/Ppk con el dato operativo que un ingeniero de calidad
+# usa para decidir acción: cuántas piezas cumplen spec y cuántas no.
+# ---------------------------------------------------------------------
+
+PPM_WORLD_CLASS = 100
+PPM_ACCEPTABLE = 1000
+
+
+def calcular_rendimiento_spec(
+    valores: pd.Series,
+    lsl: float,
+    usl: float,
+) -> dict:
+    """Calcula el rendimiento respecto a especificación.
+
+    Parameters
+    ----------
+    valores : pd.Series
+        Observaciones del proceso.
+    lsl : float
+        Límite inferior de especificación (inclusive).
+    usl : float
+        Límite superior de especificación (inclusive).
+
+    Returns
+    -------
+    dict
+        n             : int — observaciones válidas
+        dentro        : int — piezas dentro de [LSL, USL]
+        bajo_lsl      : int — piezas < LSL
+        sobre_usl     : int — piezas > USL
+        pct_dentro    : float — % dentro de spec
+        pct_bajo_lsl  : float — % bajo LSL
+        pct_sobre_usl : float — % sobre USL
+        ppm_total     : int — piezas fuera por millón
+        clasificacion : str — "world_class" | "acceptable" | "low" | "sin_datos"
+
+    Notes
+    -----
+    Los bordes (x == LSL, x == USL) se cuentan como DENTRO de spec, según
+    la convención industrial de límites inclusivos.
+    """
+    if not isinstance(valores, pd.Series):
+        valores = pd.Series(valores)
+
+    vacio = {
+        "n": 0,
+        "dentro": 0,
+        "bajo_lsl": 0,
+        "sobre_usl": 0,
+        "pct_dentro": 0.0,
+        "pct_bajo_lsl": 0.0,
+        "pct_sobre_usl": 0.0,
+        "ppm_total": 0,
+        "clasificacion": "sin_datos",
+    }
+
+    if not np.isfinite(lsl) or not np.isfinite(usl) or usl <= lsl:
+        return vacio
+
+    valores = pd.to_numeric(valores, errors="coerce")
+    valores = valores.replace([np.inf, -np.inf], np.nan).dropna()
+
+    n = len(valores)
+    if n == 0:
+        return vacio
+
+    bajo_lsl_mask = valores < lsl
+    sobre_usl_mask = valores > usl
+    dentro_mask = ~(bajo_lsl_mask | sobre_usl_mask)
+
+    bajo_lsl = int(bajo_lsl_mask.sum())
+    sobre_usl = int(sobre_usl_mask.sum())
+    dentro = int(dentro_mask.sum())
+
+    pct_dentro = round(dentro / n * 100, 3)
+    pct_bajo_lsl = round(bajo_lsl / n * 100, 3)
+    pct_sobre_usl = round(sobre_usl / n * 100, 3)
+
+    fuera = bajo_lsl + sobre_usl
+    ppm_total = round(fuera / n * 1_000_000)
+
+    if ppm_total <= PPM_WORLD_CLASS:
+        clasificacion = "world_class"
+    elif ppm_total <= PPM_ACCEPTABLE:
+        clasificacion = "acceptable"
+    else:
+        clasificacion = "low"
+
+    return {
+        "n": n,
+        "dentro": dentro,
+        "bajo_lsl": bajo_lsl,
+        "sobre_usl": sobre_usl,
+        "pct_dentro": pct_dentro,
+        "pct_bajo_lsl": pct_bajo_lsl,
+        "pct_sobre_usl": pct_sobre_usl,
+        "ppm_total": ppm_total,
+        "clasificacion": clasificacion,
+    }

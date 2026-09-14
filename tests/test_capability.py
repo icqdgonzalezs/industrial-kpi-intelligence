@@ -200,3 +200,70 @@ def test_resumen_capacidad_requires_configuration_keys():
         raise AssertionError
     except ValueError as exc:
         assert "nombre" in str(exc)
+
+
+
+
+# ---------------------------------------------------------------------
+# Rendimiento respecto a especificación (% dentro, PPM)
+# ---------------------------------------------------------------------
+
+
+def test_calcular_rendimiento_spec_todo_dentro():
+    from src.capability import calcular_rendimiento_spec
+
+    serie = pd.Series([495, 500, 505, 498, 502])
+    resultado = calcular_rendimiento_spec(serie, lsl=492, usl=508)
+
+    assert resultado["n"] == 5
+    assert resultado["dentro"] == 5
+    assert resultado["bajo_lsl"] == 0
+    assert resultado["sobre_usl"] == 0
+    assert resultado["pct_dentro"] == 100.0
+    assert resultado["ppm_total"] == 0
+    assert resultado["clasificacion"] == "world_class"
+
+
+def test_calcular_rendimiento_spec_con_fuera_de_spec():
+    from src.capability import calcular_rendimiento_spec
+
+    serie = pd.Series([490, 500, 510, 500, 500])
+    resultado = calcular_rendimiento_spec(serie, lsl=492, usl=508)
+
+    assert resultado["n"] == 5
+    assert resultado["dentro"] == 3
+    assert resultado["bajo_lsl"] == 1
+    assert resultado["sobre_usl"] == 1
+    assert resultado["ppm_total"] == 400_000
+    assert resultado["clasificacion"] == "low"
+
+
+def test_calcular_rendimiento_spec_ignora_nan():
+    from src.capability import calcular_rendimiento_spec
+
+    serie = pd.Series([500, None, 500, float("nan"), 500])
+    resultado = calcular_rendimiento_spec(serie, lsl=492, usl=508)
+
+    assert resultado["n"] == 3
+    assert resultado["dentro"] == 3
+
+
+def test_calcular_rendimiento_spec_bordes_cuentan_como_dentro():
+    from src.capability import calcular_rendimiento_spec
+
+    serie = pd.Series([492, 500, 508])
+    resultado = calcular_rendimiento_spec(serie, lsl=492, usl=508)
+
+    assert resultado["dentro"] == 3
+    assert resultado["bajo_lsl"] == 0
+    assert resultado["sobre_usl"] == 0
+
+
+def test_calcular_rendimiento_spec_sin_datos():
+    from src.capability import calcular_rendimiento_spec
+
+    serie = pd.Series([], dtype=float)
+    resultado = calcular_rendimiento_spec(serie, lsl=492, usl=508)
+
+    assert resultado["n"] == 0
+    assert resultado["clasificacion"] == "sin_datos"
