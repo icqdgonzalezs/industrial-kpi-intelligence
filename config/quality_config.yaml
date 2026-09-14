@@ -142,3 +142,30 @@ variables:
       target: 99.0
       lsl: 97.0
       usl: 100.0
+
+
+# ---------------------------------------------------------------------
+# Umbrales de clasificación semántica de KPIs (color del top ejecutivo).
+# Nota de negocio: los umbrales por defecto asumen una planta de
+# envasado/alimentos genérica. Para onboarding multi-cliente (SaaS),
+# este bloque se reemplaza por el YAML del cliente sin tocar código.
+#
+# Convención:
+#   direction: higher_is_better | lower_is_better
+#   success:   umbral para clasificar en verde
+#   warning:   umbral para clasificar en ámbar
+#   (por debajo/encima de warning → rojo)
+# ---------------------------------------------------------------------
+kpi_thresholds:
+  fpy:
+    direction: higher_is_better
+    success: 0.95
+    warning: 0.90
+  tasa_defectos:
+    direction: lower_is_better
+    success: 0.03
+    warning: 0.05
+  tasa_scrap:
+    direction: lower_is_better
+    success: 0.01
+    warning: 0.02

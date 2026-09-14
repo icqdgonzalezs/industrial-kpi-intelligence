@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.kpi_thresholds import clasificar_kpi_por_nombre
+
 
 def formatear_kpis(kpis: dict[str, Any]) -> dict[str, str]:
     """Convierte el resultado del KPI Engine en valores de presentación."""
@@ -37,44 +39,13 @@ def formatear_kpis(kpis: dict[str, Any]) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------
-# Clasificación semántica de KPIs (success / warning / danger / neutral)
+# Clasificación semántica de KPIs (delegada a src/kpi_thresholds).
 #
-# NOTA: estos umbrales están documentados como constantes de este módulo.
-# Externalizarlos a config/*.yaml está agendado para Semana 3 (onboarding
-# por cliente: un Plant Manager querrá sus propios umbrales sin tocar
-# código).
+# Los umbrales viven en config/quality_config.yaml (sección
+# `kpi_thresholds`), no en este módulo. Este presenter solo consume
+# la clasificación — la lógica de clasificar es responsabilidad de
+# src/kpi_thresholds.clasificar_kpi_por_nombre.
 # ---------------------------------------------------------------------
-
-CLASIFICACION_SUCCESS = "success"
-CLASIFICACION_WARNING = "warning"
-CLASIFICACION_DANGER = "danger"
-CLASIFICACION_NEUTRAL = "neutral"
-
-UMBRALES_FPY = {"success": 0.95, "warning": 0.90}  # higher_is_better
-UMBRALES_DEFECTOS = {"success": 0.03, "warning": 0.05}  # lower_is_better
-UMBRALES_SCRAP = {"success": 0.01, "warning": 0.02}  # lower_is_better
-
-
-def _clasificar_higher_is_better(
-    valor: float, umbral_success: float, umbral_warning: float
-) -> str:
-    """Ej. FPY: más alto es mejor."""
-    if valor >= umbral_success:
-        return CLASIFICACION_SUCCESS
-    if valor >= umbral_warning:
-        return CLASIFICACION_WARNING
-    return CLASIFICACION_DANGER
-
-
-def _clasificar_lower_is_better(
-    valor: float, umbral_success: float, umbral_warning: float
-) -> str:
-    """Ej. Defectos, Scrap: más bajo es mejor."""
-    if valor <= umbral_success:
-        return CLASIFICACION_SUCCESS
-    if valor <= umbral_warning:
-        return CLASIFICACION_WARNING
-    return CLASIFICACION_DANGER
 
 
 def clasificar_kpis(kpis: dict[str, Any]) -> dict[str, str]:
@@ -94,7 +65,9 @@ def clasificar_kpis(kpis: dict[str, Any]) -> dict[str, str]:
     Notes
     -----
     "produccion" siempre "neutral": el volumen no tiene umbral universal
-    de bueno/malo sin contexto de capacidad de planta.
+    de bueno/malo sin contexto de capacidad de planta. Este es un caso
+    de uso donde la ausencia de umbral es una decisión de negocio, no
+    un olvido.
     """
     required = {"fpy", "tasa_defectos", "tasa_scrap"}
     faltantes = required - set(kpis)
@@ -106,16 +79,8 @@ def clasificar_kpis(kpis: dict[str, Any]) -> dict[str, str]:
         )
 
     return {
-        "produccion": CLASIFICACION_NEUTRAL,
-        "fpy": _clasificar_higher_is_better(
-            kpis["fpy"], UMBRALES_FPY["success"], UMBRALES_FPY["warning"]
-        ),
-        "defectos": _clasificar_lower_is_better(
-            kpis["tasa_defectos"],
-            UMBRALES_DEFECTOS["success"],
-            UMBRALES_DEFECTOS["warning"],
-        ),
-        "scrap": _clasificar_lower_is_better(
-            kpis["tasa_scrap"], UMBRALES_SCRAP["success"], UMBRALES_SCRAP["warning"]
-        ),
+        "produccion": "neutral",
+        "fpy": clasificar_kpi_por_nombre("fpy", kpis["fpy"]),
+        "defectos": clasificar_kpi_por_nombre("tasa_defectos", kpis["tasa_defectos"]),
+        "scrap": clasificar_kpi_por_nombre("tasa_scrap", kpis["tasa_scrap"]),
     }
