@@ -118,7 +118,10 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                     ),
                     html.Div(
                         [
-                            html.Div("σ", className="quality-metric-label"),
+                            html.Div(
+                                "σ",
+                                className="quality-metric-label quality-metric-label--symbol",
+                            ),
                             html.Div(id="capability-sigma", className="quality-metric-value"),
                         ],
                         className="quality-metric-card",

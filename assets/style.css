@@ -1484,3 +1484,17 @@ input[id^="react-select-"] {
 .quality-metric-value--neutral {
   color: #e6edf3 !important;      /* blanco (default) */
 }
+
+
+/* ============================================================================
+   FIX: preserve lowercase symbols in metric labels
+   text-transform: uppercase convierte σ → Σ en el render (regresión
+   visual en la tab Capacidad). Esta clase fuerza text-transform: none
+   para símbolos griegos, sin afectar el resto de los labels.
+   ============================================================================ */
+
+.quality-metric-label--symbol {
+  text-transform: none !important;
+  letter-spacing: 0.1em !important;
+  font-size: 16px !important;   /* σ es visualmente más chico que PP/PROMEDIO */
+}
