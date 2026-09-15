@@ -1498,3 +1498,70 @@ input[id^="react-select-"] {
   letter-spacing: 0.1em !important;
   font-size: 16px !important;   /* σ es visualmente más chico que PP/PROMEDIO */
 }
+
+
+/* ================================================================
+   Chips de dimensión — Segmented control (Operational Analysis)
+   Patrón ISA-101: todas las opciones visibles, una sola activa,
+   transición suave hover/focus para accesibilidad por teclado.
+   ================================================================ */
+
+.filter-help {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6e7681;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.dimension-chips {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 0 0;
+}
+
+.dimension-chip {
+    display: inline-flex !important;
+    align-items: center;
+    padding: 8px 18px;
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background-color 0.15s ease,
+                border-color 0.15s ease,
+                color 0.15s ease,
+                box-shadow 0.15s ease;
+    user-select: none;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.dimension-chip:hover {
+    background-color: #1f2937;
+    border-color: #58a6ff;
+    color: #e6edf3;
+}
+
+.dimension-chip:focus-within {
+    outline: 2px solid #58a6ff;
+    outline-offset: 2px;
+}
+
+.dimension-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.dimension-chip:has(input:checked) {
+    background-color: #1f6feb;
+    border-color: #1f6feb;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.25);
+}

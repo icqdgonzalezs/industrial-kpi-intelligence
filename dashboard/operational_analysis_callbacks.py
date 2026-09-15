@@ -6,8 +6,20 @@ src/diagnostics.py para que el color del ranking sea consistente con
 el motor de diagnóstico — una sola fuente de verdad para "qué es
 prioritario".
 
-Anotación "Promedio de planta" a 14px según ISA-101 (legibilidad
-industrial desde 1m de distancia).
+Barras horizontales según ISA-101: los nombres de equipo/turno/operador
+se leen sin rotación, incluso con 17+ categorías. Altura dinámica para
+mantener legibilidad a 1-2 m. La peor categoría (mayor tasa de defectos)
+queda arriba, primera lectura.
+
+Etiquetas numéricas visibles sin interacción (ISA-101: los datos medidos
+deben ser legibles a 1-2 m sin requerir hover). La jerarquía se comunica
+por tres canales redundantes —posición (peor arriba), color semántico
+(rojo/ámbar/verde por umbral de hotspot) y valor absoluto visible— sin
+recurrir a decoraciones adicionales que rompan la consistencia visual.
+
+El callback de clickData se resetea al cambiar de dimensión: sin esto,
+Plotly retiene el valor clickeado anterior y el panel de detalle muestra
+"Sin datos" sin que el usuario haya interactuado con la nueva dimensión.
 """
 
 from __future__ import annotations
@@ -26,6 +38,11 @@ from src.kpis import (
 COLOR_PRIORITY = "#ef4444"
 COLOR_WATCH = "#f59e0b"
 COLOR_NORMAL = "#22c55e"
+COLOR_REFERENCIA = "#8b949e"
+
+ALTURA_POR_CATEGORIA_PX = 35
+ALTURA_MARGEN_PX = 120
+ALTURA_MINIMA_PX = 300
 
 
 def _color_por_ratio(ratio: float) -> str:
@@ -37,8 +54,28 @@ def _color_por_ratio(ratio: float) -> str:
     return COLOR_NORMAL
 
 
+def _extraer_valor_seleccionado(click_data: dict | None) -> str | None:
+    """Extrae la categoría clickeada desde clickData de Plotly.
+
+    Con orientation='h', Plotly reporta la categoría en 'y'. Esta función
+    aísla el contrato del callback para que un cambio futuro de orientación
+    no rompa el drill-down de forma silenciosa.
+    """
+    if not click_data or "points" not in click_data:
+        return None
+    puntos = click_data["points"]
+    if not puntos:
+        return None
+    return str(puntos[0]["y"])
+
+
+def _calcular_altura(n_categorias: int) -> int:
+    """Altura dinámica: 35px por categoría + margen, mínimo 300px."""
+    return max(ALTURA_MINIMA_PX, ALTURA_POR_CATEGORIA_PX * n_categorias + ALTURA_MARGEN_PX)
+
+
 def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
-    """Construye el ranking comparativo (barras) para la dimensión seleccionada."""
+    """Construye el ranking comparativo (barras horizontales) por dimensión."""
     if filtrado is None or filtrado.empty:
         return aplicar_tema_oscuro(go.Figure())
 
@@ -46,6 +83,12 @@ def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
 
     if por_dimension.empty:
         return aplicar_tema_oscuro(go.Figure())
+
+    # Ascendente: con orientation='h', Plotly dibuja el primer valor abajo.
+    # El peor (mayor tasa) queda arriba, primera lectura del operador.
+    por_dimension = por_dimension.sort_values(
+        "tasa_defectos", ascending=True
+    ).reset_index(drop=True)
 
     promedio_planta = calcular_kpis_globales(filtrado)["tasa_defectos"]
 
@@ -55,27 +98,40 @@ def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
         else por_dimension["tasa_defectos"] * 0
     )
     colores = [_color_por_ratio(r) for r in ratios]
+    valores_pct = (por_dimension["tasa_defectos"] * 100).tolist()
 
     figura = go.Figure(
         go.Bar(
-            x=por_dimension[dimension].astype(str),
-            y=por_dimension["tasa_defectos"] * 100,
+            x=valores_pct,
+            y=por_dimension[dimension].astype(str),
+            orientation="h",
             marker_color=colores,
+            text=[f"{v:.2f}%" for v in valores_pct],
+            textposition="outside",
+            textfont=dict(size=12, color="#e6edf3"),
+            cliponaxis=False,
+            hovertemplate="<b>%{y}</b><br>Tasa de defectos: %{x:.2f}%<extra></extra>",
         )
     )
 
-    figura.add_hline(
-        y=promedio_planta * 100,
+    figura.add_vline(
+        x=promedio_planta * 100,
         line_dash="dash",
+        line_color=COLOR_REFERENCIA,
+        line_width=1.8,
         annotation_text="Promedio de planta",
+        annotation_position="top",
         annotation_font_size=14,
         annotation_font_color="#e6edf3",
     )
 
     figura.update_layout(
-        yaxis_title="Tasa de defectos (%)",
-        xaxis_title=dimension.capitalize(),
+        xaxis_title="Tasa de defectos (%)",
+        yaxis_title=dimension.capitalize(),
         showlegend=False,
+        height=_calcular_altura(len(por_dimension)),
+        margin=dict(l=180, r=80, t=60, b=60),
+        bargap=0.25,
     )
 
     return aplicar_tema_oscuro(figura)
@@ -131,6 +187,20 @@ def registrar_callbacks_operational_analysis(app) -> None:
         return crear_figura_ranking(filtrado, dimension)
 
     @app.callback(
+        Output("operational-ranking-chart", "clickData"),
+        Input("operational-dimension-selector", "value"),
+        prevent_initial_call=True,
+    )
+    def callback_reset_click_al_cambiar_dimension(_dimension):
+        """Resetea la selección al cambiar de dimensión.
+
+        Sin esto, clickData retiene el valor de la dimensión anterior
+        (ej: 'EQ-A' tras pasar a 'Turno') y el panel muestra "Sin datos"
+        sin que el usuario haya clickeado nada en la nueva dimensión.
+        """
+        return None
+
+    @app.callback(
         Output("operational-detail-panel", "children"),
         Input("operational-ranking-chart", "clickData"),
         Input("operational-dimension-selector", "value"),
@@ -142,9 +212,9 @@ def registrar_callbacks_operational_analysis(app) -> None:
         if filtrado.empty or not dimension:
             return "Selecciona una dimensión para ver el detalle."
 
-        if not click_data:
-            return "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
+        valor_seleccionado = _extraer_valor_seleccionado(click_data)
 
-        valor_seleccionado = click_data["points"][0]["x"]
+        if valor_seleccionado is None:
+            return "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
 
         return crear_panel_detalle(filtrado, dimension, valor_seleccionado)

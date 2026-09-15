@@ -1,4 +1,14 @@
-"""Layout Dash del análisis operacional comparativo (drill-down por dimensión)."""
+"""Layout Dash del análisis operacional comparativo (drill-down por dimensión).
+
+Selector de dimensión como segmented control (RadioItems estilizado con
+CSS) en lugar de dropdown: reduce fricción (1 click vs 2) y expone todas
+las opciones simultáneamente — patrón ISA-101 para HMI.
+
+"Tipo de máquina" reemplaza a "Máquina" para desambiguar de "Equipo":
+Equipo es la instancia física única (L1-FILL-01), Tipo de máquina agrupa
+por familia a través de todas las líneas (FILL-01 = todas las llenadoras
+número 01).
+"""
 
 from __future__ import annotations
 
@@ -9,8 +19,13 @@ DIMENSIONES_DISPONIBLES = [
     {"label": "Turno", "value": "turno"},
     {"label": "Operador", "value": "operador"},
     {"label": "Línea", "value": "linea"},
-    {"label": "Máquina", "value": "maquina"},
+    {"label": "Tipo de máquina", "value": "maquina"},
 ]
+
+MICROCOPY_DIMENSIONES = (
+    "Equipo = instancia física única · "
+    "Tipo de máquina = familia a través de todas las líneas"
+)
 
 
 def crear_operational_analysis_section() -> html.Div:
@@ -32,12 +47,21 @@ def crear_operational_analysis_section() -> html.Div:
             ),
             html.Div(
                 [
-                    html.Label("Dimensión"),
-                    dcc.Dropdown(
+                    html.Label(
+                        "Dimensión",
+                        className="filter-label",
+                    ),
+                    dcc.RadioItems(
                         id="operational-dimension-selector",
                         options=DIMENSIONES_DISPONIBLES,
                         value="equipo",
-                        clearable=False,
+                        className="dimension-chips",
+                        inputClassName="dimension-chip-input",
+                        labelClassName="dimension-chip",
+                    ),
+                    html.P(
+                        MICROCOPY_DIMENSIONES,
+                        className="filter-help",
                     ),
                 ],
                 className="filter-control",
