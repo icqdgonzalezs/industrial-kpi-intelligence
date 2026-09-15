@@ -26,6 +26,44 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+# ---------------------------------------------------------------------
+# Umbrales de clasificación de capacidad
+# Fuente: AIAG SPC (Chrysler/Ford/GM), NIST 6.1.3, ISO 22514.
+#
+# Escala estándar industrial (convención de facto, no normada):
+#   Ppk >= 1.67  → clase mundial
+#   1.33 <= Ppk  → capaz
+#   1.00 <= Ppk  → marginal
+#   Ppk <  1.00  → no capaz
+#
+# Nota: migración a YAML (SSOT) queda como fix separado — requiere
+# threading de config a través de calcular_pp_ppk(), que hoy no lo
+# recibe.
+# ---------------------------------------------------------------------
+
+UMBRAL_PPK_CLASE_MUNDIAL = 1.67
+UMBRAL_PPK_CAPAZ = 1.33
+UMBRAL_PPK_MARGINAL = 1.00
+
+
+def clasificar_ppk(ppk: float) -> str:
+    """Clasifica Ppk según benchmarks AIAG SPC / NIST 6.1.3 / ISO 22514.
+
+    Args:
+        ppk: índice de capacidad real. Puede ser negativo (proceso
+             descentrado) o infinito (sigma=0 con media dentro de spec).
+
+    Returns:
+        Uno de los 4 niveles de la escala estándar industrial.
+    """
+    if ppk >= UMBRAL_PPK_CLASE_MUNDIAL:
+        return "Clase mundial"
+    if ppk >= UMBRAL_PPK_CAPAZ:
+        return "Capaz"
+    if ppk >= UMBRAL_PPK_MARGINAL:
+        return "Marginal"
+    return "No capaz"
+
 
 def calcular_pp_ppk(
     valores: pd.Series,
@@ -124,12 +162,7 @@ def calcular_pp_ppk(
         (media - lsl) / (3 * sigma),
     )
 
-    if ppk >= 1.33:
-        clasificacion = "Capaz (excelente)"
-    elif ppk >= 1.00:
-        clasificacion = "Marginal (monitorear)"
-    else:
-        clasificacion = "No capaz (acción requerida)"
+    clasificacion = clasificar_ppk(ppk)
 
     return {
         "pp": round(pp, 3),

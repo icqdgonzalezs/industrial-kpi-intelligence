@@ -3,7 +3,11 @@
 import pandas as pd
 import pytest
 
-from src.capability import calcular_pp_ppk, resumen_capacidad
+from src.capability import (
+    calcular_pp_ppk,
+    clasificar_ppk,
+    resumen_capacidad,
+)
 
 
 def test_pp_ppk_valores_conocidos():
@@ -21,9 +25,10 @@ def test_pp_ppk_valores_conocidos():
     assert resultado["ppk"] is not None
     assert resultado["n"] == 10
     assert resultado["clasificacion"] in {
-        "Capaz (excelente)",
-        "Marginal (monitorear)",
-        "No capaz (acción requerida)",
+        "Clase mundial",
+        "Capaz",
+        "Marginal",
+        "No capaz",
     }
 
 
@@ -170,15 +175,16 @@ def test_calcular_pp_ppk_rejects_invalid_limits():
 def test_calcular_pp_ppk_marginal_classification():
     result = calcular_pp_ppk([497, 498, 502, 503], lsl=490, usl=510)
     assert result["clasificacion"] in {
-        "Marginal (monitorear)",
-        "Capaz (excelente)",
-        "No capaz (acción requerida)",
+        "Clase mundial",
+        "Capaz",
+        "Marginal",
+        "No capaz",
     }
 
 
 def test_calcular_pp_ppk_not_capable_classification():
     result = calcular_pp_ppk([480, 481, 482, 483], lsl=490, usl=510)
-    assert result["clasificacion"] == "No capaz (acción requerida)"
+    assert result["clasificacion"] == "No capaz"
 
 
 def test_resumen_capacidad_requires_dataframe():
@@ -200,8 +206,6 @@ def test_resumen_capacidad_requires_configuration_keys():
         raise AssertionError
     except ValueError as exc:
         assert "nombre" in str(exc)
-
-
 
 
 # ---------------------------------------------------------------------
@@ -267,3 +271,52 @@ def test_calcular_rendimiento_spec_sin_datos():
 
     assert resultado["n"] == 0
     assert resultado["clasificacion"] == "sin_datos"
+
+
+# ---------------------------------------------------------------------
+# Clasificación de Ppk — escala AIAG SPC / NIST 6.1.3 / ISO 22514
+# ---------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("ppk", "esperado"),
+    [
+        # Clase mundial (Ppk >= 1.67)
+        (2.50, "Clase mundial"),
+        (2.00, "Clase mundial"),
+        (1.67, "Clase mundial"),   # frontera inferior (inclusive)
+        # Capaz (1.33 <= Ppk < 1.67)
+        (1.66, "Capaz"),
+        (1.50, "Capaz"),
+        (1.33, "Capaz"),           # frontera inferior (inclusive)
+        # Marginal (1.00 <= Ppk < 1.33)
+        (1.32, "Marginal"),
+        (1.10, "Marginal"),
+        (1.00, "Marginal"),        # frontera inferior (inclusive)
+        # No capaz (Ppk < 1.00)
+        (0.99, "No capaz"),
+        (0.50, "No capaz"),
+        (0.00, "No capaz"),
+        (-1.00, "No capaz"),
+        # Casos extremos
+        (float("inf"), "Clase mundial"),
+        (float("-inf"), "No capaz"),
+    ],
+)
+def test_clasificar_ppk_escala_completa(ppk, esperado):
+    """Las 4 fronteras de la escala AIAG SPC deben respetarse.
+
+    Este test blinda contra la regresión histórica que clasificaba
+    Ppk=1.33 como 'excelente' cuando en realidad es 'Capaz'.
+    """
+    assert clasificar_ppk(ppk) == esperado
+
+
+def test_clasificar_ppk_133_no_es_clase_mundial():
+    """Regresión: Ppk=1.33 es Capaz, nunca Clase mundial.
+
+    El bug original (Fix #7) clasificaba Ppk>=1.33 como 'excelente'.
+    Este test es el candado específico contra esa regresión.
+    """
+    assert clasificar_ppk(1.33) == "Capaz"
+    assert clasificar_ppk(1.33) != "Clase mundial"

@@ -12,6 +12,12 @@ Diseño visual (ISA-101 / HMI industrial):
     LABEL y en la POSICIÓN, no en el color.
   - Convención HMI: solo los datos medidos (barras) van en línea sólida.
 
+Clasificación de capacidad (AIAG SPC / NIST 6.1.3 / ISO 22514):
+  Ppk >= 1.67 → Clase mundial · 1.33 <= Ppk → Capaz
+  1.00 <= Ppk → Marginal     · Ppk < 1.00  → No capaz
+Cada mensaje del banner cita el umbral numérico para que el operador
+pueda interpretar el dato sin conocer la escala de memoria.
+
 Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
 envolviendo el texto en `<b>...</b>`.
@@ -55,17 +61,21 @@ CSS_CLASS_POR_RENDIMIENTO = {
 
 
 def _estado_capacidad(clasificacion: str) -> str:
-    """Normaliza la clasificación textual de capability.py a un estado."""
+    """Normaliza la clasificación textual de capability.py a un estado.
+
+    Orden de los checks: 'no capaz' debe evaluarse ANTES de 'capaz'
+    porque el primero contiene al segundo como substring.
+    """
     texto = str(clasificacion).lower()
 
-    if "excelente" in texto:
-        return "EXCELLENT"
-    if "capaz" in texto and "no capaz" not in texto:
+    if "clase mundial" in texto:
+        return "WORLD_CLASS"
+    if "no capaz" in texto:
+        return "PRIORITY"
+    if "capaz" in texto:
         return "CAPABLE"
     if "marginal" in texto:
         return "WATCH"
-    if "no capaz" in texto:
-        return "PRIORITY"
     if "insuficientes" in texto or "inválidos" in texto:
         return "NO DATA"
     if "sin variabilidad" in texto:
@@ -74,13 +84,31 @@ def _estado_capacidad(clasificacion: str) -> str:
 
 
 def _mensaje_estado(estado: str) -> str:
+    """Mensaje del banner. Cada uno cita el umbral numérico para que
+    el operador pueda interpretar el dato sin conocer la escala AIAG.
+    """
     return {
-        "EXCELLENT": "El proceso presenta una capacidad robusta respecto de las especificaciones.",
-        "CAPABLE": "El proceso cumple el criterio de capacidad establecido para Ppk.",
-        "WATCH": "El proceso requiere seguimiento para reducir el riesgo de incumplimiento.",
-        "PRIORITY": "El proceso no demuestra capacidad suficiente. Se recomienda priorizar la investigación.",
+        "WORLD_CLASS": (
+            "El proceso alcanza clase mundial (Ppk ≥ 1.67). "
+            "No requiere inspección 100%."
+        ),
+        "CAPABLE": (
+            "El proceso cumple el criterio industrial (Ppk ≥ 1.33). "
+            "Para clase mundial se requiere Ppk ≥ 1.67."
+        ),
+        "WATCH": (
+            "El proceso está en zona marginal (1.00 ≤ Ppk < 1.33). "
+            "Requiere seguimiento y reducción de variabilidad."
+        ),
+        "PRIORITY": (
+            "El proceso no demuestra capacidad (Ppk < 1.00). "
+            "Se recomienda priorizar la investigación."
+        ),
         "NO DATA": "No existe información suficiente para evaluar la capacidad.",
-        "SPECIAL": "El proceso presenta una condición especial que requiere interpretación adicional.",
+        "SPECIAL": (
+            "El proceso presenta una condición especial "
+            "que requiere interpretación adicional."
+        ),
         "INFO": "Revisar los indicadores estadísticos disponibles.",
     }.get(estado, "Revisar los indicadores estadísticos.")
 

@@ -39,9 +39,13 @@ def test_calcular_resumen_capacidad_empty_data_returns_empty_dataframe():
 @pytest.mark.parametrize(
     ("clasificacion", "esperado"),
     [
-        ("Capaz (excelente)", "EXCELLENT"),
-        ("Marginal (monitorear)", "WATCH"),
-        ("No capaz (acción requerida)", "PRIORITY"),
+        # Escala nueva (Fix #7): 4 niveles AIAG SPC / NIST 6.1.3 / ISO 22514
+        ("Clase mundial", "WORLD_CLASS"),
+        ("Capaz", "CAPABLE"),
+        ("Marginal", "WATCH"),
+        ("No capaz", "PRIORITY"),
+        # Casos especiales (sin cambios)
+        ("No capaz (fuera de especificación)", "PRIORITY"),
         ("Datos insuficientes", "NO DATA"),
         ("Límites inválidos", "NO DATA"),
         ("Sin variabilidad", "SPECIAL"),
@@ -49,6 +53,17 @@ def test_calcular_resumen_capacidad_empty_data_returns_empty_dataframe():
 )
 def test_estado_capacidad_clasifica_correctamente(clasificacion, esperado):
     assert _estado_capacidad(clasificacion) == esperado
+
+
+def test_estado_capacidad_orden_no_capaz_antes_que_capaz():
+    """Regresión: 'No capaz' contiene 'capaz' como substring.
+
+    El orden de los checks en _estado_capacidad debe evaluar 'no capaz'
+    primero para no clasificar erróneamente como CAPABLE.
+    """
+    assert _estado_capacidad("No capaz") == "PRIORITY"
+    assert _estado_capacidad("Capaz") == "CAPABLE"
+    assert _estado_capacidad("No capaz (fuera de especificación)") == "PRIORITY"
 
 
 def test_formatear_indice_valor_normal():
