@@ -1565,3 +1565,61 @@ input[id^="react-select-"] {
     color: #ffffff;
     box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.25);
 }
+
+
+/* ================================================================
+   Timestamp de frescura del dataset — Header
+   ISA-101: metadato secundario, tipografía menor, color neutro.
+   No compite con el título ni usa colores semánticos (no es alerta).
+   El chip tiene borde sutil y fondo elevado, alineado a la derecha.
+   ================================================================ */
+
+.app-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 24px !important;
+    flex-wrap: wrap !important;
+}
+
+.app-header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.dataset-timestamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    padding: 8px 14px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    transition: border-color 0.15s ease;
+}
+
+.dataset-timestamp:hover {
+    border-color: var(--border-strong);
+}
+
+.dataset-timestamp-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.dataset-timestamp-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.dataset-timestamp-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}

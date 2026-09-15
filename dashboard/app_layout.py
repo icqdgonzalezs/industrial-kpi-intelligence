@@ -27,13 +27,39 @@ def crear_app_layout(
     turnos: list[str],
     operadores: list[str],
     variables_criticas: dict,
+    metadata_dataset: str = "",
 ):
     return html.Div(
         [
             html.Div(
                 [
-                    html.Div("INDUSTRIAL ANALYTICS PLATFORM", className="platform-label"),
-                    html.H1("🏭 Industrial KPI Intelligence", className="hero-title"),
+                    html.Div(
+                        [
+                            html.Div(
+                                "INDUSTRIAL ANALYTICS PLATFORM",
+                                className="platform-label",
+                            ),
+                            html.H1(
+                                "🏭 Industrial KPI Intelligence",
+                                className="hero-title",
+                            ),
+                        ],
+                        className="app-header-titles",
+                    ),
+                    html.Div(
+                        [
+                            html.Span("📅", className="dataset-timestamp-icon"),
+                            html.Span(
+                                "Datos actualizados: ",
+                                className="dataset-timestamp-label",
+                            ),
+                            html.Span(
+                                metadata_dataset,
+                                className="dataset-timestamp-value",
+                            ),
+                        ],
+                        className="dataset-timestamp",
+                    ),
                 ],
                 className="app-header",
             ),
