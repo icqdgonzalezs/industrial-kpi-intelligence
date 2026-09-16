@@ -20,6 +20,11 @@ recurrir a decoraciones adicionales que rompan la consistencia visual.
 El callback de clickData se resetea al cambiar de dimensión: sin esto,
 Plotly retiene el valor clickeado anterior y el panel de detalle muestra
 "Sin datos" sin que el usuario haya interactuado con la nueva dimensión.
+
+Nombres de ejes y títulos de panel delegados a LABELS_EJES_DIMENSION
+(SSOT en operational_analysis_components) vía _label_dimension(). Evita
+str.capitalize() que producía "Maquina" sin tilde en el eje Y de la
+dimensión "Tipo de máquina".
 """
 
 from __future__ import annotations
@@ -27,6 +32,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 from dash import Input, Output, html
 
+from dashboard.operational_analysis_components import LABELS_EJES_DIMENSION
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.diagnostics import UMBRAL_HOTSPOT_PRIORITY, UMBRAL_HOTSPOT_WATCH
 from src.kpis import (
@@ -52,6 +58,17 @@ def _color_por_ratio(ratio: float) -> str:
     if ratio >= UMBRAL_HOTSPOT_WATCH:
         return COLOR_WATCH
     return COLOR_NORMAL
+
+
+def _label_dimension(dimension: str) -> str:
+    """Nombre visible de una dimensión (con tilde, con nombre largo).
+
+    Centraliza el lookup para que eje Y y panel de detalle usen el mismo
+    texto. Fallback a str.capitalize() ante dimensiones no registradas
+    en DIMENSIONES_DISPONIBLES — robustez por si el dataset incorpora
+    una columna nueva antes que la lista de labels.
+    """
+    return LABELS_EJES_DIMENSION.get(dimension, dimension.capitalize())
 
 
 def _extraer_valor_seleccionado(click_data: dict | None) -> str | None:
@@ -127,7 +144,7 @@ def crear_figura_ranking(filtrado, dimension: str) -> go.Figure:
 
     figura.update_layout(
         xaxis_title="Tasa de defectos (%)",
-        yaxis_title=dimension.capitalize(),
+        yaxis_title=_label_dimension(dimension),
         showlegend=False,
         height=_calcular_altura(len(por_dimension)),
         margin=dict(l=180, r=80, t=60, b=60),
@@ -154,7 +171,7 @@ def crear_panel_detalle(filtrado, dimension: str, valor_seleccionado: str) -> ht
     return html.Div(
         [
             html.Div(
-                f"{dimension.capitalize()}: {valor_seleccionado}",
+                f"{_label_dimension(dimension)}: {valor_seleccionado}",
                 className="finding-title",
             ),
             html.Div(

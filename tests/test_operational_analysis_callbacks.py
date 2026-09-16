@@ -9,11 +9,13 @@ from dashboard.operational_analysis_callbacks import (
     ALTURA_POR_CATEGORIA_PX,
     _color_por_ratio,
     _extraer_valor_seleccionado,
+    _label_dimension,
     crear_figura_ranking,
     crear_panel_detalle,
 )
 from dashboard.operational_analysis_components import (
     DIMENSIONES_DISPONIBLES,
+    LABELS_EJES_DIMENSION,
     MICROCOPY_DIMENSIONES,
 )
 
@@ -81,6 +83,44 @@ def test_extraer_valor_seleccionado_sin_click():
     assert _extraer_valor_seleccionado({"points": []}) is None
 
 
+# --- _label_dimension (SSOT de nombres visibles) ---
+
+def test_label_dimension_maquina_es_tipo_de_maquina():
+    """Regresión: 'maquina' debe mapear a 'Tipo de máquina', con tilde.
+
+    El bug original del Fix #5.6 usaba str.capitalize() sobre el value
+    del dataset, produciendo 'Maquina' (sin tilde, sin 'Tipo de') en el
+    eje Y del ranking. Este test blinda el lookup contra el SSOT.
+    """
+    assert _label_dimension("maquina") == "Tipo de máquina"
+
+
+def test_label_dimension_restantes_conservan_tilde_y_mayuscula():
+    """Los labels del SSOT se respetan tal cual, incluyendo tildes."""
+    assert _label_dimension("equipo") == "Equipo"
+    assert _label_dimension("turno") == "Turno"
+    assert _label_dimension("operador") == "Operador"
+    assert _label_dimension("linea") == "Línea"
+
+
+def test_label_dimension_fallback_para_desconocida():
+    """Dimensiones no registradas caen a str.capitalize() por robustez."""
+    assert _label_dimension("columna_nueva") == "Columna_nueva"
+
+
+# --- LABELS_EJES_DIMENSION (contrato del SSOT) ---
+
+def test_labels_ejes_dimension_cubre_todas_las_dimensiones():
+    """El mapping debe tener exactamente los values de DIMENSIONES_DISPONIBLES."""
+    values_dimensiones = {d["value"] for d in DIMENSIONES_DISPONIBLES}
+    assert set(LABELS_EJES_DIMENSION.keys()) == values_dimensiones
+
+
+def test_labels_ejes_dimension_no_contiene_maquina_sin_tilde():
+    """Regresión: ninguna label visible debe ser 'Maquina' sin tilde."""
+    assert "Maquina" not in LABELS_EJES_DIMENSION.values()
+
+
 # --- crear_figura_ranking ---
 
 def test_crear_figura_ranking_con_datos():
@@ -145,8 +185,6 @@ def test_crear_figura_ranking_sin_bordes_extra():
     """
     figura = crear_figura_ranking(_dataset(), "equipo")
 
-    # Plotly devuelve None para marker.line cuando no se especifica.
-    # Cualquier intento de leer .width falla o devuelve el default (None).
     assert figura.data[0].marker.line.width is None
     assert figura.data[0].marker.line.color is None
 
@@ -156,6 +194,20 @@ def test_crear_figura_ranking_hovertemplate_html():
     figura = crear_figura_ranking(_dataset(), "equipo")
 
     assert "<b>" in figura.data[0].hovertemplate
+
+
+def test_crear_figura_ranking_yaxis_usa_label_maquina():
+    """Regresión Fix #5.6: eje Y de 'maquina' dice 'Tipo de máquina'."""
+    figura = crear_figura_ranking(_dataset(), "maquina")
+
+    assert figura.layout.yaxis.title.text == "Tipo de máquina"
+
+
+def test_crear_figura_ranking_yaxis_usa_label_linea_con_tilde():
+    """Regresión Fix #5.6: 'linea' → 'Línea' con tilde."""
+    figura = crear_figura_ranking(_dataset(), "linea")
+
+    assert figura.layout.yaxis.title.text == "Línea"
 
 
 # --- crear_panel_detalle ---
@@ -174,6 +226,15 @@ def test_crear_panel_detalle_grupo_inexistente():
     assert "Sin datos" in str(panel)
 
 
+def test_crear_panel_detalle_titulo_usa_label_maquina():
+    """Regresión Fix #5.6: título del panel usa 'Tipo de máquina', no 'Maquina'."""
+    panel = crear_panel_detalle(_dataset(), "maquina", "M01")
+
+    texto = str(panel)
+    assert "Tipo de máquina" in texto
+    assert "Maquina:" not in texto
+
+
 # --- Contrato de la sección (layout) ---
 
 def test_dimensiones_disponibles_renombra_maquina():
@@ -183,7 +244,7 @@ def test_dimensiones_disponibles_renombra_maquina():
 
     assert "Tipo de máquina" in labels
     assert "Máquina" not in labels
-    assert "maquina" in values  # el value del dataset se preserva
+    assert "maquina" in values
 
 
 def test_microcopy_dimensiones_documenta_ambiguedad():

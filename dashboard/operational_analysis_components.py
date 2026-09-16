@@ -8,6 +8,13 @@ las opciones simultáneamente — patrón ISA-101 para HMI.
 Equipo es la instancia física única (L1-FILL-01), Tipo de máquina agrupa
 por familia a través de todas las líneas (FILL-01 = todas las llenadoras
 número 01).
+
+LABELS_EJES_DIMENSION expone DIMENSIONES_DISPONIBLES como mapping
+value→label. Es la única fuente de verdad del nombre visible de cada
+dimensión. El eje Y del ranking y el título del panel de detalle lo
+consumen vía _label_dimension() en operational_analysis_callbacks,
+evitando strings hardcodeados como "Maquina" (sin tilde) que aparecían
+por usar str.capitalize() sobre el value del dataset.
 """
 
 from __future__ import annotations
@@ -21,6 +28,10 @@ DIMENSIONES_DISPONIBLES = [
     {"label": "Línea", "value": "linea"},
     {"label": "Tipo de máquina", "value": "maquina"},
 ]
+
+# SSOT del nombre visible por dimensión. Derivado de la lista de arriba
+# para que agregar/quitar dimensiones no requiera tocar dos lugares.
+LABELS_EJES_DIMENSION = {d["value"]: d["label"] for d in DIMENSIONES_DISPONIBLES}
 
 MICROCOPY_DIMENSIONES = (
     "Equipo = instancia física única · "
