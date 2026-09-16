@@ -20,12 +20,14 @@ diff = diff[:10000]
 api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
 
 if not api_key or api_key == "***":
-    print("Error: La API Key de DeepSeek no está configurada correctamente.")
+    print("Error: La API Key no está configurada correctamente.")
     sys.exit(1)
 
 headers = {
     'Authorization': f'Bearer {api_key}',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'HTTP-Referer': 'https://github.com/icqdgonzalezs/industrial-kpi-intelligence', # Requerido por OpenRouter
+    'X-Title': 'Industrial KPI Intelligence' # Requerido por OpenRouter
 }
 data = {
     'model': 'deepseek/deepseek-r1:free',
@@ -36,7 +38,7 @@ data = {
     'temperature': 0.2
 }
 
-print("Llamando a la API de DeepSeek (timeout 60s)...")
+print("Llamando a OpenRouter (timeout 60s)...")
 try:
     response = requests.post(
         'https://openrouter.ai/api/v1/chat/completions',
@@ -46,14 +48,14 @@ try:
     )
     response.raise_for_status()
 except requests.exceptions.Timeout:
-    print("Error: La API de DeepSeek tardó más de 60 segundos en responder.")
+    print("Error: La API tardó más de 60 segundos en responder.")
     sys.exit(1)
 except requests.exceptions.RequestException as e:
-    print(f"Error en la petición a DeepSeek: {e}")
+    print(f"Error en la petición a OpenRouter: {e}")
     sys.exit(1)
 
 review_text = response.json()['choices'][0]['message']['content']
-print("Respuesta recibida de DeepSeek. Publicando comentario...")
+print("Respuesta recibida. Publicando comentario...")
 
 # Publicar comentario en el PR
 pr_number = os.environ.get('GITHUB_REF', '').split('/')[-2]
@@ -64,7 +66,7 @@ comment_headers = {
     'Authorization': f'token {os.environ["GITHUB_TOKEN"]}',
     'Accept': 'application/vnd.github.v3+json'
 }
-comment_data = {'body': f"## 🤖 Revisión de DeepSeek\n\n{review_text}"}
+comment_data = {'body': f"## 🤖 Revisión de IA (OpenRouter)\n\n{review_text}"}
 
 try:
     comment_response = requests.post(comment_url, headers=comment_headers, json=comment_data, timeout=30)
