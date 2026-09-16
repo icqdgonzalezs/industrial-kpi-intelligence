@@ -103,3 +103,28 @@ def test_crear_figura_capacidad_con_datos_insuficientes():
     figura = crear_figura_capacidad(filtrado, fila)
 
     assert len(figura.data) == 0
+
+# ---------------------------------------------------------------------
+# _span_rendimiento (iconografía semáforos, WCAG 2.1 §1.4.1)
+# ---------------------------------------------------------------------
+
+
+def test_span_rendimiento_agrega_icono_success():
+    from dashboard.capability_callbacks import _span_rendimiento
+    span = _span_rendimiento("55", "world_class")
+    assert span.children == "✓ 55"
+    assert "quality-metric-value--success" in span.className
+
+
+def test_span_rendimiento_agrega_icono_danger():
+    from dashboard.capability_callbacks import _span_rendimiento
+    span = _span_rendimiento("221", "low")
+    assert span.children == "✕ 221"
+    assert "quality-metric-value--danger" in span.className
+
+
+def test_span_rendimiento_sin_datos_no_lleva_icono():
+    from dashboard.capability_callbacks import _span_rendimiento
+    span = _span_rendimiento("Sin datos", "sin_datos")
+    assert span.children == "Sin datos"
+    assert "quality-metric-value--neutral" in span.className

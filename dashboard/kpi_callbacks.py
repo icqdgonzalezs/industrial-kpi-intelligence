@@ -3,6 +3,7 @@ from __future__ import annotations
 from dash import Input, Output, html
 
 from dashboard.kpi_presenter import clasificar_kpis, formatear_kpis
+from dashboard.severity_icons import prefijar_icono
 from dashboard.utils import leer_dataframe_filtrado
 from src.kpis import calcular_kpis_globales
 
@@ -24,6 +25,18 @@ def actualizar_kpis(data):
     )
 
 
+def _span_kpi(valor: str, clasificacion: str) -> html.Span:
+    """Construye un <span> de KPI con icono de severidad y clase CSS.
+
+    El icono es redundancia no cromática (WCAG 2.1 §1.4.1): un operario
+    daltónico puede leer la severidad sin depender del color.
+    """
+    return html.Span(
+        prefijar_icono(valor, clasificacion),
+        className=f"kpi-value--{clasificacion}",
+    )
+
+
 def construir_kpi_cards(data):
     """Construye los 4 valores del KPI top como html.Span con color semántico."""
     produccion, fpy, defectos, scrap = actualizar_kpis(data)
@@ -42,10 +55,10 @@ def construir_kpi_cards(data):
         clasificacion = clasificar_kpis(kpis)
 
     return (
-        html.Span(produccion, className=f"kpi-value--{clasificacion['produccion']}"),
-        html.Span(fpy, className=f"kpi-value--{clasificacion['fpy']}"),
-        html.Span(defectos, className=f"kpi-value--{clasificacion['defectos']}"),
-        html.Span(scrap, className=f"kpi-value--{clasificacion['scrap']}"),
+        _span_kpi(produccion, clasificacion["produccion"]),
+        _span_kpi(fpy, clasificacion["fpy"]),
+        _span_kpi(defectos, clasificacion["defectos"]),
+        _span_kpi(scrap, clasificacion["scrap"]),
     )
 
 
