@@ -14,12 +14,19 @@ if not diff:
     print("No hay cambios para revisar.")
     exit(0)
 
-# Limitar el tamaño del diff para no exceder tokens (ej. 10,000 caracteres)
+# Limitar el tamaño del diff para no exceder tokens
 diff = diff[:10000]
+
+# Obtener y limpiar la API Key (elimina espacios y saltos de línea)
+api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+
+if not api_key or api_key == "***":
+    print("Error: La API Key de DeepSeek no está configurada correctamente o está vacía.")
+    exit(1)
 
 # Llamar a DeepSeek
 headers = {
-    'Authorization': f'Bearer {os.environ["DEEPSEEK_API_KEY"]}',
+    'Authorization': f'Bearer {api_key}',
     'Content-Type': 'application/json'
 }
 data = {
