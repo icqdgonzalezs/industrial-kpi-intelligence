@@ -18,6 +18,14 @@ Clasificación de capacidad (AIAG SPC / NIST 6.1.3 / ISO 22514):
 Cada mensaje del banner cita el umbral numérico para que el operador
 pueda interpretar el dato sin conocer la escala de memoria.
 
+Accesibilidad (WCAG 2.1 §1.4.1):
+  Los valores de rendimiento (PPM) se prefijan con un icono Unicode
+  (✓ / ⚠ / ✕ / vacío) además del color, para que un operario daltónico
+  pueda leer la severidad sin depender del canal cromático. El icono
+  se deriva de la severidad CSS (`CSS_CLASS_POR_RENDIMIENTO`), no de
+  la clasificación legible, para compartir un único SSOT con los KPI
+  del top (ver `dashboard/severity_icons.py`).
+
 Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
 envolviendo el texto en `<b>...</b>`.
@@ -32,6 +40,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, html
 
+from dashboard.severity_icons import prefijar_icono
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.capability import calcular_rendimiento_spec, resumen_capacidad
 
@@ -133,10 +142,16 @@ def _formatear_indice(valor) -> str:
 
 
 def _span_rendimiento(valor: str, clasificacion: str) -> html.Span:
-    """Construye el <span> con clase semántica según clasificación PPM."""
+    """Construye el <span> con clase semántica e icono según clasificación PPM.
+
+    El icono es redundancia no cromática (WCAG 2.1 §1.4.1): un operario
+    daltónico puede leer la severidad sin depender del color. Se deriva
+    del modificador CSS (success/warning/danger/neutral), no de la
+    clasificación legible, para compartir el SSOT `severity_icons`.
+    """
     modificador = CSS_CLASS_POR_RENDIMIENTO.get(clasificacion, "neutral")
     return html.Span(
-        valor,
+        prefijar_icono(valor, modificador),
         className=f"quality-metric-value quality-metric-value--{modificador}",
     )
 
