@@ -28,7 +28,7 @@ headers = {
     'Content-Type': 'application/json'
 }
 data = {
-    'model': 'deepseek-chat',
+    'model': 'deepseek/deepseek-r1:free',
     'messages': [
         {'role': 'system', 'content': 'Eres un ingeniero de software senior revisando código. Analiza el siguiente diff y proporciona comentarios constructivos en español. Señala posibles bugs, mejoras de legibilidad y seguridad. Sé directo y técnico.'},
         {'role': 'user', 'content': f"Revisa este diff:\n\n{diff}"}
@@ -39,7 +39,7 @@ data = {
 print("Llamando a la API de DeepSeek (timeout 60s)...")
 try:
     response = requests.post(
-        'https://api.deepseek.com/chat/completions',
+        'https://openrouter.ai/api/v1/chat/completions',
         headers=headers,
         json=data,
         timeout=60
