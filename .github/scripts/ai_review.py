@@ -1,7 +1,7 @@
 import os
-import subprocess
-
 import requests
+import subprocess
+import sys
 
 # Obtener el diff del PR
 try:
@@ -14,17 +14,15 @@ if not diff:
     print("No hay cambios para revisar.")
     exit(0)
 
-# Limitar el tamaño del diff para no exceder tokens
 diff = diff[:10000]
 
-# Obtener y limpiar la API Key (elimina espacios y saltos de línea)
+# Obtener y limpiar la API Key
 api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
 
 if not api_key or api_key == "***":
-    print("Error: La API Key de DeepSeek no está configurada correctamente o está vacía.")
-    exit(1)
+    print("Error: La API Key de DeepSeek no está configurada correctamente.")
+    sys.exit(1)
 
-# Llamar a DeepSeek
 headers = {
     'Authorization': f'Bearer {api_key}',
     'Content-Type': 'application/json'
@@ -38,9 +36,24 @@ data = {
     'temperature': 0.2
 }
 
-response = requests.post('https://api.deepseek.com/chat/completions', headers=headers, json=data)
-response.raise_for_status()
+print("Llamando a la API de DeepSeek (timeout 60s)...")
+try:
+    response = requests.post(
+        'https://api.deepseek.com/chat/completions',
+        headers=headers,
+        json=data,
+        timeout=60
+    )
+    response.raise_for_status()
+except requests.exceptions.Timeout:
+    print("Error: La API de DeepSeek tardó más de 60 segundos en responder.")
+    sys.exit(1)
+except requests.exceptions.RequestException as e:
+    print(f"Error en la petición a DeepSeek: {e}")
+    sys.exit(1)
+
 review_text = response.json()['choices'][0]['message']['content']
+print("Respuesta recibida de DeepSeek. Publicando comentario...")
 
 # Publicar comentario en el PR
 pr_number = os.environ.get('GITHUB_REF', '').split('/')[-2]
@@ -53,5 +66,10 @@ comment_headers = {
 }
 comment_data = {'body': f"## 🤖 Revisión de DeepSeek\n\n{review_text}"}
 
-requests.post(comment_url, headers=comment_headers, json=comment_data)
-print("Revisión publicada exitosamente.")
+try:
+    comment_response = requests.post(comment_url, headers=comment_headers, json=comment_data, timeout=30)
+    comment_response.raise_for_status()
+    print("Revisión publicada exitosamente.")
+except requests.exceptions.RequestException as e:
+    print(f"Error al publicar el comentario: {e}")
+    sys.exit(1)
