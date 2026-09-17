@@ -26,43 +26,40 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from src.capability_thresholds import (
+    cargar_umbrales_ppk,
+    cargar_umbrales_ppm,
+    clasificar_ppk_puro,
+    clasificar_rendimiento_ppm_puro,
+)
+
 # ---------------------------------------------------------------------
-# Umbrales de clasificación de capacidad
-# Fuente: AIAG SPC (Chrysler/Ford/GM), NIST 6.1.3, ISO 22514.
-#
-# Escala estándar industrial (convención de facto, no normada):
-#   Ppk >= 1.67  → clase mundial
-#   1.33 <= Ppk  → capaz
-#   1.00 <= Ppk  → marginal
-#   Ppk <  1.00  → no capaz
-#
-# Nota: migración a YAML (SSOT) queda como fix separado — requiere
-# threading de config a través de calcular_pp_ppk(), que hoy no lo
-# recibe.
+# Clasificación de capacidad: delega al SSOT (capability_thresholds.py).
+# Los umbrales viven en config/quality_config.yaml sección ppk_thresholds.
+# Este módulo solo CONSUME el SSOT — no define umbrales hardcodeados.
 # ---------------------------------------------------------------------
 
-UMBRAL_PPK_CLASE_MUNDIAL = 1.67
-UMBRAL_PPK_CAPAZ = 1.33
-UMBRAL_PPK_MARGINAL = 1.00
 
-
-def clasificar_ppk(ppk: float) -> str:
+def clasificar_ppk(ppk: float, umbrales: dict | None = None) -> str:
     """Clasifica Ppk según benchmarks AIAG SPC / NIST 6.1.3 / ISO 22514.
+
+    Los umbrales se leen desde ``config/quality_config.yaml`` sección
+    ``ppk_thresholds`` (SSOT). Si el YAML falta, se usan defaults de
+    ``src.capability_thresholds``.
 
     Args:
         ppk: índice de capacidad real. Puede ser negativo (proceso
              descentrado) o infinito (sigma=0 con media dentro de spec).
+        umbrales: dict opcional con claves ``clase_mundial``, ``capaz``,
+             ``marginal``. Si es None, se leen del YAML. Útil en tests
+             para inyectar config sin I/O.
 
     Returns:
         Uno de los 4 niveles de la escala estándar industrial.
     """
-    if ppk >= UMBRAL_PPK_CLASE_MUNDIAL:
-        return "Clase mundial"
-    if ppk >= UMBRAL_PPK_CAPAZ:
-        return "Capaz"
-    if ppk >= UMBRAL_PPK_MARGINAL:
-        return "Marginal"
-    return "No capaz"
+    if umbrales is None:
+        umbrales = cargar_umbrales_ppk()
+    return clasificar_ppk_puro(ppk, umbrales)
 
 
 def calcular_pp_ppk(
@@ -225,14 +222,11 @@ def resumen_capacidad(
 # usa para decidir acción: cuántas piezas cumplen spec y cuántas no.
 # ---------------------------------------------------------------------
 
-PPM_WORLD_CLASS = 100
-PPM_ACCEPTABLE = 1000
-
-
 def calcular_rendimiento_spec(
     valores: pd.Series,
     lsl: float,
     usl: float,
+    umbrales_ppm: dict | None = None,
 ) -> dict:
     """Calcula el rendimiento respecto a especificación.
 
@@ -244,6 +238,9 @@ def calcular_rendimiento_spec(
         Límite inferior de especificación (inclusive).
     usl : float
         Límite superior de especificación (inclusive).
+    umbrales_ppm : dict | None
+        Umbrales de clasificación PPM (``world_class``, ``acceptable``).
+        Si es None, se leen del YAML (SSOT). Útil en tests.
 
     Returns
     -------
@@ -303,12 +300,10 @@ def calcular_rendimiento_spec(
     fuera = bajo_lsl + sobre_usl
     ppm_total = round(fuera / n * 1_000_000)
 
-    if ppm_total <= PPM_WORLD_CLASS:
-        clasificacion = "world_class"
-    elif ppm_total <= PPM_ACCEPTABLE:
-        clasificacion = "acceptable"
-    else:
-        clasificacion = "low"
+    if umbrales_ppm is None:
+        umbrales_ppm = cargar_umbrales_ppm()
+
+    clasificacion = clasificar_rendimiento_ppm_puro(ppm_total, umbrales_ppm)
 
     return {
         "n": n,

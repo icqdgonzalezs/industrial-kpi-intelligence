@@ -320,3 +320,38 @@ def test_clasificar_ppk_133_no_es_clase_mundial():
     """
     assert clasificar_ppk(1.33) == "Capaz"
     assert clasificar_ppk(1.33) != "Clase mundial"
+
+# ---------------------------------------------------------------------
+# Refactor SSOT (Fix σ): inyección de umbrales desde capability_thresholds
+# ---------------------------------------------------------------------
+
+
+def test_clasificar_ppk_acepta_umbrales_inyectados():
+    """La API acepta umbrales custom sin leer YAML.
+
+    Habilita SaaS multi-cliente: cada cliente puede tener su escala.
+    """
+    umbrales_estrictos = {"clase_mundial": 2.00, "capaz": 1.67, "marginal": 1.33}
+    assert clasificar_ppk(1.80, umbrales_estrictos) == "Capaz"
+    assert clasificar_ppk(1.50, umbrales_estrictos) == "Marginal"
+
+
+def test_clasificar_ppk_sin_umbrales_lee_yaml_del_proyecto():
+    """Sin argumentos, lee del YAML (SSOT). Comportamiento por defecto."""
+    # El YAML del proyecto tiene la escala AIAG estándar
+    assert clasificar_ppk(2.00) == "Clase mundial"
+    assert clasificar_ppk(1.50) == "Capaz"
+    assert clasificar_ppk(1.10) == "Marginal"
+    assert clasificar_ppk(0.80) == "No capaz"
+
+
+def test_calcular_rendimiento_spec_acepta_umbrales_ppm_inyectados():
+    """La API acepta umbrales PPM custom sin leer YAML."""
+    from src.capability import calcular_rendimiento_spec
+
+    estrictos = {"world_class": 10, "acceptable": 100}
+    serie = pd.Series([490, 500, 510, 500, 500])  # 400k PPM → low
+    resultado = calcular_rendimiento_spec(
+        serie, lsl=492, usl=508, umbrales_ppm=estrictos
+    )
+    assert resultado["clasificacion"] == "low"

@@ -2,11 +2,6 @@
 # Los límites son sintéticos y deben interpretarse como supuestos del proyecto.
 
 quality:
-  capability:
-    thresholds:
-      excellent: 1.33
-      acceptable: 1.00
-
   # Límites de especificación para las 2 variables continuas del dataset
   # actual (data/calidad_muestra.csv: peso_promedio, longitud_promedio).
   # Supuestos documentados: peso reutiliza el spec de fill_weight_g más
@@ -169,3 +164,21 @@ kpi_thresholds:
     direction: lower_is_better
     success: 0.01
     warning: 0.02
+
+
+# ---------------------------------------------------------------------
+# Umbrales de capacidad de proceso — Ppk (AIAG SPC / NIST 6.1.3 / ISO 22514)
+# SSOT: leídos por src/capability_thresholds.py::cargar_umbrales_ppk.
+# ---------------------------------------------------------------------
+ppk_thresholds:
+  clase_mundial: 1.67
+  capaz: 1.33
+  marginal: 1.00
+
+# ---------------------------------------------------------------------
+# Umbrales de rendimiento (PPM total) — complemento operativo de Ppk.
+# SSOT: leídos por src/capability_thresholds.py::cargar_umbrales_ppm.
+# ---------------------------------------------------------------------
+ppm_thresholds:
+  world_class: 100
+  acceptable: 1000
