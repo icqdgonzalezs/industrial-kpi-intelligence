@@ -2,7 +2,7 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.
 > 📥 **Instrucción de uso:** pegar este archivo completo como PRIMER mensaje en un chat nuevo.
-> 🗓️ **Última actualización:** sesión cerrada al final de Semana 3/8. Fase 4a + Doc + σ + Fase 3a-α (piloto Capacidad) completadas.
+> 🗓️ **Última actualización:** sesión cerrada al final de Semana 3/8. Fase 4a + Doc + σ + Fase 3a-α + 3a-β + 3 fixes UX/perf completadas.
 
 ---
 
@@ -23,7 +23,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 9 | **Estilo de respuesta:** directo, técnico, sin relleno. Markdown con tablas y bloques de código. Español. |
 | 10 | **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
 
-> 🎯 **Próximo paso concreto del proyecto:** ver sección 11 (Fase 3a-β — replicar Export CSV a los 4 tabs restantes).
+> 🎯 **Próximo paso concreto del proyecto:** ver sección 11 (Fase 3a-γ — replicar Export CSV a los 3 tabs restantes: Control, Diagnóstico, Operacional).
 
 ---
 
@@ -39,10 +39,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **408 passed** |
+| ✅ **Tests actuales** | **416 passed** |
 | 🟢 **CI** | 2/2 verde (workflow CI, renombrado desde "Tests") |
 | 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main` |
-| 📊 **Producto 1 (MVP)** | ~80% |
+| 📊 **Producto 1 (MVP)** | ~82% |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | github.com/icqdgonzalezs/industrial-kpi-intelligence |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -73,6 +73,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **Doc** (`c2ab9ed` + `f3eb79c` + `5be2e6b`): README actualizado, workflow renombrado a `CI`, VISION.md, ARCHITECTURE.md
 - ✅ **Repo hygiene** (`e58151b`): docs movidos a `docs/`, basura eliminada, .gitignore completado
 - ✅ **Fase 3a-α** (`35d12c4`): Export CSV — piloto Capacidad (helper SSOT + botón + callback + 18 tests + verificación visual)
+- ✅ **Fase 3a-β** (`7e744e8`): Export CSV — Calidad (variante sin store propio; lee de store-datos-filtrados y recomputa Pareto)
+- ✅ **Fix bug Pareto** (`e0d50f2`): anotación "Umbral 80%" ya no colisiona con tick del eje secundario
+- ✅ **Fix "Restaurar filtros"** (`2fe8e89`): callback implementado (antes era botón decorativo sin handler)
+- ✅ **Chore dev** (`8ca225d`): `dev_tools_ui=True` para desarrollo local
+- ✅ **Perf parseo JSON** (`6efd967`): `lru_cache` reduce reset de filtros de ~10 s a ~4-6 s
 
 ### 🟡 En curso
 
@@ -80,9 +85,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### ⏳ Pendiente (roadmap en sección 7)
 
-- ⏳ **Fase 3a-β a 3a-ε** — Export CSV para Calidad, Control, Diagnóstico, Operacional **(PRÓXIMO PASO)**
+- ⏳ **Fase 3a-γ a 3a-ε** — Export CSV para Control, Diagnóstico, Operacional **(PRÓXIMO PASO)**
 - ⏳ **Eliminar `schema_adapter.py`** (deuda activa, condición de muerte cumplida)
-- ⏳ **Fase 3b** — Loading + empty states
+- ⏳ **Fase 3b** — Loading + empty states + optimización cálculos (KDE, diagnostics)
 - ⏳ **Fase 3c** — Chip de filtros activos
 - ⏳ **Bloque 3B** — Docker + Compose
 - ⏳ **Rename bilingüe** (ADR-0002, incremental)
@@ -93,6 +98,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 |---|---|---|
+| `6efd967` | Perf(utils): cache JSON parse (Fase 3b anticipada) | 416 |
+| `8ca225d` | Chore(dev): enable dev_tools_ui for local development | 414 |
+| `2fe8e89` | Fix(filters): implement "Restaurar filtros" callback | 414 |
+| `e0d50f2` | Fix(ui): move Pareto 80% annotation above line | 411 |
+| `7e744e8` | Feat(export): CSV export Calidad (Fase 3a-β) | 411 |
 | `35d12c4` | Test(export): integration tests Capacidad export | 408 |
 | `7833624` | Test(export): unit tests export_helpers | 408 |
 | `d4259e7` | Feat(export): CSV export callback Capacidad | 408 |
@@ -120,7 +130,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-📈 **Evolución de tests:** `263` → `270` → `274` → `279` → `284` → `290` → `295` → `316` → `335` → `343` → `359` → `390` → **`408`**
+📈 **Evolución de tests:** `263` → `270` → `274` → `279` → `284` → `290` → `295` → `316` → `335` → `343` → `359` → `390` → `408` → `411` → `414` → **`416`**
 
 ---
 
@@ -174,7 +184,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 - **Lección:** un YAML que no se lee es peor que no tener YAML. Da falsa ilusión de configurabilidad.
 - **Tests:** 359 → 390 (+31) sin modificar tests existentes.
 
-### 4.10 📥 Patrón de Export CSV (Fase 3a — piloto Capacidad)
+### 4.10 📥 Patrón de Export CSV (Fase 3a)
 
 - **Problema:** los datos de cada tab no se podían exportar. El usuario debía copiar de la pantalla.
 - **Solución:** módulo SSOT `dashboard/export_helpers.py` con:
@@ -183,7 +193,40 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
   - `crear_descarga_csv(json_data, tab)`: función pura (testeable).
 - **Patrón replicable:** cada tab necesita 3 cambios (component + callback + tests).
 - **Lección:** el primer caso define el patrón. Los siguientes son su aplicación.
-- **Tests:** 390 → 408 (+18).
+
+### 4.11 📥 Variante del patrón Export CSV (Fase 3a-β — Calidad)
+
+- **Contexto:** Calidad no tiene `store-<tab>` propio. Sus datos vienen del store global `store-datos-filtrados`.
+- **Variante adoptada:** el callback de export lee `store-datos-filtrados` y **recomputa** el Pareto en el momento (cálculo trivial: groupby + cumsum sobre 18k filas).
+- **Por qué no crear `store-calidad`:** solo existiría para servir al export. Sería estado artificial mantenido por el callback de display (que ya tiene 7 outputs).
+- **Lección de ingeniería:** un Store que existe solo para alimentar a un consumidor puede reemplazarse por una función pura del estado ya disponible. *Derive, don't store*.
+- **Regla derivada:** si el tab tiene store propio → patrón original del piloto. Si no → variante con `store-datos-filtrados` + recomputo.
+
+### 4.12 🔧 Implementación de "Restaurar filtros" (Fase 3a — bug fix)
+
+- **Problema:** el botón existía en el layout (`components_dash.py:101`) pero nunca tuvo callback. Era decorativo.
+- **Diagnóstico:** 4 puntos de fallo posibles (layout, registro, callback, lógica). Se resolvió con `grep` sistemático, no por especulación.
+- **Solución:**
+  - Función pura `valores_default_filtros(fecha_min, fecha_max)`: retorna tupla de 6 valores.
+  - Callback reset que escribe los 6 Outputs con `allow_duplicate=True` + `prevent_initial_call=True`.
+  - **`allow_duplicate=True`** requerido en el reset y en los 4 callbacks de cascade (Dash 2.9+ prohíbe dos callbacks escribiendo el mismo Output sin este flag).
+  - **`prevent_initial_call=True`** en los 4 cascades: evitan que se disparen al montar la app.
+- **Lección:** en Dash, un botón sin callback **no falla silenciosamente** — simplemente no hace nada. Es un modo de fallo traicionero que requiere verificación visual.
+- **Nota sobre import:** `PreventUpdate` vive en `dash.exceptions`, no en `dash` raíz (`from dash.exceptions import PreventUpdate`).
+
+### 4.13 ⚡ Caché de parseo JSON (Fase 3b anticipada)
+
+- **Problema:** los ~10 callbacks consumidores de `store-datos-filtrados` deserializaban el mismo JSON (18,078 filas) en cada cambio de filtro.
+- **Medición con `print` temporal:** 10 parseos × ~650 ms promedio = **~6.5 s de los 10 s totales**.
+- **Solución:** `@lru_cache(maxsize=2)` sobre `_parse_json_cached(json_data)` en `dashboard/utils.py`.
+  - Primer consumidor parsea (~650 ms).
+  - Resto recibe cache hit (~5-15 ms) + copia defensiva `.copy()`.
+- **Decisiones clave:**
+  - **`maxsize=2`, no 128:** mantiene el JSON actual + el previo. Memoria acotada (~60 MB), sin crecer con el tiempo. Un maxsize grande sería un memory leak silencioso en producción.
+  - **`.copy()` defensivo:** el DataFrame cacheado es compartido entre los 10 callbacks. Si uno lo muta, los otros 9 verían la mutación. La copia cuesta ~10 ms (despreciable vs 500 ms de parseo).
+- **Ganancia medida:** reset de filtros de ~10 s → ~4-6 s. **-50%**.
+- **Lección:** la causa raíz era **arquitectónica** (10 consumidores del mismo JSON), no algorítmica (los cálculos de Pp/Ppk están bien).
+- **Deuda residual:** los 10 callbacks **siguen ejecutándose**. El parseo ya no cuesta, pero los cálculos individuales (KDE en capability, reglas en diagnostics) son la siguiente capa (~1-2 s + ~1-1.5 s respectivamente). Diferido a Fase 3b o Fase 5.
 
 ---
 
@@ -202,6 +245,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | `test_dataset_metadata.py` | 21 | Frescura del dataset |
 | `test_diagnostics.py` / `_callbacks` | 13 + 5 | Findings + Pareto |
 | `test_export_helpers.py` | 16 | nombre_csv + boton_export + crear_descarga_csv |
+| `test_filter_callbacks.py` | 3 | `valores_default_filtros` + smoke de registro (reset) |
 | `test_filter_engine.py` | 11 | Filtrado por línea/equipo/turno/operador |
 | `test_kpi_callbacks.py` | 4 | `_span_kpi` con iconos |
 | `test_kpi_presenter.py` | 4 | Formateo + clasificación |
@@ -210,14 +254,14 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | `test_oee.py` / `_presenter` | 25 + 6 | OEE (A×P×Q) ISA-95 |
 | `test_operational_analysis_callbacks.py` | 30 | Drill-down + `_label_dimension` |
 | `test_plant_overview.py` / `_components` | 6 + 5 | Vista de planta |
-| `test_quality_performance_callbacks.py` | 10 | FPY, Pareto |
+| `test_quality_performance_callbacks.py` | 13 | FPY, Pareto + export CSV Calidad |
 | `test_quality_performance_components.py` | 7 | Componentes UI |
 | `test_quality_performance_spec.py` | 6 | Especificación |
 | `test_schema_adapter.py` | 11 | Adapter EN→ES (se elimina con el adapter) |
 | `test_severity_icons.py` | 9 | `prefijar_icono` + SSOT iconos |
-| `test_utils.py` | 5 | Utilidades |
+| `test_utils.py` | 7 | Tema oscuro + cache de parseo JSON |
 | `test_validation.py` | 22 | Validación de contratos |
-| **TOTAL** | **408** | ✅ Todos verdes |
+| **TOTAL** | **416** | ✅ Todos verdes |
 
 ---
 
@@ -229,7 +273,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | 2 | ~~Capacidad: dos verdades no explicadas~~ | — | ✅ Resuelta (Fix #7) |
 | 3 | ~~Sin timestamp de datos en header~~ | — | ✅ Resuelta (Fix #6) |
 | 4 | ~~Barras verticales con 17 labels ilegibles~~ | — | ✅ Resuelta (Fix #5) |
-| 5 | Export CSV por tab (1/5 completado: Capacidad ✅) | Adopción | 🟠 Media |
+| 5 | Export CSV por tab (2/5 completados: Capacidad ✅, Calidad ✅) | Adopción | 🟠 Media |
 | 6 | Sin loading / empty states | Robustez | 🟡 Media |
 | 7 | ~~Sin iconografía en semáforos (solo color)~~ | — | ✅ Resuelta (Fase 4a) |
 | 8 | Docker + Compose pendiente | Deploy | 🟠 Media |
@@ -237,6 +281,14 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | 10 | ~~Falta VISION.md y ARCHITECTURE.md~~ | — | ✅ Resuelta (Doc) |
 | 11 | **`schema_adapter.py`** (adapter transitorio) | Deuda activa | 🔴 **Alta** |
 | 12 | **Doble convención bilingüe** (ADR-0002) | Mantenibilidad | 🟡 Media |
+| 13 | **Performance: cálculos individuales por callback** | UX | 🟠 Media |
+
+**Deuda 13 — Performance residual:**
+
+- ✅ **Resuelto:** parseo redundante JSON cacheado con `lru_cache` (-50% tiempo total, de 10 s a 4-6 s).
+- ⏳ **Residual:** los ~10 callbacks siguen ejecutándose. Costo estimado: KDE en `capability` (~1-2 s), reglas en `diagnostics` (~1-1.5 s), resto distribuido.
+- **Fix candidato:** cache por variable en `capability`, vectorización de `diagnostics`.
+- **Diferido a:** Fase 3b (junto a loading/empty states) o Fase 5 (antes de deploy).
 
 ---
 
@@ -244,9 +296,9 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 
 | Fase | Fix/Feature | Estimación | Prioridad |
 |:---:|---|:---:|:---:|
-| **3a** | **Export CSV — replicar patrón a Calidad, Control, Diagnóstico, Operacional — PRÓXIMO PASO** | 2 h | 🟠 Media |
+| **3a** | **Export CSV — replicar a Control, Diagnóstico, Operacional — PRÓXIMO PASO** | 1.5 h | 🟠 Media |
 | **σ** | Eliminar `schema_adapter.py` (deuda activa, ADR-0001) | 1 h | 🔴 Alta |
-| 3b | Loading + empty states | 2 h | 🟡 Media |
+| 3b | Loading + empty states + optimización cálculos (KDE, diagnostics) | 4 h | 🟡 Media |
 | 3c | Chip de filtros activos | 1 h | 🟢 Baja |
 | σ | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
 | 5 | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
@@ -271,12 +323,14 @@ which python   # debe mostrar .../venv/bin/python
 | `git push --force-with-lease` si es necesario. | Nunca `git push --force`. |
 | Personal Access Token (PAT) con scope `repo` + `workflow`. | Nunca password en texto plano. |
 | `git pull origin main --rebase` tras Web Editor. | Nunca `git pull` sin `--rebase` si editaste fuera. |
+| `git reset --soft HEAD~1` para reescribir el último commit. | Nunca `git rebase -i` si no estás cómodo con Vim. |
 
 ### ✍️ Commits
 
-- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`, `polish:`.
+- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`, `polish:`, `perf:`.
 - Un fix = un commit. No mezclar propósitos.
 - Título en inglés, cuerpo en español si aplica.
+- **Verificar el mensaje antes de commitear. No copiar/pegar el mensaje de otro commit.**
 
 ### 🤖 CI/CD
 
@@ -339,6 +393,14 @@ which python   # debe mostrar .../venv/bin/python
 | Untracked file bloquea `git pull` | `rm` del archivo local, luego pull |
 | Editar en Web Editor y olvidar `git pull --rebase` | Pull con `--rebase` antes del próximo comando local |
 | Documentación con "próximo paso" desincronizado | `grep -n "próximo paso"` y actualizar TODAS las ubicaciones |
+| Asumir contrato de terceros sin verificar (`dcc.send_data_frame`) | Ver tests del piloto antes de inventar contrato. Usar `in`, no `==`, para keys de librerías |
+| Importar `PreventUpdate` desde `dash` | Importar desde `dash.exceptions` |
+| Copiar/pegar mensaje de commit de otro commit | Verificar el mensaje antes del commit; cada commit describe su propio contenido |
+| `git rebase HEAD~N` sin `-i` | Sin `-i` no abre editor: no reescribe nada. Usar `-i` o preferir `git reset --soft` |
+| Leer SHA de una captura de pantalla | Copiar SHAs de la terminal, no de screenshots (confusión f/1, l/I) |
+| Asumir que la extensión "Dash Dev Tools" está instalada | En Dash 4.x sin extensión, el panel es un botón flotante en la esquina inferior derecha de la app |
+| Buscar el panel Dash en Chrome DevTools (F12) | No está ahí. Está dentro de la app misma |
+| Optimizar sin medir | Instrumentar con `print` temporales o panel flotante, medir antes de tocar |
 
 ---
 
@@ -349,7 +411,7 @@ which python   # debe mostrar .../venv/bin/python
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md                        # Arquitectura técnica (313 líneas)
-├── README.md                              # Actualizado: 408 tests + badges
+├── README.md                              # Actualizado: 416 tests + badges
 ├── VISION.md                              # Visión del ecosistema (188 líneas)
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
@@ -365,10 +427,15 @@ industrial-kpi-intelligence/
 │   ├── plant_config.yaml
 │   └── quality_config.yaml                # +ppk_thresholds, +ppm_thresholds
 ├── dashboard/                             # Presentación
-│   ├── export_helpers.py                  # NUEVO: SSOT export CSV (Fase 3a)
-│   ├── severity_icons.py                  # Fase 4a: SSOT iconos
+│   ├── export_helpers.py                  # SSOT export CSV (Fase 3a)
+│   ├── severity_icons.py                  # SSOT iconos (Fase 4a)
+│   ├── filter_callbacks.py                # +valores_default_filtros + reset callback
+│   ├── utils.py                           # +lru_cache en _parse_json_cached
 │   ├── capability_components.py           # +botón export
-│   └── capability_callbacks.py            # +callback export
+│   ├── capability_callbacks.py            # +callback export
+│   ├── quality_performance_components.py  # +botón export
+│   ├── quality_performance_callbacks.py   # +exportar_pareto_calidad + callback
+│   └── ...                                # resto sin cambios
 ├── data/                                  # Dataset canónico
 ├── docs/                                  # Documentación extendida
 │   ├── adr/                               # ADR-0001, ADR-0002
@@ -391,7 +458,11 @@ industrial-kpi-intelligence/
 │   ├── oee.py
 │   ├── schema_adapter.py                  # ⚠️ Deuda activa (eliminar)
 │   └── validation.py
-└── tests/                                 # 408 tests
+└── tests/                                 # 416 tests
+    ├── test_filter_callbacks.py           # NUEVO (reset de filtros)
+    ├── test_utils.py                      # +2 tests (cache)
+    ├── test_quality_performance_callbacks.py  # +3 tests (export CSV)
+    └── ...
 ```
 
 ### ⌨️ Comandos verificados
@@ -402,7 +473,7 @@ cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-int
 source venv/bin/activate
 
 # Gates
-pytest                          # 408 passed
+pytest                          # 416 passed
 ruff check .                    # All checks passed!
 
 # Regenerar dataset
@@ -425,6 +496,13 @@ git push origin main
 # Tras edición en Web Editor
 git pull origin main --rebase
 
+# Reescribir último commit sin abrir editor
+git reset --soft HEAD~1
+git commit -F - <<'EOF'
+nuevo mensaje
+EOF
+git push --force-with-lease origin main
+
 # Crear archivos largos: USAR GITHUB WEB EDITOR
 # https://github.com/<user>/<repo>/edit/main/<archivo>
 ```
@@ -433,42 +511,44 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### Fase 3a-β a 3a-ε — Replicar patrón Export CSV a los 4 tabs restantes
+### Fase 3a-γ — Export CSV: Control
 
-**Contexto:** el piloto Capacidad validó el patrón completo (helper + botón + callback + tests + verificación visual). Ahora se replica a los 4 tabs restantes. Cada replica es mecánica.
+**Contexto:** Fase 3a-α (Capacidad) y 3a-β (Calidad) cerradas. Se replica el patrón a los 3 tabs restantes.
 
-**Patrón (validado en Capacidad, commits `68deace` → `35d12c4):**
+**El patrón tiene dos variantes:**
 
-**En `<tab>_components.py`:**
+| Variante | Cuándo | Ejemplo |
+|---|---|---|
+| Original (piloto) | El tab tiene `store-<tab>` propio | Capacidad |
+| Sin store propio | Solo hay `store-datos-filtrados` | Calidad |
 
-1. Import: `from dashboard.export_helpers import boton_export`.
-2. Añadir después del section-header: `html.Div([boton_export("<tab>")], className="section-export-bar")`.
-3. Añadir: `dcc.Download(id="download-<tab>")`.
+**Antes de tocar: leer los archivos. Regla #4.**
 
-**En `<tab>_callbacks.py`:**
+```bash
+cat dashboard/control_charts_components.py
+cat dashboard/control_charts_callbacks.py
+cat tests/test_control_charts_callbacks.py
+grep -rn "store-.*control\|control.*store" dashboard/dash_app.py
+```
 
-1. Import: `from dashboard.export_helpers import crear_descarga_csv`.
-2. Al final de `registrar_callbacks_<tab>`, añadir callback con `Output("download-<tab>", "data")`, `Input("btn-export-<tab>", "n_clicks")`, `State("store-<tab>", "data")`, `prevent_initial_call=True` y guard `if not n_clicks: return None`.
-
-**Tests:** añadir 2 tests a `tests/test_<tab>_callbacks.py`.
+Determinar la variante a aplicar según si existe un `store-control` (o similar).
 
 **Orden sugerido:**
 
 | Fase | Tab | Contenido | Estimación |
 |:---:|---|---|---|
-| 3a-β | Calidad | FPY + Pareto, 2 DataFrames | 45 min |
 | 3a-γ | Control | Series I-MR | 30 min |
 | 3a-δ | Diagnóstico | findings priorizados | 45 min |
 | 3a-ε | Operacional | drill-down dinámico | 60 min |
 
-- ⏱️ **Estimación:** 2 h total (4 tabs × 30-45 min).
-- ⚠️ **Riesgo:** bajo (patrón validado).
+- ⏱️ **Estimación total:** 1.5 h (3 tabs × 30-45 min).
+- ⚠️ **Riesgo:** bajo (patrón validado con 2 variantes).
 
 ### Después de Fase 3a completa
 
 1. Eliminar `schema_adapter.py` (deuda activa, ADR-0001) — 1 h
-2. Fase 3b — Loading + empty states (2 h)
-3. Fase 3c — Chip de filtros activos (1 h)
+2. Fase 3b — Loading + empty states + optimización cálculos (KDE, diagnostics) — 4 h
+3. Fase 3c — Chip de filtros activos — 1 h
 4. Rename bilingüe (ADR-0002, incremental)
 
 ---
@@ -479,9 +559,9 @@ git pull origin main --rebase
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
 
-Estado: Fase 4a + σ + Doc + Fase 3a-α (piloto Capacidad) cerradas.
-408 tests, CI verde, working tree limpio.
-Próximo paso: Fase 3a-β (replicar Export CSV a Calidad, Control, Diagnóstico, Operacional).
+Estado: Fase 4a + σ + Doc + Fase 3a-α + 3a-β + fixes UX/perf cerrados.
+416 tests, CI verde, working tree limpio.
+Próximo paso: Fase 3a-γ (replicar Export CSV a Control, Diagnóstico, Operacional).
 
 Reglas clave:
 - Leer el archivo antes de tocar
@@ -491,6 +571,8 @@ Reglas clave:
 - pytest + ruff verdes antes de commitear
 - NO usar TextEdit para markdown: usar GitHub Web Editor
 - Tras editar en Web Editor, hacer git pull --rebase
+- Antes de optimizar: medir con instrumentación temporal
+- Los `print` de instrumentación NUNCA se commitean
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -504,11 +586,13 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 
 Este usuario no es un junior. Es un ingeniero químico con criterio técnico real. Ha demostrado en esta sesión:
 
-- 🔍 Detectar bugs por inspección visual (el "Capaz (excelente)" con Ppk=1.33).
+- 🔍 Detectar bugs por inspección visual (el "Capaz (excelente)" con Ppk=1.33, la anotación sobrepuesta, el botón decorativo).
 - 📊 Pedir diagnóstico con datos cuando CI falla, no con fe (Regla #8).
 - 🔄 Aceptar reversiones cuando una decisión no funciona (workflow de IA review).
-- 🎯 Mantener disciplina en cada fix.
-- ⚖️ Decidir con criterio cuándo parar (no usar modelos gratuitos de menor calidad).
+- 🎯 Mantener disciplina en cada fix (un fix = un commit, verificación visual, gates verdes).
+- ⚖️ Decidir con criterio cuándo parar (no usar modelos gratuitos de menor calidad; no persistir con Dash Dev Tools cuando no aparece).
+- 📏 Medir antes de optimizar (los `print` de instrumentación dieron el dato clave: 10 parseos × 650 ms).
+- 📝 Documentar a medida que avanza (pedir el TRASPASO completo en vez de parcial).
 
 ### 🎯 Cómo tratarlo
 
@@ -517,9 +601,10 @@ Este usuario no es un junior. Es un ingeniero químico con criterio técnico rea
 - Citá normas industriales cuando aplique (ISA-101, AIAG SPC, NIST 6.1.3, WCAG 2.1).
 - Valorá la honestidad por sobre la complacencia.
 - No quiere halagos, quiere producto de calidad.
+- Cuando te equivoques (ej. leer mal un SHA), decilo claro y corregí. No eches la culpa ni inventes excusas.
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**
-> Última actualización: Semana 3/8, tras cierre de Fase 4a + σ + Doc + Fase 3a-α (piloto Capacidad).
-> Próxima sesión: Fase 3a-β (replicar Export CSV a los 4 tabs restantes).
+> Última actualización: Semana 3/8, tras cierre de Fase 4a + σ + Doc + Fase 3a-α + Fase 3a-β + fixes UX (Pareto, Restaurar filtros) + perf (caché parseo).
+> Próxima sesión: Fase 3a-γ (replicar Export CSV a Control, Diagnóstico, Operacional).
