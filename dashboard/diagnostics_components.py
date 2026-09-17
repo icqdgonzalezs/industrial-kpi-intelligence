@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dash import html
+from dash import dcc, html
+
+from dashboard.export_helpers import boton_export
 
 
 def crear_diagnostics_section() -> html.Div:
@@ -21,6 +23,10 @@ def crear_diagnostics_section() -> html.Div:
                     ),
                 ],
                 className="section-header",
+            ),
+            html.Div(
+                [boton_export("diagnostico")],
+                className="section-export-bar",
             ),
             html.Div(
                 [
@@ -56,6 +62,7 @@ def crear_diagnostics_section() -> html.Div:
                 id="diagnostics-lista-hallazgos",
                 className="diagnostics-findings-list",
             ),
+            dcc.Download(id="download-diagnostico"),
         ],
         className="dashboard-section diagnostics-performance",
     )

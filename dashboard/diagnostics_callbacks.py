@@ -10,9 +10,10 @@ from __future__ import annotations
 from io import StringIO
 
 import pandas as pd
-from dash import Input, Output
+from dash import Input, Output, State
 
 from dashboard.diagnostics_components import crear_tarjeta_hallazgo
+from dashboard.export_helpers import crear_descarga_csv
 from dashboard.utils import leer_dataframe_filtrado
 from src.diagnostics import generar_diagnostico
 
@@ -41,6 +42,44 @@ def crear_resumen_ejecutivo(diagnostico: pd.DataFrame) -> str:
         partes.append(f"{n_watch} en seguimiento")
 
     return f"{' y '.join(partes)} requieren revisión en el período seleccionado."
+
+
+def exportar_diagnostico_csv(data, capacidad_json):
+    """Construye la descarga CSV del diagnóstico priorizado.
+
+    Función pura (sin Dash): recibe el JSON del store de datos filtrados
+    y el JSON del store de capacidad, devuelve el dict de descarga, o
+    None si no hay hallazgos que exportar.
+
+    El CSV contiene una fila por hallazgo con columnas:
+    severidad, categoria, titulo, mensaje, score.
+
+    Parameters
+    ----------
+    data : str | None
+        JSON orient='split' del DataFrame filtrado (store-datos-filtrados).
+    capacidad_json : str | None
+        JSON orient='split' del resumen de capacidad (store-capacidad).
+
+    Returns
+    -------
+    dict | None
+        Dict {content, filename} listo para Output de dcc.Download,
+        o None si el filtrado está vacío o no hay hallazgos.
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    if filtrado.empty:
+        return None
+
+    capacidad = _leer_capacidad(capacidad_json)
+    diagnostico = generar_diagnostico(filtrado, capacidad)
+
+    if diagnostico.empty:
+        return None
+
+    json_data = diagnostico.to_json(orient="split", date_format="iso")
+    return crear_descarga_csv(json_data, "diagnostico")
 
 
 def registrar_callbacks_diagnostics(app) -> None:
@@ -88,3 +127,15 @@ def registrar_callbacks_diagnostics(app) -> None:
         ]
 
         return str(n_priority), str(n_watch), str(n_info), resumen, tarjetas
+
+    @app.callback(
+        Output("download-diagnostico", "data"),
+        Input("btn-export-diagnostico", "n_clicks"),
+        State("store-datos-filtrados", "data"),
+        State("store-capacidad", "data"),
+        prevent_initial_call=True,
+    )
+    def callback_export_diagnostico(n_clicks, data, capacidad_json):
+        if not n_clicks:
+            return None
+        return exportar_diagnostico_csv(data, capacidad_json)
