@@ -4,7 +4,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Dash](https://img.shields.io/badge/Dash-Plotly-00CC96?logo=plotly&logoColor=white)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-263%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-390%20passing-brightgreen)](tests/)
+[![CI](https://github.com/icqdgonzalezs/industrial-kpi-intelligence/actions/workflows/tests.yml/badge.svg)](https://github.com/icqdgonzalezs/industrial-kpi-intelligence/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Elastic_License_2.0-blue)](LICENSE)
 
 **Panel de control de KPIs de calidad industrial** con cálculo real de FPY, tasas de scrap/reproceso, diagrama de Pareto, comparación operacional (línea/turno/máquina), análisis de capacidad de proceso (**Pp/Ppk**, NIST 6.1.3) y motor OEE (**Availability × Performance × Quality**, ISA-95/TPM).
@@ -90,7 +91,7 @@ Quality = Good Units / Total Units Produced # = FPY
 | Plotly | Gráficos interactivos |
 | Pandas / NumPy | Procesamiento de datos |
 | PyYAML | Configuración externalizada |
-| Pytest | Suite de **244 tests** unitarios |
+| Pytest | Suite de **390 tests** unitarios |
 | Ruff | Linter (pin `ruff==0.16.6` en CI para reproducibilidad) |
 | GitHub Actions | CI: `ruff check` + `pytest --cov` en cada push |
 
@@ -127,7 +128,7 @@ gunicorn dashboard.dash_app:server
 # Regenerar el dataset sintético (18,078 registros, semilla fija reproducible)
 python -m src.data_generator
 
-# Correr la suite de tests completa (244 tests)
+# Correr la suite de tests completa (390 tests)
 pytest tests/ -v
 
 # Correr la suite con cobertura
@@ -169,7 +170,7 @@ industrial-kpi-intelligence/
 │   ├── oee.py                     # Motor OEE (ISA-95/TPM)
 │   ├── diagnostics.py             # Motor de diagnóstico priorizado
 │   └── validation.py              # Data quality gate
-├── tests/                         # 244 tests (por módulo)
+├── tests/                         # 390 tests (por módulo)
 ├── scripts/
 │   └── check_oee_distribution.py  # Evidencia numérica del motor OEE
 ├── docs/
