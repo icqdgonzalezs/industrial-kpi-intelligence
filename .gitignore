@@ -8,3 +8,14 @@ __pycache__/
 !.env.example
 .coverage
 estructura.txt
+# Ruff cache
+.ruff_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# Packaging
+*.egg-info/
+build/
+dist/
