@@ -128,3 +128,42 @@ def test_span_rendimiento_sin_datos_no_lleva_icono():
     span = _span_rendimiento("Sin datos", "sin_datos")
     assert span.children == "Sin datos"
     assert "quality-metric-value--neutral" in span.className
+
+
+# ---------------------------------------------------------------------
+# Export CSV (Fase 3a)
+# ---------------------------------------------------------------------
+
+
+def test_crear_descarga_csv_lee_resumen_de_capacidad():
+    """El helper de export funciona con la estructura real de store-capacidad.
+
+    Verifica que el JSON que genera `resumen_capacidad()` (con columnas
+    variable, columna, pp, ppk, clasificacion) es consumible por el
+    helper de export sin transformación.
+    """
+    from dashboard.export_helpers import crear_descarga_csv
+
+    df = pd.DataFrame(
+        {
+            "variable": ["Peso", "Longitud"],
+            "columna": ["peso_promedio", "longitud_promedio"],
+            "pp": [1.33, 1.33],
+            "ppk": [1.33, 1.33],
+            "clasificacion": ["Capaz", "Capaz"],
+        }
+    )
+    json_str = df.to_json(orient="split")
+
+    resultado = crear_descarga_csv(json_str, "capacidad")
+
+    assert resultado is not None
+    assert "filename" in resultado
+    assert "capacidad" in resultado["filename"]
+
+
+def test_crear_descarga_csv_sin_datos():
+    """Si store-capacidad está vacío, el export devuelve None (no crash)."""
+    from dashboard.export_helpers import crear_descarga_csv
+
+    assert crear_descarga_csv(None, "capacidad") is None
