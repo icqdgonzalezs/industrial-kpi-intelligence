@@ -38,8 +38,9 @@ from io import StringIO
 
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output, html
+from dash import Input, Output, State, html
 
+from dashboard.export_helpers import crear_descarga_csv
 from dashboard.severity_icons import prefijar_icono
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.capability import calcular_rendimiento_spec, resumen_capacidad
@@ -385,3 +386,22 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
             _span_rendimiento(f"{rendimiento['pct_sobre_usl']:.2f}%", clase),
             _span_rendimiento(f"{rendimiento['ppm_total']:,}", clase),
         )
+
+
+
+
+    @app.callback(
+        Output("download-capacidad", "data"),
+        Input("btn-export-capacidad", "n_clicks"),
+        State("store-capacidad", "data"),
+        prevent_initial_call=True,
+    )
+    def callback_exportar_capacidad(n_clicks, capacidad_json):
+        """Exporta el resumen completo de Pp/Ppk como CSV.
+
+        Lee directo del store-capacidad (ya calculado por otro callback).
+        No recalcula — SSOT.
+        """
+        if not n_clicks:
+            return None
+        return crear_descarga_csv(capacidad_json, "capacidad")
