@@ -142,4 +142,4 @@ def actualizar_kpis(data):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    app.run(debug=True)
+    app.run(debug=True, dev_tools_ui=True)
