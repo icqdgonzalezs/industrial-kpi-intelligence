@@ -13,8 +13,9 @@ estándares de HMI industrial (ISA-101):
 from __future__ import annotations
 
 import plotly.graph_objects as go
-from dash import Input, Output
+from dash import Input, Output, State
 
+from dashboard.export_helpers import crear_descarga_csv
 from dashboard.kpi_presenter import formatear_kpis
 from dashboard.utils import aplicar_tema_oscuro
 from dashboard.utils import leer_dataframe_filtrado as _leer_dataframe_filtrado
@@ -165,6 +166,38 @@ def crear_caption_pareto(pareto) -> str:
     )
 
 
+def exportar_pareto_calidad(data):
+    """Construye la descarga CSV del Pareto de defectos de Calidad.
+
+    Función pura (sin Dash): recibe el JSON del store de datos
+    filtrados y devuelve el dict de descarga, o None si no hay
+    nada que exportar.
+
+    Parameters
+    ----------
+    data : str | None
+        JSON orient='split' del DataFrame filtrado (store-datos-filtrados).
+
+    Returns
+    -------
+    dict | None
+        Dict {content, filename} listo para Output de dcc.Download,
+        o None si el filtrado está vacío o no hay defectos.
+    """
+    filtrado = _leer_dataframe_filtrado(data)
+
+    if filtrado.empty:
+        return None
+
+    pareto = calcular_pareto(filtrado)
+
+    if pareto.empty:
+        return None
+
+    json_data = pareto.to_json(orient="split", date_format="iso")
+    return crear_descarga_csv(json_data, "calidad")
+
+
 def registrar_callbacks_quality_performance(app) -> None:
     @app.callback(
         Output("quality-fpy", "children"),
@@ -200,3 +233,14 @@ def registrar_callbacks_quality_performance(app) -> None:
             caption_pareto,
             lote_critico,
         )
+
+    @app.callback(
+        Output("download-calidad", "data"),
+        Input("btn-export-calidad", "n_clicks"),
+        State("store-datos-filtrados", "data"),
+        prevent_initial_call=True,
+    )
+    def callback_export_calidad(n_clicks, data):
+        if not n_clicks:
+            return None
+        return exportar_pareto_calidad(data)

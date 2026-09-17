@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dash import dcc, html
 
+from dashboard.export_helpers import boton_export
+
 
 def crear_quality_performance():
     return html.Section(
@@ -18,6 +20,10 @@ def crear_quality_performance():
                     ),
                 ],
                 className="section-header",
+            ),
+            html.Div(
+                [boton_export("calidad")],
+                className="section-export-bar",
             ),
             html.Div(
                 [
@@ -91,6 +97,7 @@ def crear_quality_performance():
                 ],
                 className="quality-analysis-grid",
             ),
+            dcc.Download(id="download-calidad"),
         ],
         className="dashboard-section quality-performance",
     )

@@ -7,6 +7,7 @@ from dashboard.quality_performance_callbacks import (
     crear_caption_pareto,
     crear_figura_pareto,
     crear_lote_critico,
+    exportar_pareto_calidad,
 )
 from src.kpis import calcular_pareto
 
@@ -267,3 +268,44 @@ def test_quality_performance_full_contract():
     assert resultado[6] == (
         "Lote crítico: L3 · Tasa de defectos: 30.0%"
     )
+
+
+def test_exportar_pareto_calidad_con_datos():
+    """La descarga contiene content y filename con timestamp.
+
+    Verifica presencia de las keys que son NUESTRO contrato, no
+    igualdad estricta sobre el dict completo: dcc.send_data_frame()
+    agrega keys internas ('base64', 'type') que son detalle de Dash.
+    Mismo estándar que tests/test_export_helpers.py.
+    """
+    df = pd.DataFrame(
+        {
+            "lote": ["L1", "L2", "L3"],
+            "unidades_producidas": [100, 200, 100],
+            "unidades_defectuosas": [10, 20, 30],
+            "unidades_scrap": [3, 6, 9],
+            "unidades_reproceso": [7, 14, 21],
+            "defecto_tipo": ["Mancha", "Rayadura", "Mancha"],
+        }
+    )
+    data = df.to_json(orient="split", date_format="iso")
+
+    descarga = exportar_pareto_calidad(data)
+
+    assert descarga is not None
+    assert "content" in descarga
+    assert "filename" in descarga
+    assert descarga["filename"].startswith("industrial_kpi_calidad_")
+    assert descarga["filename"].endswith(".csv")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        "",
+        pd.DataFrame().to_json(orient="split"),
+    ],
+    ids=["string_vacio", "df_vacio"],
+)
+def test_exportar_pareto_calidad_sin_datos_devuelve_none(data):
+    assert exportar_pareto_calidad(data) is None
