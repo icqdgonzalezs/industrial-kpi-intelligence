@@ -89,6 +89,8 @@ def crear_figura_pareto(filtrado):
     # -----------------------------------------------------------------
     # Línea de referencia al 80% (regla clásica de Pareto)
     # Anotación a 14px para legibilidad industrial.
+    # annotation_position="top right" eleva el texto sobre la línea
+    # para no colisionar con el tick "80%" del eje secundario.
     # -----------------------------------------------------------------
     figura.add_hline(
         y=80,
@@ -96,7 +98,7 @@ def crear_figura_pareto(filtrado):
         opacity=0.6,
         yref="y2",
         annotation_text="Umbral 80%",
-        annotation_position="right",
+        annotation_position="top right",
         annotation_font_size=14,
         annotation_font_color="#fbbf24",
     )
