@@ -12,11 +12,16 @@ naming (ver docs/adr/0002-naming-convention.md).
 Incluye 4 KPIs de rendimiento respecto a especificación (% dentro,
 % bajo LSL, % sobre USL, PPM total) que convierten el histograma en
 herramienta de decisión — ver src/capability.calcular_rendimiento_spec.
+
+Fase 3a: incluye botón "📥 Exportar CSV" que descarga el resumen
+completo de Pp/Ppk (con filtros aplicados).
 """
 
 from __future__ import annotations
 
 from dash import dcc, html
+
+from dashboard.export_helpers import boton_export
 
 
 def _crear_card_metrica(
@@ -65,6 +70,11 @@ def crear_capability_section(variables_config: dict) -> html.Div:
                 ],
                 className="section-header",
             ),
+            html.Div(
+                [boton_export("capacidad")],
+                className="section-export-bar",
+            ),
+            dcc.Download(id="download-capacidad"),
             dcc.Store(id="store-capacidad"),
             html.Div(
                 [
