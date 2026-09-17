@@ -82,6 +82,8 @@ registrar_callbacks_filtros(
     app,
     df,
     aplicar_filtros,
+    fecha_min=str(fecha_min),
+    fecha_max=str(fecha_max),
 )
 
 registrar_callbacks_datos(

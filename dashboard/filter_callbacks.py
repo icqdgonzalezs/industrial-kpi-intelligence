@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import pandas as pd
 from dash import Input, Output
+from dash.exceptions import PreventUpdate
 
 _DF: pd.DataFrame | None = None
 _APLICAR_FILTROS: Callable | None = None
@@ -26,6 +27,28 @@ def _obtener_dependencias() -> tuple[pd.DataFrame, Callable]:
         )
 
     return _DF, _APLICAR_FILTROS
+
+
+def valores_default_filtros(fecha_min: str, fecha_max: str) -> tuple:
+    """Valores por defecto del control center, en orden de Outputs.
+
+    Función pura para poder testear el contrato de "Restaurar filtros"
+    sin instanciar Dash. El orden de los 6 valores debe coincidir
+    exactamente con el orden de Outputs del callback de reset.
+
+    Returns
+    -------
+    tuple
+        (start_date, end_date, linea, equipo, turno, operador)
+    """
+    return (
+        fecha_min,
+        fecha_max,
+        "Todas",
+        "Todos",
+        "Todos",
+        "Todos",
+    )
 
 
 def _filtrar_por_periodo(start_date, end_date):
@@ -136,35 +159,40 @@ def registrar_callbacks_filtros(
     app,
     df: pd.DataFrame,
     aplicar_filtros: Callable,
+    fecha_min: str,
+    fecha_max: str,
 ) -> None:
     configurar_callbacks_filtros(df, aplicar_filtros)
 
     @app.callback(
         Output("filtro-linea", "options"),
-        Output("filtro-linea", "value"),
+        Output("filtro-linea", "value", allow_duplicate=True),
         Input("filtro-periodo", "start_date"),
         Input("filtro-periodo", "end_date"),
+        prevent_initial_call=True,
     )
     def callback_actualizar_lineas(start_date, end_date):
         return actualizar_lineas(start_date, end_date)
 
     @app.callback(
         Output("filtro-equipo", "options"),
-        Output("filtro-equipo", "value"),
+        Output("filtro-equipo", "value", allow_duplicate=True),
         Input("filtro-linea", "value"),
         Input("filtro-periodo", "start_date"),
         Input("filtro-periodo", "end_date"),
+        prevent_initial_call=True,
     )
     def callback_actualizar_equipos(linea, start_date, end_date):
         return actualizar_equipos(linea, start_date, end_date)
 
     @app.callback(
         Output("filtro-turno", "options"),
-        Output("filtro-turno", "value"),
+        Output("filtro-turno", "value", allow_duplicate=True),
         Input("filtro-equipo", "value"),
         Input("filtro-linea", "value"),
         Input("filtro-periodo", "start_date"),
         Input("filtro-periodo", "end_date"),
+        prevent_initial_call=True,
     )
     def callback_actualizar_turnos(
         equipo,
@@ -181,12 +209,13 @@ def registrar_callbacks_filtros(
 
     @app.callback(
         Output("filtro-operador", "options"),
-        Output("filtro-operador", "value"),
+        Output("filtro-operador", "value", allow_duplicate=True),
         Input("filtro-turno", "value"),
         Input("filtro-equipo", "value"),
         Input("filtro-linea", "value"),
         Input("filtro-periodo", "start_date"),
         Input("filtro-periodo", "end_date"),
+        prevent_initial_call=True,
     )
     def callback_actualizar_operadores(
         turno,
@@ -202,3 +231,18 @@ def registrar_callbacks_filtros(
             start_date,
             end_date,
         )
+
+    @app.callback(
+        Output("filtro-periodo", "start_date", allow_duplicate=True),
+        Output("filtro-periodo", "end_date", allow_duplicate=True),
+        Output("filtro-linea", "value", allow_duplicate=True),
+        Output("filtro-equipo", "value", allow_duplicate=True),
+        Output("filtro-turno", "value", allow_duplicate=True),
+        Output("filtro-operador", "value", allow_duplicate=True),
+        Input("btn-reset-filtros", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def callback_restaurar_filtros(n_clicks):
+        if not n_clicks:
+            raise PreventUpdate
+        return valores_default_filtros(fecha_min, fecha_max)
