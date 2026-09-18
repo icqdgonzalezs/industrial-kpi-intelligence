@@ -18,6 +18,32 @@ TABS = [
     ("tab-operacional", "Operacional"),
 ]
 
+# ---------------------------------------------------------------------
+# Loading states (Fase 3b.1)
+#
+# Parámetros del spinner estándar del dashboard. El spinner NO aparece
+# si el callback termina antes de LOADING_DELAY_MS — evita parpadeos en
+# cambios rápidos. Para los cambios de filtro reales (4-6 s) se mostrará
+# siempre, que es justamente lo que se busca: feedback honesto.
+# ---------------------------------------------------------------------
+LOADING_COLOR = "#00d4ff"   # acento cian del dashboard
+LOADING_DELAY_MS = 300
+LOADING_TYPE = "default"
+
+
+def _loading(children):
+    """Envuelve contenido en dcc.Loading con la configuración estándar.
+
+    Wrapper para no repetir los 3 parámetros del spinner en los 6 usos
+    del layout. Si mañana se ajusta el color o el delay, se cambia acá.
+    """
+    return dcc.Loading(
+        children=children,
+        type=LOADING_TYPE,
+        color=LOADING_COLOR,
+        delay_show=LOADING_DELAY_MS,
+    )
+
 
 def crear_app_layout(
     fecha_min: str,
@@ -64,7 +90,7 @@ def crear_app_layout(
                 className="app-header",
             ),
             dcc.Store(id="store-datos-filtrados", storage_type="memory"),
-            crear_kpi_grid(),
+            _loading(crear_kpi_grid()),
             crear_control_center(
                 (fecha_min, fecha_max), lineas, equipos, turnos, operadores
             ),
@@ -77,30 +103,34 @@ def crear_app_layout(
             # visibilidad con `display`. Cada dcc.Graph lleva altura explícita
             # en su propio layout, así que no mide 0x0 aunque el padre esté
             # oculto — y los callbacks encuentran sus componentes siempre.
+            #
+            # Cada sección va envuelta en dcc.Loading (Fase 3b.1): el spinner
+            # aparece en la sección visible mientras sus callbacks corren,
+            # sin bloquear los filtros (que están fuera del wrapper).
             html.Div(
                 [
                     html.Div(
-                        crear_diagnostics_section(),
+                        _loading(crear_diagnostics_section()),
                         id="section-diagnostico",
                         style={"display": "block"},
                     ),
                     html.Div(
-                        crear_quality_performance(),
+                        _loading(crear_quality_performance()),
                         id="section-calidad",
                         style={"display": "none"},
                     ),
                     html.Div(
-                        crear_capability_section(variables_criticas),
+                        _loading(crear_capability_section(variables_criticas)),
                         id="section-capacidad",
                         style={"display": "none"},
                     ),
                     html.Div(
-                        crear_control_charts_section(variables_criticas),
+                        _loading(crear_control_charts_section(variables_criticas)),
                         id="section-control",
                         style={"display": "none"},
                     ),
                     html.Div(
-                        crear_operational_analysis_section(),
+                        _loading(crear_operational_analysis_section()),
                         id="section-operacional",
                         style={"display": "none"},
                     ),
