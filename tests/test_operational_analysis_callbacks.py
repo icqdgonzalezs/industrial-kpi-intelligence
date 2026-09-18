@@ -12,6 +12,7 @@ from dashboard.operational_analysis_callbacks import (
     _label_dimension,
     crear_figura_ranking,
     crear_panel_detalle,
+    exportar_operacional_csv,
 )
 from dashboard.operational_analysis_components import (
     DIMENSIONES_DISPONIBLES,
@@ -251,3 +252,64 @@ def test_microcopy_dimensiones_documenta_ambiguedad():
     """El microcopy bajo el selector explica Equipo vs Tipo de máquina."""
     assert "instancia física" in MICROCOPY_DIMENSIONES
     assert "familia" in MICROCOPY_DIMENSIONES
+
+
+# --- exportar_operacional_csv (Fase 3a-ε) ---
+
+
+def test_exportar_operacional_csv_con_datos():
+    """La descarga contiene content + filename con timestamp."""
+    df = _dataset()
+    data = df.to_json(orient="split", date_format="iso")
+
+    descarga = exportar_operacional_csv(data, "equipo")
+
+    assert descarga is not None
+    assert "content" in descarga
+    assert "filename" in descarga
+    assert descarga["filename"].startswith("industrial_kpi_operacional_")
+    assert descarga["filename"].endswith(".csv")
+
+
+def test_exportar_operacional_csv_incluye_columnas_del_ranking():
+    """El CSV expone la dimensión y la tasa de defectos.
+
+    Nota: dcc.send_data_frame en Dash 4.x entrega content como bytes
+    del CSV crudo (no base64). Se decodifica directamente.
+    """
+    df = _dataset()
+    data = df.to_json(orient="split", date_format="iso")
+
+    descarga = exportar_operacional_csv(data, "equipo")
+    contenido = descarga["content"]
+    if isinstance(contenido, bytes):
+        contenido = contenido.decode("utf-8")
+
+    cabecera = contenido.split("\n")[0]
+
+    assert "equipo" in cabecera
+    assert "tasa_defectos" in cabecera
+
+    # Verificación de contenido: el dataset tiene EQ-A y EQ-B.
+    assert "EQ-A" in contenido
+    assert "EQ-B" in contenido
+
+
+@pytest.mark.parametrize(
+    "data, dimension",
+    [
+        ("", "equipo"),
+        (pd.DataFrame().to_json(orient="split"), "equipo"),
+        (
+            pd.DataFrame({"peso": [100, 101]}).to_json(orient="split"),
+            None,
+        ),
+    ],
+    ids=[
+        "string_vacio",
+        "df_vacio",
+        "dimension_none",
+    ],
+)
+def test_exportar_operacional_csv_sin_datos_devuelve_none(data, dimension):
+    assert exportar_operacional_csv(data, dimension) is None

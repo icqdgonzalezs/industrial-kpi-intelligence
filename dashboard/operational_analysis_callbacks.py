@@ -30,8 +30,9 @@ dimensión "Tipo de máquina".
 from __future__ import annotations
 
 import plotly.graph_objects as go
-from dash import Input, Output, html
+from dash import Input, Output, State, html
 
+from dashboard.export_helpers import crear_descarga_csv
 from dashboard.operational_analysis_components import LABELS_EJES_DIMENSION
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.diagnostics import UMBRAL_HOTSPOT_PRIORITY, UMBRAL_HOTSPOT_WATCH
@@ -189,6 +190,52 @@ def crear_panel_detalle(filtrado, dimension: str, valor_seleccionado: str) -> ht
     )
 
 
+def exportar_operacional_csv(data, dimension):
+    """Construye la descarga CSV del ranking operacional.
+
+    Función pura (sin Dash): recibe el JSON del store de datos filtrados
+    y la dimensión seleccionada, devuelve el dict de descarga, o None
+    si no hay datos que exportar.
+
+    **Qué se exporta y qué no.** El tab tiene dos estados: ranking
+    completo (sin drill-down) y detalle de una categoría (con drill-down).
+    Este helper exporta SIEMPRE el ranking agregado por dimensión — la
+    salida analítica natural del tab. El drill-down es una vista de la UI,
+    no un dato nuevo: refleja un subconjunto del dataset ya contenido en
+    el ranking.
+
+    Esta decisión garantiza que el CSV sea autocontenido y determinístico
+    (mismo dataset + misma dimensión → mismo CSV), sin depender del
+    estado efímero del clickData.
+
+    Parameters
+    ----------
+    data : str | None
+        JSON orient='split' del DataFrame filtrado (store-datos-filtrados).
+    dimension : str | None
+        Dimensión seleccionada ('equipo', 'turno', 'operador', 'linea',
+        'maquina').
+
+    Returns
+    -------
+    dict | None
+        Dict {content, filename} listo para Output de dcc.Download,
+        o None si el filtrado está vacío o la dimensión es inválida.
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    if filtrado.empty or not dimension:
+        return None
+
+    por_dimension = calcular_kpis_por_dimension(filtrado, dimension)
+
+    if por_dimension.empty:
+        return None
+
+    json_data = por_dimension.to_json(orient="split", date_format="iso")
+    return crear_descarga_csv(json_data, "operacional")
+
+
 def registrar_callbacks_operational_analysis(app) -> None:
     @app.callback(
         Output("operational-ranking-chart", "figure"),
@@ -235,3 +282,15 @@ def registrar_callbacks_operational_analysis(app) -> None:
             return "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
 
         return crear_panel_detalle(filtrado, dimension, valor_seleccionado)
+
+    @app.callback(
+        Output("download-operacional", "data"),
+        Input("btn-export-operacional", "n_clicks"),
+        State("operational-dimension-selector", "value"),
+        State("store-datos-filtrados", "data"),
+        prevent_initial_call=True,
+    )
+    def callback_export_operacional(n_clicks, dimension, data):
+        if not n_clicks:
+            return None
+        return exportar_operacional_csv(data, dimension)

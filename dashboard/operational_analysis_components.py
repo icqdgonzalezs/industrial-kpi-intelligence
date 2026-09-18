@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from dash import dcc, html
 
+from dashboard.export_helpers import boton_export
+
 DIMENSIONES_DISPONIBLES = [
     {"label": "Equipo", "value": "equipo"},
     {"label": "Turno", "value": "turno"},
@@ -57,6 +59,10 @@ def crear_operational_analysis_section() -> html.Div:
                 className="section-header",
             ),
             html.Div(
+                [boton_export("operacional")],
+                className="section-export-bar",
+            ),
+            html.Div(
                 [
                     html.Label(
                         "Dimensión",
@@ -82,6 +88,7 @@ def crear_operational_analysis_section() -> html.Div:
                 id="operational-detail-panel",
                 className="quality-analysis-card",
             ),
+            dcc.Download(id="download-operacional"),
         ],
         className="dashboard-section operational-performance",
     )
