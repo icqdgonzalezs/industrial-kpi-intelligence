@@ -2,7 +2,7 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.
 > 📥 **Instrucción de uso:** pegar este archivo completo como PRIMER mensaje en un chat nuevo.
-> 🗓️ **Última actualización:** sesión cerrada al final de Semana 3/8. Fase 4a + Doc + σ + Fase 3a-α + 3a-β + 3 fixes UX/perf completadas.
+> 🗓️ **Última actualización:** Fase 4a + Doc + σ + **Fase 3a completa (5/5 tabs con export CSV)** + fixes UX/perf.
 
 ---
 
@@ -23,7 +23,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 9 | **Estilo de respuesta:** directo, técnico, sin relleno. Markdown con tablas y bloques de código. Español. |
 | 10 | **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
 
-> 🎯 **Próximo paso concreto del proyecto:** ver sección 11 (Fase 3a-γ — replicar Export CSV a los 3 tabs restantes: Control, Diagnóstico, Operacional).
+> 🎯 **Próximo paso concreto del proyecto:** decidir el próximo frente — 3 opciones en sección 11 (schema_adapter vs Fase 3b vs Fase 3c). Recomendación: schema_adapter (deuda activa 🔴 Alta).
 
 ---
 
@@ -39,10 +39,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **416 passed** |
+| ✅ **Tests actuales** | **434 passed** |
 | 🟢 **CI** | 2/2 verde (workflow CI, renombrado desde "Tests") |
 | 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main` |
-| 📊 **Producto 1 (MVP)** | ~82% |
+| 📊 **Producto 1 (MVP)** | ~85% |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | github.com/icqdgonzalezs/industrial-kpi-intelligence |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -72,8 +72,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **Fase σ** (`8138498`): Migración de umbrales Ppk + PPM a YAML SSOT
 - ✅ **Doc** (`c2ab9ed` + `f3eb79c` + `5be2e6b`): README actualizado, workflow renombrado a `CI`, VISION.md, ARCHITECTURE.md
 - ✅ **Repo hygiene** (`e58151b`): docs movidos a `docs/`, basura eliminada, .gitignore completado
-- ✅ **Fase 3a-α** (`35d12c4`): Export CSV — piloto Capacidad (helper SSOT + botón + callback + 18 tests + verificación visual)
-- ✅ **Fase 3a-β** (`7e744e8`): Export CSV — Calidad (variante sin store propio; lee de store-datos-filtrados y recomputa Pareto)
+- ✅ **Fase 3a-α** (`35d12c4`): Export CSV — piloto Capacidad (patrón original con `store-capacidad`)
+- ✅ **Fase 3a-β** (`7e744e8`): Export CSV — Calidad (variante sin store, recomputa Pareto)
+- ✅ **Fase 3a-γ** (`b0082ff`): Export CSV — Control (variante sin store, tabla I+MR unificada)
+- ✅ **Fase 3a-δ** (`ae7a54b`): Export CSV — Diagnóstico (variante sin store, tabla de hallazgos)
+- ✅ **Fase 3a-ε** (`c9a2efb`): Export CSV — Operacional (variante sin store, ranking por dimensión)
 - ✅ **Fix bug Pareto** (`e0d50f2`): anotación "Umbral 80%" ya no colisiona con tick del eje secundario
 - ✅ **Fix "Restaurar filtros"** (`2fe8e89`): callback implementado (antes era botón decorativo sin handler)
 - ✅ **Chore dev** (`8ca225d`): `dev_tools_ui=True` para desarrollo local
@@ -85,9 +88,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### ⏳ Pendiente (roadmap en sección 7)
 
-- ⏳ **Fase 3a-γ a 3a-ε** — Export CSV para Control, Diagnóstico, Operacional **(PRÓXIMO PASO)**
-- ⏳ **Eliminar `schema_adapter.py`** (deuda activa, condición de muerte cumplida)
-- ⏳ **Fase 3b** — Loading + empty states + optimización cálculos (KDE, diagnostics)
+- ⏳ **Eliminar `schema_adapter.py`** (deuda activa, condición de muerte cumplida) **(PRÓXIMO PASO RECOMENDADO)**
+- ⏳ **Fase 3b** — Loading + empty states + optimización cálculos (KDE, webgl cartas control)
 - ⏳ **Fase 3c** — Chip de filtros activos
 - ⏳ **Bloque 3B** — Docker + Compose
 - ⏳ **Rename bilingüe** (ADR-0002, incremental)
@@ -98,7 +100,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 |---|---|---|
+| `c9a2efb` | Feat(export): CSV export Operacional (Fase 3a-ε) | 434 |
+| `ae7a54b` | Feat(export): CSV export Diagnóstico (Fase 3a-δ) | 429 |
+| `b0082ff` | Feat(export): CSV export Control (Fase 3a-γ) | 423 |
 | `6efd967` | Perf(utils): cache JSON parse (Fase 3b anticipada) | 416 |
+| `c0f2977` | Docs(handoff): update TRASPASO after Fase 3a-beta + perf fixes | 416 |
 | `8ca225d` | Chore(dev): enable dev_tools_ui for local development | 414 |
 | `2fe8e89` | Fix(filters): implement "Restaurar filtros" callback | 414 |
 | `e0d50f2` | Fix(ui): move Pareto 80% annotation above line | 411 |
@@ -130,7 +136,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-📈 **Evolución de tests:** `263` → `270` → `274` → `279` → `284` → `290` → `295` → `316` → `335` → `343` → `359` → `390` → `408` → `411` → `414` → **`416`**
+📈 **Evolución de tests:** `263` → `270` → `274` → `279` → `284` → `290` → `295` → `316` → `335` → `343` → `359` → `390` → `408` → `411` → `414` → `416` → `423` → `429` → **`434`**
 
 ---
 
@@ -139,7 +145,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 ### 4.1 🔄 Patrón strangler para migración EN→ES
 
 - **Solución:** `src/schema_adapter.py` traduce EN→ES.
-- **Estado:** deuda activa (ver ADR-0001). Condición de muerte cumplida. **Siguiente paso (tras Fase 3a): eliminarlo.**
+- **Estado:** deuda activa (ver ADR-0001). Condición de muerte cumplida. **Próximo paso recomendado.**
 
 ### 4.2 🗃️ SSOT en YAML para umbrales
 
@@ -184,7 +190,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 - **Lección:** un YAML que no se lee es peor que no tener YAML. Da falsa ilusión de configurabilidad.
 - **Tests:** 359 → 390 (+31) sin modificar tests existentes.
 
-### 4.10 📥 Patrón de Export CSV (Fase 3a)
+### 4.10 📥 Patrón de Export CSV (Fase 3a — piloto Capacidad)
 
 - **Problema:** los datos de cada tab no se podían exportar. El usuario debía copiar de la pantalla.
 - **Solución:** módulo SSOT `dashboard/export_helpers.py` con:
@@ -194,15 +200,28 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 - **Patrón replicable:** cada tab necesita 3 cambios (component + callback + tests).
 - **Lección:** el primer caso define el patrón. Los siguientes son su aplicación.
 
-### 4.11 📥 Variante del patrón Export CSV (Fase 3a-β — Calidad)
+### 4.11 📥 Variante del patrón Export CSV (Fase 3a-β a 3a-ε)
 
-- **Contexto:** Calidad no tiene `store-<tab>` propio. Sus datos vienen del store global `store-datos-filtrados`.
-- **Variante adoptada:** el callback de export lee `store-datos-filtrados` y **recomputa** el Pareto en el momento (cálculo trivial: groupby + cumsum sobre 18k filas).
-- **Por qué no crear `store-calidad`:** solo existiría para servir al export. Sería estado artificial mantenido por el callback de display (que ya tiene 7 outputs).
+- **Contexto:** 4 de los 5 tabs (Calidad, Control, Diagnóstico, Operacional) **no tienen `store-<tab>` propio**.
+- **Variante adoptada:** el callback de export lee de `store-datos-filtrados` (y `store-capacidad` para Diagnóstico) y **recomputa** el análisis en el momento (cálculo trivial).
+- **Por qué no crear stores artificiales:** solo existirían para servir al export. Sería estado mantenido por callbacks de display que ya tienen muchos outputs.
 - **Lección de ingeniería:** un Store que existe solo para alimentar a un consumidor puede reemplazarse por una función pura del estado ya disponible. *Derive, don't store*.
 - **Regla derivada:** si el tab tiene store propio → patrón original del piloto. Si no → variante con `store-datos-filtrados` + recomputo.
+- **Resultado:** 5/5 tabs cerrados. 4 con variante, 1 (Capacidad) con patrón original.
 
-### 4.12 🔧 Implementación de "Restaurar filtros" (Fase 3a — bug fix)
+### 4.12 📥 Decisiones de formato por tab (Fase 3a)
+
+| Tab | Formato del CSV | Razón |
+|---|---|---|
+| **Capacidad** | Tabla Pp/Ppk completa | Salida analítica natural (ya calculada en `store-capacidad`) |
+| **Calidad** | Pareto de defectos | Concentración de causas — análisis clásico del Quality Manager |
+| **Control** | Tabla I + MR unificada con límites constantes | Un solo CSV autocontenido. MR alineado con `None` en el primer punto. |
+| **Diagnóstico** | Tabla de hallazgos (severidad, categoria, titulo, mensaje, score) | Salida del motor de reglas. Orden por score heredado. |
+| **Operacional** | Ranking por dimensión (no el drill-down) | Ranking es determinístico, drill-down es efímero. *Exportá el dato, no la vista*. |
+
+**Regla general derivada:** cada tab exporta su **salida analítica natural**. Ni más ni menos.
+
+### 4.13 🔧 Implementación de "Restaurar filtros" (Fase 3a — bug fix)
 
 - **Problema:** el botón existía en el layout (`components_dash.py:101`) pero nunca tuvo callback. Era decorativo.
 - **Diagnóstico:** 4 puntos de fallo posibles (layout, registro, callback, lógica). Se resolvió con `grep` sistemático, no por especulación.
@@ -212,9 +231,9 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
   - **`allow_duplicate=True`** requerido en el reset y en los 4 callbacks de cascade (Dash 2.9+ prohíbe dos callbacks escribiendo el mismo Output sin este flag).
   - **`prevent_initial_call=True`** en los 4 cascades: evitan que se disparen al montar la app.
 - **Lección:** en Dash, un botón sin callback **no falla silenciosamente** — simplemente no hace nada. Es un modo de fallo traicionero que requiere verificación visual.
-- **Nota sobre import:** `PreventUpdate` vive en `dash.exceptions`, no en `dash` raíz (`from dash.exceptions import PreventUpdate`).
+- **Nota sobre import:** `PreventUpdate` vive en `dash.exceptions`, no en `dash` raíz.
 
-### 4.13 ⚡ Caché de parseo JSON (Fase 3b anticipada)
+### 4.14 ⚡ Caché de parseo JSON (Fase 3b anticipada)
 
 - **Problema:** los ~10 callbacks consumidores de `store-datos-filtrados` deserializaban el mismo JSON (18,078 filas) en cada cambio de filtro.
 - **Medición con `print` temporal:** 10 parseos × ~650 ms promedio = **~6.5 s de los 10 s totales**.
@@ -238,12 +257,12 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | `test_capability_callbacks.py` | 22 | Callbacks + `_estado_capacidad` + iconos + export CSV |
 | `test_capability_thresholds.py` | 28 | SSOT: clasificación pura + loaders |
 | `test_control_charts.py` | 10 | I-MR + Western Electric |
-| `test_control_charts_callbacks.py` | 2 | Wiring del callback |
+| `test_control_charts_callbacks.py` | 9 | Wiring + figuras + export CSV Control |
 | `test_dash_app.py` | 11 | Callbacks top + filtros |
 | `test_data_generator.py` | 15 | Generador determinista seed=42 |
 | `test_data_loader.py` | 13 | Adapter + manejo de errores |
 | `test_dataset_metadata.py` | 21 | Frescura del dataset |
-| `test_diagnostics.py` / `_callbacks` | 13 + 5 | Findings + Pareto |
+| `test_diagnostics.py` / `_callbacks` | 13 + 11 | Findings + Pareto + export CSV Diagnóstico |
 | `test_export_helpers.py` | 16 | nombre_csv + boton_export + crear_descarga_csv |
 | `test_filter_callbacks.py` | 3 | `valores_default_filtros` + smoke de registro (reset) |
 | `test_filter_engine.py` | 11 | Filtrado por línea/equipo/turno/operador |
@@ -252,7 +271,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | `test_kpi_thresholds.py` | 19 | Función pura + refactor SSOT |
 | `test_kpis.py` | 32 | FPY, defectos, scrap, reproceso |
 | `test_oee.py` / `_presenter` | 25 + 6 | OEE (A×P×Q) ISA-95 |
-| `test_operational_analysis_callbacks.py` | 30 | Drill-down + `_label_dimension` |
+| `test_operational_analysis_callbacks.py` | 35 | Drill-down + `_label_dimension` + export CSV Operacional |
 | `test_plant_overview.py` / `_components` | 6 + 5 | Vista de planta |
 | `test_quality_performance_callbacks.py` | 13 | FPY, Pareto + export CSV Calidad |
 | `test_quality_performance_components.py` | 7 | Componentes UI |
@@ -261,7 +280,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | `test_severity_icons.py` | 9 | `prefijar_icono` + SSOT iconos |
 | `test_utils.py` | 7 | Tema oscuro + cache de parseo JSON |
 | `test_validation.py` | 22 | Validación de contratos |
-| **TOTAL** | **416** | ✅ Todos verdes |
+| **TOTAL** | **434** | ✅ Todos verdes |
 
 ---
 
@@ -273,7 +292,7 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | 2 | ~~Capacidad: dos verdades no explicadas~~ | — | ✅ Resuelta (Fix #7) |
 | 3 | ~~Sin timestamp de datos en header~~ | — | ✅ Resuelta (Fix #6) |
 | 4 | ~~Barras verticales con 17 labels ilegibles~~ | — | ✅ Resuelta (Fix #5) |
-| 5 | Export CSV por tab (2/5 completados: Capacidad ✅, Calidad ✅) | Adopción | 🟠 Media |
+| 5 | ~~Export CSV por tab (5/5 completados ✅)~~ | — | ✅ Resuelta (Fase 3a) |
 | 6 | Sin loading / empty states | Robustez | 🟡 Media |
 | 7 | ~~Sin iconografía en semáforos (solo color)~~ | — | ✅ Resuelta (Fase 4a) |
 | 8 | Docker + Compose pendiente | Deploy | 🟠 Media |
@@ -282,13 +301,19 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 | 11 | **`schema_adapter.py`** (adapter transitorio) | Deuda activa | 🔴 **Alta** |
 | 12 | **Doble convención bilingüe** (ADR-0002) | Mantenibilidad | 🟡 Media |
 | 13 | **Performance: cálculos individuales por callback** | UX | 🟠 Media |
+| 14 | **Control: render cartas I-MR con SVG sobre 18k puntos** | UX | 🟢 Baja |
 
 **Deuda 13 — Performance residual:**
 
 - ✅ **Resuelto:** parseo redundante JSON cacheado con `lru_cache` (-50% tiempo total, de 10 s a 4-6 s).
 - ⏳ **Residual:** los ~10 callbacks siguen ejecutándose. Costo estimado: KDE en `capability` (~1-2 s), reglas en `diagnostics` (~1-1.5 s), resto distribuido.
 - **Fix candidato:** cache por variable en `capability`, vectorización de `diagnostics`.
-- **Diferido a:** Fase 3b (junto a loading/empty states) o Fase 5 (antes de deploy).
+- **Diferido a:** Fase 3b (junto a loading/empty states).
+
+**Deuda 14 — Control rendering:**
+
+- ⏳ `dcc.Graph` renderiza ~18k puntos por SVG en cartas I y MR.
+- **Fix candidato:** `render_mode="webgl"` (~10-100× más rápido). Impacto UX en hover/export estático. Evaluar en Fase 3b.
 
 ---
 
@@ -296,9 +321,8 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 
 | Fase | Fix/Feature | Estimación | Prioridad |
 |:---:|---|:---:|:---:|
-| **3a** | **Export CSV — replicar a Control, Diagnóstico, Operacional — PRÓXIMO PASO** | 1.5 h | 🟠 Media |
-| **σ** | Eliminar `schema_adapter.py` (deuda activa, ADR-0001) | 1 h | 🔴 Alta |
-| 3b | Loading + empty states + optimización cálculos (KDE, diagnostics) | 4 h | 🟡 Media |
+| **σ** | **Eliminar `schema_adapter.py`** (deuda activa, ADR-0001) **(PRÓXIMO PASO RECOMENDADO)** | 1 h | 🔴 **Alta** |
+| 3b | Loading + empty states + optimización cálculos (KDE, diagnostics) + webgl cartas | 4 h | 🟡 Media |
 | 3c | Chip de filtros activos | 1 h | 🟢 Baja |
 | σ | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
 | 5 | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
@@ -309,11 +333,15 @@ Escala de 4 niveles: `Ppk ≥ 1.67` → Clase mundial · `1.33 ≤ Ppk < 1.67` �
 
 ### 💻 Terminal (protocolo de arranque)
 
+**SIEMPRE al abrir terminal nueva:**
+
 ```bash
 cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence
 source venv/bin/activate
-which python   # debe mostrar .../venv/bin/python
+which python   # DEBE mostrar .../venv/bin/python
 ```
+
+> ⚠️ Si `which python` no muestra la ruta del venv, los comandos fallarán con `ModuleNotFoundError: No module named 'dash'` o `ruff: command not found`. Verificar antes de correr gates.
 
 ### 🐙 Git
 
@@ -401,6 +429,9 @@ which python   # debe mostrar .../venv/bin/python
 | Asumir que la extensión "Dash Dev Tools" está instalada | En Dash 4.x sin extensión, el panel es un botón flotante en la esquina inferior derecha de la app |
 | Buscar el panel Dash en Chrome DevTools (F12) | No está ahí. Está dentro de la app misma |
 | Optimizar sin medir | Instrumentar con `print` temporales o panel flotante, medir antes de tocar |
+| Correr pytest/ruff sin venv activo | `ModuleNotFoundError: No module named 'dash'` / `ruff: command not found`. Verificar `which python` primero. |
+| Asumir que `dcc.send_data_frame` devuelve base64 | En Dash 4.x, `content` es bytes del CSV crudo. Decodificar directo con `isinstance(contenido, bytes)`. |
+| Asumir nombre de función de otro módulo sin ver | `from src.data_generator import generar_dataset` falló porque la función se llama distinto. Usar `monkeypatch` para desacoplar tests de dependencias externas. |
 
 ---
 
@@ -411,21 +442,21 @@ which python   # debe mostrar .../venv/bin/python
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md                        # Arquitectura técnica (313 líneas)
-├── README.md                              # Actualizado: 416 tests + badges
+├── README.md                              # Actualizado: 434 tests + badges
 ├── VISION.md                              # Visión del ecosistema (188 líneas)
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
 ├── pyproject.toml                         # Config pytest + ruff
 ├── requirements.txt
 ├── Procfile / render.yaml                 # Deploy Render
-├── .gitignore                             # Completo: venv, DS_Store, .ruff_cache, .env
+├── .gitignore
 ├── .github/workflows/tests.yml            # Workflow "CI"
 ├── assets/                                # CSS tema oscuro
-│   └── style.css                          # +.btn-export, +.section-export-bar
+│   └── style.css
 ├── config/                                # YAMLs (SSOT)
 │   ├── generator_config.yaml
 │   ├── plant_config.yaml
-│   └── quality_config.yaml                # +ppk_thresholds, +ppm_thresholds
+│   └── quality_config.yaml
 ├── dashboard/                             # Presentación
 │   ├── export_helpers.py                  # SSOT export CSV (Fase 3a)
 │   ├── severity_icons.py                  # SSOT iconos (Fase 4a)
@@ -434,8 +465,14 @@ industrial-kpi-intelligence/
 │   ├── capability_components.py           # +botón export
 │   ├── capability_callbacks.py            # +callback export
 │   ├── quality_performance_components.py  # +botón export
-│   ├── quality_performance_callbacks.py   # +exportar_pareto_calidad + callback
-│   └── ...                                # resto sin cambios
+│   ├── quality_performance_callbacks.py   # +exportar_pareto_calidad
+│   ├── control_charts_components.py       # +botón export
+│   ├── control_charts_callbacks.py        # +exportar_control_csv
+│   ├── diagnostics_components.py          # +botón export
+│   ├── diagnostics_callbacks.py           # +exportar_diagnostico_csv
+│   ├── operational_analysis_components.py # +botón export
+│   ├── operational_analysis_callbacks.py  # +exportar_operacional_csv
+│   └── ...
 ├── data/                                  # Dataset canónico
 ├── docs/                                  # Documentación extendida
 │   ├── adr/                               # ADR-0001, ADR-0002
@@ -447,33 +484,37 @@ industrial-kpi-intelligence/
 ├── imagenes/
 ├── scripts/
 ├── src/                                   # Lógica de negocio
-│   ├── capability.py                      # Consume SSOT ahora
-│   ├── capability_thresholds.py           # SSOT umbrales Ppk/PPM
+│   ├── capability.py
+│   ├── capability_thresholds.py
 │   ├── control_charts.py
 │   ├── data_generator.py
 │   ├── dataset_metadata.py
 │   ├── diagnostics.py
-│   ├── kpi_thresholds.py                  # SSOT umbrales KPI
+│   ├── kpi_thresholds.py
 │   ├── kpis.py
 │   ├── oee.py
 │   ├── schema_adapter.py                  # ⚠️ Deuda activa (eliminar)
 │   └── validation.py
-└── tests/                                 # 416 tests
-    ├── test_filter_callbacks.py           # NUEVO (reset de filtros)
-    ├── test_utils.py                      # +2 tests (cache)
-    ├── test_quality_performance_callbacks.py  # +3 tests (export CSV)
+└── tests/                                 # 434 tests
+    ├── test_control_charts_callbacks.py
+    ├── test_diagnostics_callbacks.py
+    ├── test_operational_analysis_callbacks.py
+    ├── test_quality_performance_callbacks.py
+    ├── test_filter_callbacks.py
+    ├── test_utils.py
     └── ...
 ```
 
 ### ⌨️ Comandos verificados
 
 ```bash
-# Activar entorno
+# Protocolo de arranque (SIEMPRE)
 cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence
 source venv/bin/activate
+which python                    # DEBE mostrar .../venv/bin/python
 
 # Gates
-pytest                          # 416 passed
+pytest                          # 434 passed
 ruff check .                    # All checks passed!
 
 # Regenerar dataset
@@ -511,45 +552,32 @@ git push --force-with-lease origin main
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### Fase 3a-γ — Export CSV: Control
+### Fase 3a completa ✅ — decidir próximo frente
 
-**Contexto:** Fase 3a-α (Capacidad) y 3a-β (Calidad) cerradas. Se replica el patrón a los 3 tabs restantes.
+Los 5 tabs exportan CSV. Los 4 pendientes del roadmap original están acá:
 
-**El patrón tiene dos variantes:**
+| Opción | Qué es | Estimación | Riesgo | Recomendación |
+|:---:|---|:---:|:---:|:---:|
+| **A** | Eliminar `schema_adapter.py` (deuda activa 🔴 Alta) | 1 h | Bajo | ✅ Recomendada |
+| **B** | Fase 3b — Loading + empty states + perf (KDE, webgl) | 4 h | Medio | 🟡 |
+| **C** | Fase 3c — Chip de filtros activos | 1 h | Bajo | 🟢 |
 
-| Variante | Cuándo | Ejemplo |
-|---|---|---|
-| Original (piloto) | El tab tiene `store-<tab>` propio | Capacidad |
-| Sin store propio | Solo hay `store-datos-filtrados` | Calidad |
+**Por qué A:**
 
-**Antes de tocar: leer los archivos. Regla #4.**
+1. Condición de muerte cumplida hace semanas (ADR-0001).
+2. 11 tests se liberan (`test_schema_adapter.py`).
+3. Menos código = menos superficie de bug.
+4. Cierra una deuda activa (no solo "pendiente").
+5. Antes de agregar features nuevas (Fase 3b), limpiar la base.
+6. Es 1 h vs 4 h de Fase 3b.
 
-```bash
-cat dashboard/control_charts_components.py
-cat dashboard/control_charts_callbacks.py
-cat tests/test_control_charts_callbacks.py
-grep -rn "store-.*control\|control.*store" dashboard/dash_app.py
-```
+**Cierre esperado de opción A:**
 
-Determinar la variante a aplicar según si existe un `store-control` (o similar).
-
-**Orden sugerido:**
-
-| Fase | Tab | Contenido | Estimación |
-|:---:|---|---|---|
-| 3a-γ | Control | Series I-MR | 30 min |
-| 3a-δ | Diagnóstico | findings priorizados | 45 min |
-| 3a-ε | Operacional | drill-down dinámico | 60 min |
-
-- ⏱️ **Estimación total:** 1.5 h (3 tabs × 30-45 min).
-- ⚠️ **Riesgo:** bajo (patrón validado con 2 variantes).
-
-### Después de Fase 3a completa
-
-1. Eliminar `schema_adapter.py` (deuda activa, ADR-0001) — 1 h
-2. Fase 3b — Loading + empty states + optimización cálculos (KDE, diagnostics) — 4 h
-3. Fase 3c — Chip de filtros activos — 1 h
-4. Rename bilingüe (ADR-0002, incremental)
+- 0 referencias a `schema_adapter` en `src/`, `dashboard/`, `tests/`.
+- `tests/test_schema_adapter.py` eliminado.
+- Tests bajan de 434 → ~423 (11 eliminados).
+- README/ARCHITECTURE actualizados si mencionan el adapter.
+- ADR-0001 marcado como "cumplido".
 
 ---
 
@@ -559,11 +587,12 @@ Determinar la variante a aplicar según si existe un `store-control` (o similar)
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
 
-Estado: Fase 4a + σ + Doc + Fase 3a-α + 3a-β + fixes UX/perf cerrados.
-416 tests, CI verde, working tree limpio.
-Próximo paso: Fase 3a-γ (replicar Export CSV a Control, Diagnóstico, Operacional).
+Estado: Fase 4a + σ + Doc + Fase 3a COMPLETA (5/5 tabs con export CSV) + fixes UX/perf cerrados.
+434 tests, CI verde, working tree limpio.
+Próximo paso: decidir entre schema_adapter (recomendado) / Fase 3b / Fase 3c.
 
 Reglas clave:
+- Protocolo de arranque: cd + source venv/bin/activate + verificar `which python`
 - Leer el archivo antes de tocar
 - git status antes de cada git add
 - Un fix = un commit
@@ -584,15 +613,15 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 
 ## 1️⃣3️⃣ 🎓 NOTAS DE MENTOR (para el próximo asistente)
 
-Este usuario no es un junior. Es un ingeniero químico con criterio técnico real. Ha demostrado en esta sesión:
+Este usuario no es un junior. Es un ingeniero químico con criterio técnico real. Ha demostrado en estas sesiones:
 
-- 🔍 Detectar bugs por inspección visual (el "Capaz (excelente)" con Ppk=1.33, la anotación sobrepuesta, el botón decorativo).
-- 📊 Pedir diagnóstico con datos cuando CI falla, no con fe (Regla #8).
-- 🔄 Aceptar reversiones cuando una decisión no funciona (workflow de IA review).
+- 🔍 Detectar bugs por inspección visual (anotación sobrepuesta, botón decorativo).
+- 📊 Pedir diagnóstico con datos cuando CI falla, no con fe.
+- 🔄 Aceptar reversiones cuando una decisión no funciona.
 - 🎯 Mantener disciplina en cada fix (un fix = un commit, verificación visual, gates verdes).
-- ⚖️ Decidir con criterio cuándo parar (no usar modelos gratuitos de menor calidad; no persistir con Dash Dev Tools cuando no aparece).
-- 📏 Medir antes de optimizar (los `print` de instrumentación dieron el dato clave: 10 parseos × 650 ms).
-- 📝 Documentar a medida que avanza (pedir el TRASPASO completo en vez de parcial).
+- ⚖️ Decidir con criterio cuándo parar (no persistir con herramientas que no aparecen; medir antes de optimizar).
+- 📏 Instrumentar para medir (los `print` de performance dieron el dato clave).
+- 📝 Documentar a medida que avanza.
 
 ### 🎯 Cómo tratarlo
 
@@ -601,10 +630,14 @@ Este usuario no es un junior. Es un ingeniero químico con criterio técnico rea
 - Citá normas industriales cuando aplique (ISA-101, AIAG SPC, NIST 6.1.3, WCAG 2.1).
 - Valorá la honestidad por sobre la complacencia.
 - No quiere halagos, quiere producto de calidad.
-- Cuando te equivoques (ej. leer mal un SHA), decilo claro y corregí. No eches la culpa ni inventes excusas.
+- Cuando te equivoques (ej. leer mal un SHA, asumir nombre de función), decilo claro y corregí. No eches la culpa ni inventes excusas.
+
+### 🏆 Hito alcanzado en esta sesión
+
+**Fase 3a completa (5/5 tabs con export CSV).** Se aplicó el patrón del piloto a 4 tabs más, con 2 variantes identificadas (con/sin store propio) y 3 decisiones de diseño específicas por tab (formato del CSV). Cada tab con tests dedicados, verificación visual, y CI verde. 434 tests, 0 regresiones, working tree limpio.
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**
-> Última actualización: Semana 3/8, tras cierre de Fase 4a + σ + Doc + Fase 3a-α + Fase 3a-β + fixes UX (Pareto, Restaurar filtros) + perf (caché parseo).
-> Próxima sesión: Fase 3a-γ (replicar Export CSV a Control, Diagnóstico, Operacional).
+> Última actualización: Fase 4a + σ + Doc + Fase 3a completa + fixes UX/perf.
+> Próximo paso: decidir entre schema_adapter (recomendado) / Fase 3b / Fase 3c.
