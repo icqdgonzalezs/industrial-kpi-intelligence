@@ -4,12 +4,13 @@ import pandas as pd
 import pytest
 
 import dashboard.data_loader as data_loader
+from dashboard.data_loader import _adaptar_a_esquema_legacy
 
 
 def _escribir_csv_canonico(path, n_filas: int = 2) -> None:
     """Escribe un CSV canónico mínimo pero válido (todas las columnas que
-    src.schema_adapter.COLUMNAS_CANONICAS_REQUERIDAS exige, más los 4
-    campos OEE), para tests rápidos que no dependen de generar el
+    ``dashboard.data_loader._COLUMNAS_CANONICAS_REQUERIDAS`` exige, más
+    los 4 campos OEE), para tests rápidos que no dependen de generar el
     dataset completo de 18,078 filas."""
     filas = []
     for i in range(n_filas):
@@ -35,6 +36,28 @@ def _escribir_csv_canonico(path, n_filas: int = 2) -> None:
             }
         )
     pd.DataFrame(filas).to_csv(path, index=False)
+
+
+def _df_canonico(**overrides) -> pd.DataFrame:
+    """DataFrame canónico en memoria (sin pasar por CSV) para tests
+    unitarios de la traducción EN→ES."""
+    base = {
+        "lote": ["LOT-000001", "LOT-000002"],
+        "date": ["2024-01-01", "2024-01-02"],
+        "line_id": ["L1", "L2"],
+        "equipment_id": ["L1-FILL-01", "L2-CAPPER-01"],
+        "shift": ["Mañana", "Noche"],
+        "operator_id": ["OP001", "OP017"],
+        "units_produced": [1000, 900],
+        "units_defective": [40, 30],
+        "units_scrap": [12, 9],
+        "units_rework": [28, 21],
+        "defect_type": ["Bajo peso", "Defecto de sellado"],
+        "peso_promedio": [500.1, 499.5],
+        "longitud_promedio": [120.0, 119.8],
+    }
+    base.update(overrides)
+    return pd.DataFrame(base)
 
 
 # ---------------------------------------------------------------------
@@ -175,8 +198,9 @@ def test_cargar_datos_raises_when_csv_has_header_but_no_rows(monkeypatch, tmp_pa
 def test_cargar_datos_raises_with_clear_message_when_canonical_columns_missing(
     monkeypatch, tmp_path
 ):
-    """CSV con datos pero sin las columnas que el adaptador necesita ->
-    mensaje que menciona el adaptador/contrato, no un KeyError críptico."""
+    """CSV con datos pero sin las columnas que la traducción EN→ES necesita
+    -> mensaje que menciona el contrato analítico interno, no un KeyError
+    críptico."""
     dataset_path = tmp_path / "data.csv"
     pd.DataFrame({"fecha": ["2024-01-01"], "valor": [1]}).to_csv(dataset_path, index=False)
 
@@ -208,9 +232,7 @@ def test_cargar_datos_handles_empty_yaml(monkeypatch, tmp_path):
 
 def test_cargar_datos_preserva_numero_de_filas_del_csv_canonico(monkeypatch, tmp_path):
     """El adaptador traduce columnas, no filas: el número de registros
-    debe conservarse exactamente. Se usa un fixture pequeño (no las
-    18,078 filas reales) para que el test sea rápido y no dependa de un
-    número mágico que cambiaría si se ajusta generator_config.yaml."""
+    debe conservarse exactamente."""
     dataset_path = tmp_path / "data.csv"
     _escribir_csv_canonico(dataset_path, n_filas=7)
 
@@ -223,3 +245,62 @@ def test_cargar_datos_preserva_numero_de_filas_del_csv_canonico(monkeypatch, tmp
     df, _ = data_loader.cargar_datos()
 
     assert len(df) == 7
+
+
+# ---------------------------------------------------------------------
+# Traducción EN→ES (consolidada en data_loader desde la Opción D, ADR-0001)
+#
+# Tests unitarios de `_adaptar_a_esquema_legacy`. Cubren lógica no trivial
+# (derivación de columnas, validación de consistencia) que no conviene
+# duplicar desde los tests end-to-end de `cargar_datos`.
+# ---------------------------------------------------------------------
+
+
+def test_adaptar_deriva_linea_maquina_equipo_correctamente():
+    resultado = _adaptar_a_esquema_legacy(_df_canonico())
+
+    assert resultado.loc[0, "linea"] == "L1"
+    assert resultado.loc[0, "equipo"] == "L1-FILL-01"
+    assert resultado.loc[0, "maquina"] == "FILL-01"
+    assert resultado.loc[1, "linea"] == "L2"
+    assert resultado.loc[1, "equipo"] == "L2-CAPPER-01"
+    assert resultado.loc[1, "maquina"] == "CAPPER-01"
+
+
+def test_adaptar_renombra_columnas_directas():
+    resultado = _adaptar_a_esquema_legacy(_df_canonico())
+
+    assert resultado.loc[0, "fecha"] == "2024-01-01"
+    assert resultado.loc[0, "turno"] == "Mañana"
+    assert resultado.loc[0, "operador"] == "OP001"
+    assert resultado.loc[0, "unidades_producidas"] == 1000
+    assert resultado.loc[0, "unidades_defectuosas"] == 40
+    assert resultado.loc[0, "unidades_scrap"] == 12
+    assert resultado.loc[0, "unidades_reproceso"] == 28
+    assert resultado.loc[0, "defecto_tipo"] == "Bajo peso"
+
+
+def test_adaptar_preserva_columnas_oee_si_estan_presentes():
+    df = _df_canonico(
+        planned_time_min=[480, 480],
+        planned_downtime_min=[45, 45],
+        unplanned_downtime_min=[30, 25],
+        ideal_cycle_time_sec=[6.4, 5.7],
+    )
+    resultado = _adaptar_a_esquema_legacy(df)
+
+    for columna in (
+        "planned_time_min",
+        "planned_downtime_min",
+        "unplanned_downtime_min",
+        "ideal_cycle_time_sec",
+    ):
+        assert columna in resultado.columns
+
+
+def test_adaptar_rechaza_equipment_id_inconsistente_con_line_id():
+    df = _df_canonico()
+    df.loc[0, "equipment_id"] = "L9-FILL-01"
+
+    with pytest.raises(ValueError, match="no comienza con"):
+        _adaptar_a_esquema_legacy(df)
