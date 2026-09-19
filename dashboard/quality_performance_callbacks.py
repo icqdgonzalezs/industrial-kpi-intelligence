@@ -8,6 +8,10 @@ estándares de HMI industrial (ISA-101):
   - Línea punteada al 80%: regla clásica de Pareto (Quality Manager).
   - Eje secundario fijo 0-105%: escala consistente entre filtros.
   - Anotaciones y ticks a 14px: legibles desde 1m de distancia.
+
+Fase 3b.2: cuando el filtro deja 0 filas, se oculta el contenido normal
+y se muestra un empty_state() en su lugar. Los IDs internos no cambian
+— los tests de contrato siguen válidos, solo se agregaron 2 outputs.
 """
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 from dash import Input, Output, State
 
+from dashboard.empty_state import empty_state
 from dashboard.export_helpers import crear_descarga_csv
 from dashboard.kpi_presenter import formatear_kpis
 from dashboard.utils import aplicar_tema_oscuro
@@ -168,23 +173,57 @@ def crear_caption_pareto(pareto) -> str:
     )
 
 
+def construir_outputs_calidad(data) -> tuple:
+    """Función pura: produce la tupla de 9 outputs del callback principal.
+
+    Orden de outputs (contrato fijo):
+        0-3:  4 métricas (FPY, defectos, scrap, reproceso)
+        4:    figura del Pareto (go.Figure)
+        5:    caption del Pareto (str)
+        6:    lote crítico (str)
+        7:    style del contenedor normal (dict) — display block/none
+        8:    children del contenedor vacío (list[html.Component])
+
+    Cuando el filtro deja 0 filas, el contenedor normal se oculta y el
+    vacío muestra un empty_state() con el mensaje del dominio. Los ids
+    de los 4 KPIs y el chart siguen existiendo — solo quedan ocultos.
+
+    Extraída del callback para testear el contrato sin instanciar Dash.
+    """
+    metricas = actualizar_quality_performance(data)
+    filtrado = _leer_dataframe_filtrado(data)
+
+    if filtrado.empty:
+        return (
+            *metricas,
+            aplicar_tema_oscuro(go.Figure()),
+            "",
+            "",
+            {"display": "none"},
+            empty_state(
+                "Sin datos de calidad con los filtros actuales",
+                hint="Ajustá los filtros o tocá 'Restaurar filtros'.",
+            ),
+        )
+
+    pareto = calcular_pareto(filtrado)
+
+    return (
+        *metricas,
+        crear_figura_pareto(filtrado),
+        crear_caption_pareto(pareto),
+        crear_lote_critico(filtrado),
+        {"display": "block"},
+        [],
+    )
+
+
 def exportar_pareto_calidad(data):
     """Construye la descarga CSV del Pareto de defectos de Calidad.
 
     Función pura (sin Dash): recibe el JSON del store de datos
     filtrados y devuelve el dict de descarga, o None si no hay
     nada que exportar.
-
-    Parameters
-    ----------
-    data : str | None
-        JSON orient='split' del DataFrame filtrado (store-datos-filtrados).
-
-    Returns
-    -------
-    dict | None
-        Dict {content, filename} listo para Output de dcc.Download,
-        o None si el filtrado está vacío o no hay defectos.
     """
     filtrado = _leer_dataframe_filtrado(data)
 
@@ -209,32 +248,12 @@ def registrar_callbacks_quality_performance(app) -> None:
         Output("quality-pareto-chart", "figure"),
         Output("quality-pareto", "children"),
         Output("quality-critical-lot", "children"),
+        Output("quality-normal-content", "style"),
+        Output("quality-empty-content", "children"),
         Input("store-datos-filtrados", "data"),
     )
     def callback_actualizar_quality_performance(data):
-        metricas = actualizar_quality_performance(data)
-
-        filtrado = _leer_dataframe_filtrado(data)
-
-        if filtrado.empty:
-            return (
-                *metricas,
-                aplicar_tema_oscuro(go.Figure()),
-                "Sin defectos en el período seleccionado.",
-                "Sin datos para identificar un lote crítico.",
-            )
-
-        pareto = calcular_pareto(filtrado)
-        figura_pareto = crear_figura_pareto(filtrado)
-        caption_pareto = crear_caption_pareto(pareto)
-        lote_critico = crear_lote_critico(filtrado)
-
-        return (
-            *metricas,
-            figura_pareto,
-            caption_pareto,
-            lote_critico,
-        )
+        return construir_outputs_calidad(data)
 
     @app.callback(
         Output("download-calidad", "data"),

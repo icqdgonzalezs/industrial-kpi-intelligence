@@ -2,11 +2,10 @@ import pandas as pd
 import pytest
 
 from dashboard.quality_performance_callbacks import (
-    _leer_dataframe_filtrado,
     actualizar_quality_performance,
+    construir_outputs_calidad,
     crear_caption_pareto,
     crear_figura_pareto,
-    crear_lote_critico,
     exportar_pareto_calidad,
 )
 from src.kpis import calcular_pareto
@@ -118,10 +117,12 @@ def test_quality_performance_metrics_and_pareto_are_consistent():
 
 
 def test_quality_performance_callback_contract():
-    """El callback registrado devuelve 7 outputs: 4 métricas + figura + caption + lote crítico.
+    """El callback registrado devuelve 9 outputs (Fase 3b.2):
 
-    Reproduce exactamente lo que hace callback_actualizar_quality_performance, verificando
-    que la figura NUNCA va a un 'children' (ese fue el bug real que rompía el render).
+    0-3: 4 métricas · 4: figura · 5: caption · 6: lote crítico
+    7: style del contenido normal · 8: children del empty
+
+    Verifica que la figura NUNCA va a un 'children' (bug real previo).
     """
     df = pd.DataFrame(
         {
@@ -139,16 +140,9 @@ def test_quality_performance_callback_contract():
         date_format="iso",
     )
 
-    metricas = actualizar_quality_performance(data)
-    filtrado = _leer_dataframe_filtrado(data)
-    pareto = calcular_pareto(filtrado)
-    figura = crear_figura_pareto(filtrado)
-    caption = crear_caption_pareto(pareto)
-    lote_critico = crear_lote_critico(filtrado)
+    resultado = construir_outputs_calidad(data)
 
-    resultado = (*metricas, figura, caption, lote_critico)
-
-    assert len(resultado) == 7
+    assert len(resultado) == 9
     assert resultado[:4] == (
         "90.0%",
         "10.0%",
@@ -158,6 +152,8 @@ def test_quality_performance_callback_contract():
     assert len(resultado[4].data) == 2
     assert isinstance(resultado[5], str)
     assert isinstance(resultado[6], str)
+    assert resultado[7] == {"display": "block"}
+    assert resultado[8] == []
 
 
 def test_quality_performance_rejects_invalid_schema():
@@ -238,21 +234,9 @@ def test_quality_performance_full_contract():
         date_format="iso",
     )
 
-    metricas = actualizar_quality_performance(data)
-    filtrado = _leer_dataframe_filtrado(data)
-    pareto_df = calcular_pareto(filtrado)
-    pareto = crear_figura_pareto(filtrado)
-    caption = crear_caption_pareto(pareto_df)
-    lote_critico = crear_lote_critico(filtrado)
+    resultado = construir_outputs_calidad(data)
 
-    resultado = (
-        *metricas,
-        pareto,
-        caption,
-        lote_critico,
-    )
-
-    assert len(resultado) == 7
+    assert len(resultado) == 9
 
     assert resultado[:4] == (
         "85.0%",
@@ -268,6 +252,36 @@ def test_quality_performance_full_contract():
     assert resultado[6] == (
         "Lote crítico: L3 · Tasa de defectos: 30.0%"
     )
+
+    assert resultado[7] == {"display": "block"}
+    assert resultado[8] == []
+
+
+def test_quality_performance_empty_state_when_filtrado_vacio():
+    """Con 0 filas, se oculta el contenido normal y aparece el empty state.
+
+    Fase 3b.2: el bloque de KPIs + chart + analysis se reemplaza por
+    un mensaje único y claro, en vez de mostrar 4 valores en "—" y un
+    gráfico vacío. El operador entiende de un vistazo qué pasó.
+    """
+    resultado = construir_outputs_calidad("")
+
+    assert len(resultado) == 9
+    assert resultado[:4] == ("—", "—", "—", "—")
+    assert resultado[7] == {"display": "none"}
+    assert resultado[8].className == "empty-state"
+    # Mensaje del dominio preservado
+    textos = [child.children for child in resultado[8].children]
+    assert "Sin datos de calidad con los filtros actuales" in textos
+
+
+def test_quality_performance_empty_state_incluye_hint_de_accion():
+    """El empty state incluye un hint sugiriendo la acción al operador."""
+    resultado = construir_outputs_calidad("")
+
+    textos = [child.children for child in resultado[8].children]
+    # El hint tiene la acción sugerida (Restaurar filtros)
+    assert any("Restaurar" in str(t) for t in textos)
 
 
 def test_exportar_pareto_calidad_con_datos():
