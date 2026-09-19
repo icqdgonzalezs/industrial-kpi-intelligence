@@ -33,7 +33,7 @@ FACTOR_UCL_MR = 3.267
 def crear_figura_i(serie, limites, fuera_control) -> go.Figure:
     colores = [COLOR_OOC if f else COLOR_NORMAL for f in fuera_control]
     figura = go.Figure(
-        go.Scatter(
+        go.Scattergl(
             x=list(range(len(serie))),
             y=serie,
             mode="lines+markers",
@@ -69,7 +69,7 @@ def crear_figura_i(serie, limites, fuera_control) -> go.Figure:
 def crear_figura_mr(mr, mr_bar) -> go.Figure:
     ucl_mr = mr_bar * FACTOR_UCL_MR
     figura = go.Figure(
-        go.Scatter(
+        go.Scattergl(
             x=list(range(len(mr))),
             y=mr,
             mode="lines+markers",
