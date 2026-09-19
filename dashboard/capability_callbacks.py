@@ -29,12 +29,17 @@ Accesibilidad (WCAG 2.1 §1.4.1):
 Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
 envolviendo el texto en `<b>...</b>`.
+
+Fix UX (doble spinner): los 2 callbacks de display (resumen + variable
+seleccionada) estaban encadenados vía store-capacidad. Cada uno
+encendía el dcc.Loading de la sección, produciendo un doble spinner
+visible al cambiar filtros. Se fusionan en UN callback que escribe los
+16 outputs de una sola vez — un solo spinner, orden garantizado.
 """
 
 from __future__ import annotations
 
 import math
-from io import StringIO
 
 import numpy as np
 import pandas as pd
@@ -276,50 +281,156 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
 
 
 # ---------------------------------------------------------------------
+# Función pura (testeable sin Dash)
+# ---------------------------------------------------------------------
+
+
+def _outputs_resumen(capacidad: pd.DataFrame) -> tuple:
+    """Bloque de 5 outputs del resumen (store + 4 KPIs agregados).
+
+    Orden: store_json, total_variables, ppk_minimo, marginales, no_capaces.
+    """
+    if capacidad.empty:
+        return (None, "0", "Sin datos", "0", "0")
+
+    ppk_series = pd.to_numeric(capacidad["ppk"], errors="coerce").dropna()
+    ppk_min = float(ppk_series.min()) if not ppk_series.empty else None
+
+    marginales = int(
+        capacidad["clasificacion"]
+        .astype(str)
+        .str.contains("Marginal", case=False, na=False)
+        .sum()
+    )
+    no_capaces = int(
+        capacidad["clasificacion"]
+        .astype(str)
+        .str.contains("No capaz", case=False, na=False)
+        .sum()
+    )
+
+    return (
+        capacidad.to_json(orient="split"),
+        str(len(capacidad)),
+        _formatear_indice(ppk_min),
+        str(marginales),
+        str(no_capaces),
+    )
+
+
+def _outputs_vacio_variable() -> tuple:
+    """Bloque de 11 outputs cuando no hay variable seleccionable."""
+    return (
+        "Sin datos", "Sin datos", "Sin datos", "Sin datos",
+        "Sin datos para evaluar.",
+        aplicar_tema_oscuro(go.Figure()), "",
+        _span_rendimiento("—", "sin_datos"),
+        _span_rendimiento("—", "sin_datos"),
+        _span_rendimiento("—", "sin_datos"),
+        _span_rendimiento("—", "sin_datos"),
+    )
+
+
+def _outputs_variable_seleccionada(
+    capacidad: pd.DataFrame,
+    columna: str | None,
+    data,
+) -> tuple:
+    """Bloque de 11 outputs de la variable seleccionada.
+
+    Orden: pp, ppk, media, sigma, estado, figura, observaciones,
+    pct_dentro, pct_bajo_lsl, pct_sobre_usl, ppm_total.
+    """
+    if capacidad.empty or not columna:
+        return _outputs_vacio_variable()
+
+    filas = capacidad[capacidad["columna"] == columna]
+
+    if filas.empty:
+        return _outputs_vacio_variable()
+
+    fila = filas.iloc[0]
+
+    media = float(fila["media"]) if pd.notna(fila["media"]) else None
+    sigma = float(fila["sigma"]) if pd.notna(fila["sigma"]) else None
+
+    estado = _estado_capacidad(str(fila["clasificacion"]))
+    mensaje = f"{fila['clasificacion']} · {_mensaje_estado(estado)}"
+
+    filtrado = leer_dataframe_filtrado(data)
+    figura = (
+        go.Figure()
+        if filtrado.empty
+        else crear_figura_capacidad(filtrado, fila)
+    )
+
+    n = int(fila["n"]) if pd.notna(fila["n"]) else 0
+    observaciones = f"{n:,} observaciones utilizadas en el cálculo."
+
+    rendimiento = calcular_rendimiento_spec(
+        filtrado[columna]
+        if not filtrado.empty
+        else pd.Series([], dtype=float),
+        lsl=float(fila["lsl"]),
+        usl=float(fila["usl"]),
+    )
+
+    clase = rendimiento["clasificacion"]
+
+    return (
+        _formatear_indice(fila["pp"]),
+        _formatear_indice(fila["ppk"]),
+        f"{media:.3f}" if media is not None else "Sin datos",
+        f"{sigma:.4f}" if sigma is not None else "Sin datos",
+        mensaje,
+        figura,
+        observaciones,
+        _span_rendimiento(f"{rendimiento['pct_dentro']:.2f}%", clase),
+        _span_rendimiento(f"{rendimiento['pct_bajo_lsl']:.2f}%", clase),
+        _span_rendimiento(f"{rendimiento['pct_sobre_usl']:.2f}%", clase),
+        _span_rendimiento(f"{rendimiento['ppm_total']:,}", clase),
+    )
+
+
+def construir_outputs_capacidad(data, columna, variables_config: dict) -> tuple:
+    """Función pura: produce los 16 outputs del callback consolidado.
+
+    Orden (contrato fijo):
+        0-4:   resumen (store, total, ppk_min, marginales, no_capaces)
+        5-15:  variable seleccionada (pp, ppk, media, sigma, estado,
+               figura, observaciones, pct_dentro, pct_bajo_lsl,
+               pct_sobre_usl, ppm_total)
+
+    Fase 3b.2 fix UX: consolida los 2 callbacks previos (resumen y
+    variable) en uno solo. Antes se ejecutaban en cascada vía
+    store-capacidad, produciendo un doble spinner visible al cambiar
+    filtros. Ahora corren en un solo callback → un solo spinner.
+
+    Costo: al cambiar la variable seleccionada (poco frecuente), se
+    recalcula el resumen (~16 ms). Impacto despreciable.
+    """
+    capacidad = calcular_resumen_capacidad(data, variables_config)
+
+    resumen = _outputs_resumen(capacidad)
+    detalle = _outputs_variable_seleccionada(capacidad, columna, data)
+
+    return (*resumen, *detalle)
+
+
+# ---------------------------------------------------------------------
 # Callbacks
 # ---------------------------------------------------------------------
 
 
 def registrar_callbacks_capability(app, variables_config: dict) -> None:
     @app.callback(
+        # --- Resumen (5 outputs) ---
         Output("store-capacidad", "data"),
         Output("capability-total-variables", "children"),
         Output("capability-ppk-minimo", "children"),
         Output("capability-marginales", "children"),
         Output("capability-no-capaces", "children"),
-        Input("store-datos-filtrados", "data"),
-    )
-    def callback_actualizar_resumen_capacidad(data):
-        capacidad = calcular_resumen_capacidad(data, variables_config)
-
-        if capacidad.empty:
-            return None, "0", "Sin datos", "0", "0"
-
-        ppk = pd.to_numeric(capacidad["ppk"], errors="coerce").dropna()
-        ppk_min = float(ppk.min()) if not ppk.empty else None
-
-        marginales = int(
-            capacidad["clasificacion"]
-            .astype(str)
-            .str.contains("Marginal", case=False, na=False)
-            .sum()
-        )
-        no_capaces = int(
-            capacidad["clasificacion"]
-            .astype(str)
-            .str.contains("No capaz", case=False, na=False)
-            .sum()
-        )
-
-        return (
-            capacidad.to_json(orient="split"),
-            str(len(capacidad)),
-            _formatear_indice(ppk_min),
-            str(marginales),
-            str(no_capaces),
-        )
-
-    @app.callback(
+        # --- Variable seleccionada (11 outputs) ---
         Output("capability-pp", "children"),
         Output("capability-ppk", "children"),
         Output("capability-media", "children"),
@@ -331,68 +442,17 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         Output("capability-pct-bajo-lsl", "children"),
         Output("capability-pct-sobre-usl", "children"),
         Output("capability-ppm-total", "children"),
-        Input("store-capacidad", "data"),
-        Input("capability-variable-selector", "value"),
+        # --- Inputs ---
         Input("store-datos-filtrados", "data"),
+        Input("capability-variable-selector", "value"),
     )
-    def callback_actualizar_variable_seleccionada(capacidad_json, columna, data):
-        vacio = (
-            "Sin datos", "Sin datos", "Sin datos", "Sin datos",
-            "Sin datos para evaluar.",
-            aplicar_tema_oscuro(go.Figure()), "",
-            _span_rendimiento("—", "sin_datos"),
-            _span_rendimiento("—", "sin_datos"),
-            _span_rendimiento("—", "sin_datos"),
-            _span_rendimiento("—", "sin_datos"),
-        )
+    def callback_actualizar_capacidad(data, columna):
+        """Callback consolidado: resumen + variable en una sola ejecución.
 
-        if not capacidad_json or not columna:
-            return vacio
-
-        capacidad = pd.read_json(StringIO(capacidad_json), orient="split")
-        filas = capacidad[capacidad["columna"] == columna]
-
-        if filas.empty:
-            return vacio
-
-        fila = filas.iloc[0]
-
-        media = float(fila["media"]) if pd.notna(fila["media"]) else None
-        sigma = float(fila["sigma"]) if pd.notna(fila["sigma"]) else None
-
-        estado = _estado_capacidad(str(fila["clasificacion"]))
-        mensaje = f"{fila['clasificacion']} · {_mensaje_estado(estado)}"
-
-        filtrado = leer_dataframe_filtrado(data)
-        figura = go.Figure() if filtrado.empty else crear_figura_capacidad(filtrado, fila)
-
-        n = int(fila["n"]) if pd.notna(fila["n"]) else 0
-        observaciones = f"{n:,} observaciones utilizadas en el cálculo."
-
-        rendimiento = calcular_rendimiento_spec(
-            filtrado[columna] if not filtrado.empty else pd.Series([], dtype=float),
-            lsl=float(fila["lsl"]),
-            usl=float(fila["usl"]),
-        )
-
-        clase = rendimiento["clasificacion"]
-
-        return (
-            _formatear_indice(fila["pp"]),
-            _formatear_indice(fila["ppk"]),
-            f"{media:.3f}" if media is not None else "Sin datos",
-            f"{sigma:.4f}" if sigma is not None else "Sin datos",
-            mensaje,
-            figura,
-            observaciones,
-            _span_rendimiento(f"{rendimiento['pct_dentro']:.2f}%", clase),
-            _span_rendimiento(f"{rendimiento['pct_bajo_lsl']:.2f}%", clase),
-            _span_rendimiento(f"{rendimiento['pct_sobre_usl']:.2f}%", clase),
-            _span_rendimiento(f"{rendimiento['ppm_total']:,}", clase),
-        )
-
-
-
+        Antes: 2 callbacks en cascada → doble spinner.
+        Ahora: 1 callback → 1 spinner, orden garantizado.
+        """
+        return construir_outputs_capacidad(data, columna, variables_config)
 
     @app.callback(
         Output("download-capacidad", "data"),
@@ -403,8 +463,8 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
     def callback_exportar_capacidad(n_clicks, capacidad_json):
         """Exporta el resumen completo de Pp/Ppk como CSV.
 
-        Lee directo del store-capacidad (ya calculado por otro callback).
-        No recalcula — SSOT.
+        Lee directo del store-capacidad (ya calculado por el callback
+        consolidado). No recalcula — SSOT.
         """
         if not n_clicks:
             return None
