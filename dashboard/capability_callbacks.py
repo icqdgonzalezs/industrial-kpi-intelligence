@@ -36,6 +36,7 @@ from __future__ import annotations
 import math
 from io import StringIO
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, State, html
@@ -237,10 +238,13 @@ def crear_figura_capacidad(filtrado: pd.DataFrame, fila: pd.Series) -> go.Figure
     if len(serie) < 2:
         return figura
 
+    counts, edges = np.histogram(serie, bins=24)
+    centros = (edges[:-1] + edges[1:]) / 2
+
     figura.add_trace(
-        go.Histogram(
-            x=serie,
-            nbinsx=24,
+        go.Bar(
+            x=centros,
+            y=counts,
             name="Observaciones",
             opacity=0.85,
             marker={
