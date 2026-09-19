@@ -1650,3 +1650,100 @@ input[id^="react-select-"] {
   background-color: #00d4ff;
   color: #0a0e14;
 }
+
+
+/* ============================================================================
+   FASE 3b.2 — Empty states (estados vacíos)
+
+   Cuando un filtro deja 0 filas en store-datos-filtrados, cada tab
+   muestra un mensaje único en vez de KPIs en "—" + gráficos vacíos.
+   Patrón ISA-101: texto grande, legible a 1m, con acción sugerida.
+   ============================================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 40px;
+  margin: 24px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  text-align: center;
+  min-height: 240px;
+}
+
+.empty-state-icon {
+  font-size: 56px;
+  line-height: 1;
+  opacity: 0.45;
+  margin-bottom: 4px;
+  filter: grayscale(0.3);
+}
+
+.empty-state-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  max-width: 520px;
+  line-height: 1.4;
+}
+
+.empty-state-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   FASE 3b.2 — Empty states (estados vacíos)
+
+   Cuando un filtro deja 0 filas en store-datos-filtrados, cada tab
+   muestra un mensaje único en vez de KPIs en "—" + gráficos vacíos.
+   Patrón ISA-101: texto grande, legible a 1m, con acción sugerida.
+   ============================================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 40px;
+  margin: 24px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  text-align: center;
+  min-height: 240px;
+}
+
+.empty-state-icon {
+  font-size: 56px;
+  line-height: 1;
+  opacity: 0.45;
+  margin-bottom: 4px;
+  filter: grayscale(0.3);
+}
+
+.empty-state-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  max-width: 520px;
+  line-height: 1.4;
+}
+
+.empty-state-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 520px;
+  line-height: 1.5;
+}
