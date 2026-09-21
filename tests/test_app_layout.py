@@ -1,13 +1,17 @@
-"""Smoke tests del layout principal (`dashboard/app_layout.py`).
+"""Tests del layout principal (`dashboard/app_layout.py`).
 
-Verifica que el layout se construye sin errores y que las 6 zonas que
-se actualizan con los filtros están envueltas en ``dcc.Loading``
-(Fase 3b.1 — loading states).
+Verifica que el layout se construye sin errores y que las zonas que
+se actualizan con los filtros tienen los `dcc.Loading` esperados.
 
-Por qué estos tests y no otros:
-- El layout es HTML puro: testear su estructura pixel a pixel no aporta.
-- Lo que SÍ aporta es verificar que no se rompe la envoltura de Loading
-  en futuros refactors — es la regresión que importa proteger.
+Arquitectura de Loading (Fase 3b.1 + fix UX Control + fix doble spinner):
+- 4 secciones (Diagnóstico, Calidad, Capacidad, Operacional) tienen
+  `dcc.Loading` externo envuelto en `app_layout.py`.
+- La sección Control gestiona su propio `dcc.Loading` interno (solo
+  sobre las 2 cartas I-MR).
+- El KPI grid del top NO tiene Loading: con el caché JSON los KPIs
+  actualizan en ~200-500ms y los valores cambiantes ya son feedback
+  visual suficiente. Un spinner ahí produce ruido visual.
+Total: 4 externos + 1 interno en Control = 5 Loadings.
 """
 
 from __future__ import annotations
@@ -38,33 +42,35 @@ def test_crear_app_layout_sin_error():
     assert layout is not None
 
 
-def test_app_layout_incluye_6_loading_states():
-    """El layout debe envolver 6 zonas en dcc.Loading (Fase 3b.1):
+def test_app_layout_incluye_5_loading_states():
+    """El layout debe incluir 5 dcc.Loading en total:
 
-    - 1 para el KPI grid del top.
-    - 5 para las secciones de los tabs (diagnóstico, calidad, capacidad,
-      control, operacional).
+    - 4 externos para las secciones Diagnóstico/Calidad/Capacidad/Operacional.
+    - 1 interno de Control (sobre las 2 cartas I-MR).
 
-    Sin estos wrappers, los cambios de filtro no tienen feedback visual
-    y el operador percibe la app como congelada durante los 4-6 s de
-    recálculo.
+    El KPI grid del top NO tiene Loading a propósito: el callback es
+    rápido con el caché JSON (~200-500ms) y los valores cambiantes ya
+    son feedback visual. Un spinner ahí sería ruido visual (doble spinner
+    visible durante los cambios de filtro).
     """
     layout = _crear_layout_minimo()
-    count = _contar_loadings(layout)
-    assert count == 6, f"Esperado 6 dcc.Loading, encontrado {count}"
+    count = _contar_por_tipo(layout, dcc.Loading)
+    assert count == 5, f"Esperado 5 dcc.Loading, encontrado {count}"
 
 
-def test_cada_seccion_esta_envuelta_en_loading():
-    """Cada uno de los 5 divs de sección debe tener un dcc.Loading como
-    hijo directo. Esto garantiza que el spinner aparece SOLO en la
-    sección que el usuario está viendo, no en todas a la vez."""
+def test_cuatro_secciones_envueltas_en_loading_externo():
+    """Las 4 secciones sin Loading interno tienen `dcc.Loading` como hijo
+    directo.
+
+    Nota: `section-control` NO se testea acá porque gestiona su propio
+    `dcc.Loading` internamente (ver test_control_tiene_loading_interno).
+    """
     layout = _crear_layout_minimo()
 
     ids_esperados = [
         "section-diagnostico",
         "section-calidad",
         "section-capacidad",
-        "section-control",
         "section-operacional",
     ]
 
@@ -74,6 +80,36 @@ def test_cada_seccion_esta_envuelta_en_loading():
         assert isinstance(seccion.children, dcc.Loading), (
             f"La sección {seccion_id} no está envuelta en dcc.Loading"
         )
+
+
+def test_control_tiene_loading_interno_sobre_las_2_cartas():
+    """La sección Control gestiona su propio dcc.Loading.
+
+    Dash 4.x renderiza un spinner interno por cada dcc.Graph, y Control
+    tiene 2 (carta I + carta MR). Al dejarlos sin envolver, se veían 2
+    spinners consecutivos. El fix: un solo dcc.Loading que envuelve las
+    2 cartas. Este test verifica esa estructura.
+    """
+    layout = _crear_layout_minimo()
+
+    seccion = _buscar_por_id(layout, "section-control")
+    assert seccion is not None, "Falta la sección section-control"
+
+    # La sección Control NO debe tener Loading como hijo directo
+    assert not isinstance(seccion.children, dcc.Loading), (
+        "Control NO debe tener dcc.Loading externo — lo gestiona internamente"
+    )
+
+    # Pero SÍ debe tener un dcc.Loading descendiente (el interno)
+    loading = _buscar_por_tipo(seccion, dcc.Loading)
+    assert loading is not None, "Control no tiene dcc.Loading interno"
+
+    # Ese Loading debe envolver los 2 dcc.Graph
+    graficos = _contar_por_tipo(loading, dcc.Graph)
+    assert graficos == 2, (
+        f"Esperado 2 dcc.Graph dentro del Loading de Control, "
+        f"encontrado {graficos}"
+    )
 
 
 # ---------------------------------------------------------------------
@@ -91,12 +127,23 @@ def _hijos(componente):
     return [children]
 
 
-def _contar_loadings(componente) -> int:
-    """Cuenta recursivamente todos los dcc.Loading del subárbol."""
-    count = 1 if isinstance(componente, dcc.Loading) else 0
+def _contar_por_tipo(componente, tipo) -> int:
+    """Cuenta recursivamente todos los componentes del tipo dado."""
+    count = 1 if isinstance(componente, tipo) else 0
     for hijo in _hijos(componente):
-        count += _contar_loadings(hijo)
+        count += _contar_por_tipo(hijo, tipo)
     return count
+
+
+def _buscar_por_tipo(componente, tipo):
+    """Busca recursivamente el primer componente del tipo dado."""
+    if isinstance(componente, tipo):
+        return componente
+    for hijo in _hijos(componente):
+        encontrado = _buscar_por_tipo(hijo, tipo)
+        if encontrado is not None:
+            return encontrado
+    return None
 
 
 def _buscar_por_id(componente, target_id):

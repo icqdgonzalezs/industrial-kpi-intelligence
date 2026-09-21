@@ -1747,3 +1747,16 @@ input[id^="react-select-"] {
   max-width: 520px;
   line-height: 1.5;
 }
+
+
+/* FASE 3b.2 — Evitar doble spinner en la sección Control */
+/* Dash 4.x agrega un spinner interno por cada dcc.Graph cuando la figura
+   cambia. Junto con el spinner del dcc.Loading exterior, produce un
+   doble parpadeo consecutivo. Como ya tenemos el spinner del dcc.Loading
+   de la sección, ocultamos los internos. */
+.dash-graph .dash-spinner-container,
+.dash-graph [data-dash-is-loading="true"] > .dash-spinner,
+.dash-graph .js-plotly-plot .plotly .modebar-container + .dash-spinner {
+    display: none !important;
+}
+

@@ -4,14 +4,14 @@ Verifica que las figuras se construyan con la estructura correcta y los
 colores del tema industrial oscuro (marcador out-of-control rojo,
 resto claro sobre fondo oscuro).
 
-Y el export CSV (Fase 3a-γ): tabla I-MR unificada con columnas de
-límites constantes, o None si no hay datos exportables.
+Y el export CSV (Fase 3a-γ) + el empty state (Fase 3b.2).
 """
 
 import pandas as pd
 import pytest
 
 from dashboard.control_charts_callbacks import (
+    construir_outputs_control,
     crear_figura_i,
     crear_figura_mr,
     exportar_control_csv,
@@ -42,6 +42,80 @@ def test_crear_figura_mr():
     figura = crear_figura_mr(mr, mr.mean())
 
     assert len(figura.data) == 1
+
+
+# ---------------------------------------------------------------------
+# construir_outputs_control (Fase 3b.2 — empty states)
+# ---------------------------------------------------------------------
+
+
+def test_construir_outputs_control_con_datos():
+    """Con datos suficientes: 5 outputs, contenido normal visible."""
+    df = pd.DataFrame({"peso": [100.0, 101.0, 99.0, 100.0, 101.0, 99.5]})
+    data = df.to_json(orient="split", date_format="iso")
+
+    resultado = construir_outputs_control(data, "peso")
+
+    assert len(resultado) == 5
+    # status es str
+    assert isinstance(resultado[0], str)
+    # figuras con datos
+    assert len(resultado[1].data) == 1
+    assert len(resultado[2].data) == 1
+    # contenido normal visible
+    assert resultado[3] == {"display": "block"}
+    # sin empty
+    assert resultado[4] == []
+
+
+def test_construir_outputs_control_sin_datos_devuelve_empty_state():
+    """Con 0 filas: contenido normal oculto, empty_state visible."""
+    resultado = construir_outputs_control("", "peso")
+
+    assert len(resultado) == 5
+    assert resultado[0] == "Sin datos."
+    # contenido normal oculto
+    assert resultado[3] == {"display": "none"}
+    # empty_state presente
+    assert resultado[4].className == "empty-state"
+    textos = [child.children for child in resultado[4].children]
+    assert "Sin datos para la variable y filtros actuales" in textos
+
+
+def test_construir_outputs_control_incluye_hint_de_accion():
+    """El empty state incluye un hint sugiriendo la acción al operador."""
+    resultado = construir_outputs_control("", "peso")
+
+    textos = [child.children for child in resultado[4].children]
+    # El hint tiene la acción sugerida
+    assert any("Restaurar" in str(t) or "filtros" in str(t) for t in textos)
+
+
+def test_construir_outputs_control_columna_inexistente():
+    """Si la columna no existe en el DataFrame: empty state."""
+    df = pd.DataFrame({"otra": [100.0, 101.0]})
+    data = df.to_json(orient="split", date_format="iso")
+
+    resultado = construir_outputs_control(data, "peso")
+
+    assert resultado[3] == {"display": "none"}
+    assert resultado[4].className == "empty-state"
+
+
+def test_construir_outputs_control_serie_corta():
+    """Con 1 solo punto: empty state (no hay MR posible)."""
+    df = pd.DataFrame({"peso": [100.0]})
+    data = df.to_json(orient="split", date_format="iso")
+
+    resultado = construir_outputs_control(data, "peso")
+
+    assert resultado[3] == {"display": "none"}
+    assert resultado[4].className == "empty-state"
+
+
+# ---------------------------------------------------------------------
+# Export CSV (Fase 3a-γ)
+# ---------------------------------------------------------------------
 
 
 def test_exportar_control_csv_con_datos():

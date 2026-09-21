@@ -5,6 +5,9 @@ orquesta la lectura de datos y la construcción de las figuras Plotly.
 
 Tipografía de anotaciones calibrada según ISA-101 (HMI industrial):
 CL, UCL, LCL y MR-bar usan 14px para ser legibles desde 1m de distancia.
+
+Fase 3b.2: cuando el filtro deja 0 filas, se oculta el contenido normal
+y se muestra un empty_state() en su lugar. Los IDs internos no cambian.
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, State
 
+from dashboard.empty_state import empty_state
 from dashboard.export_helpers import crear_descarga_csv
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
 from src.control_charts import (
@@ -95,6 +99,60 @@ def crear_figura_mr(mr, mr_bar) -> go.Figure:
     return aplicar_tema_oscuro(figura)
 
 
+def construir_outputs_control(data, columna) -> tuple:
+    """Función pura: produce la tupla de 5 outputs del callback principal.
+
+    Orden de outputs (contrato fijo):
+        0: status text (str)
+        1: figura carta I (go.Figure)
+        2: figura carta MR (go.Figure)
+        3: style de control-normal-content (dict)
+        4: children de control-empty-content (list[html.Component])
+
+    Cuando el filtrado está vacío o la variable no tiene datos, se
+    oculta el contenido normal (display: none) y se muestra un
+    empty_state() con mensaje del dominio. Los ids internos
+    (control-status, control-chart-i, control-chart-mr) siguen
+    existiendo — solo quedan ocultos.
+
+    Extraída del callback para testear el contrato sin instanciar Dash.
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    vacio = (
+        "Sin datos.",
+        aplicar_tema_oscuro(go.Figure()),
+        aplicar_tema_oscuro(go.Figure()),
+        {"display": "none"},
+        empty_state(
+            "Sin datos para la variable y filtros actuales",
+            hint="Ajustá los filtros o cambiá la variable seleccionada.",
+        ),
+    )
+
+    if filtrado.empty or not columna or columna not in filtrado.columns:
+        return vacio
+
+    serie = filtrado[columna].dropna().reset_index(drop=True)
+
+    if len(serie) < 2:
+        return vacio
+
+    limites = calcular_limites_control(serie)
+    fuera_control = detectar_fuera_de_control(serie, limites)
+    mr = calcular_moving_range(serie).dropna().reset_index(drop=True)
+
+    estado = resumen_control_estadistico(serie, limites)["mensaje"]
+
+    return (
+        estado,
+        crear_figura_i(serie, limites, fuera_control),
+        crear_figura_mr(mr, limites["mr_bar"]),
+        {"display": "block"},
+        [],
+    )
+
+
 def exportar_control_csv(data, columna):
     """Construye la descarga CSV del análisis I-MR.
 
@@ -106,20 +164,6 @@ def exportar_control_csv(data, columna):
     alineado (primera fila vacía — no hay punto previo). Las constantes
     del análisis (CL, UCL, LCL, MR-bar, UCL_MR) se repiten como columnas
     para que el CSV sea autocontenido y parseable en pandas/Excel.
-
-    Parameters
-    ----------
-    data : str | None
-        JSON orient='split' del DataFrame filtrado (store-datos-filtrados).
-    columna : str | None
-        Nombre de la columna (variable) seleccionada en el dropdown.
-
-    Returns
-    -------
-    dict | None
-        Dict {content, filename} listo para Output de dcc.Download,
-        o None si el filtrado está vacío, la columna no existe o la
-        serie tiene menos de 2 puntos.
     """
     filtrado = leer_dataframe_filtrado(data)
 
@@ -162,35 +206,13 @@ def registrar_callbacks_control_charts(app) -> None:
         Output("control-status", "children"),
         Output("control-chart-i", "figure"),
         Output("control-chart-mr", "figure"),
+        Output("control-normal-content", "style"),
+        Output("control-empty-content", "children"),
         Input("store-datos-filtrados", "data"),
         Input("control-variable-selector", "value"),
     )
     def callback_actualizar_control(data, columna):
-        filtrado = leer_dataframe_filtrado(data)
-        vacio = (
-            "Sin datos.",
-            aplicar_tema_oscuro(go.Figure()),
-            aplicar_tema_oscuro(go.Figure()),
-        )
-
-        if filtrado.empty or not columna or columna not in filtrado.columns:
-            return vacio
-
-        serie = filtrado[columna].dropna().reset_index(drop=True)
-        if len(serie) < 2:
-            return vacio
-
-        limites = calcular_limites_control(serie)
-        fuera_control = detectar_fuera_de_control(serie, limites)
-        mr = calcular_moving_range(serie).dropna().reset_index(drop=True)
-
-        estado = resumen_control_estadistico(serie, limites)["mensaje"]
-
-        return (
-            estado,
-            crear_figura_i(serie, limites, fuera_control),
-            crear_figura_mr(mr, limites["mr_bar"]),
-        )
+        return construir_outputs_control(data, columna)
 
     @app.callback(
         Output("download-control", "data"),
