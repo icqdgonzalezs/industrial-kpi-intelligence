@@ -7,6 +7,7 @@ from dashboard.capability_callbacks import (
     _estado_capacidad,
     _formatear_indice,
     calcular_resumen_capacidad,
+    construir_outputs_capacidad,
     crear_figura_capacidad,
 )
 
@@ -167,3 +168,55 @@ def test_crear_descarga_csv_sin_datos():
     from dashboard.export_helpers import crear_descarga_csv
 
     assert crear_descarga_csv(None, "capacidad") is None
+
+
+# ---------------------------------------------------------------------
+# construir_outputs_capacidad (Fase 3b.2 — empty state)
+# ---------------------------------------------------------------------
+
+
+def test_construir_outputs_capacidad_con_datos():
+    """Con datos suficientes: 18 outputs, contenido normal visible."""
+    data = _dataset_json([498.0, 500.0, 502.0, 499.0, 501.0, 500.5, 499.5])
+
+    resultado = construir_outputs_capacidad(data, "peso_promedio", VARIABLES_CONFIG)
+
+    assert len(resultado) == 18
+    assert resultado[16] == {"display": "block"}
+    assert resultado[17] == []
+
+
+def test_construir_outputs_capacidad_sin_datos_devuelve_empty_state():
+    """Con filtrado vacío: contenido normal oculto, empty_state visible."""
+    resultado = construir_outputs_capacidad(None, "peso_promedio", VARIABLES_CONFIG)
+
+    assert len(resultado) == 18
+    assert resultado[16] == {"display": "none"}
+    assert resultado[17].className == "empty-state"
+    textos = [child.children for child in resultado[17].children]
+    assert "Sin datos de capacidad con los filtros actuales" in textos
+
+
+def test_construir_outputs_capacidad_empty_state_incluye_hint():
+    """El empty state incluye un hint sugiriendo la acción al operador."""
+    resultado = construir_outputs_capacidad(None, "peso_promedio", VARIABLES_CONFIG)
+
+    textos = [child.children for child in resultado[17].children]
+    assert any("Restaurar" in str(t) or "filtros" in str(t) for t in textos)
+
+
+def test_construir_outputs_capacidad_con_pocas_filas_devuelve_empty_state():
+    """Con 1 sola fila: capacidad no calculable (n < 2) → empty state.
+
+    Regresión: sin este fix, el callback activaba el contenido normal
+    y cada KPI mostraba "Sin datos" (confuso para el operador).
+    """
+    data = _dataset_json([500.0])  # 1 sola observación
+
+    resultado = construir_outputs_capacidad(data, "peso_promedio", VARIABLES_CONFIG)
+
+    assert len(resultado) == 18
+    assert resultado[16] == {"display": "none"}
+    assert resultado[17].className == "empty-state"
+    textos = [child.children for child in resultado[17].children]
+    assert "Sin datos suficientes para evaluar capacidad" in textos

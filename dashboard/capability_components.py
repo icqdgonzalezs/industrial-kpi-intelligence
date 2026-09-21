@@ -15,6 +15,12 @@ herramienta de decisión — ver src/capability.calcular_rendimiento_spec.
 
 Fase 3a: incluye botón "📥 Exportar CSV" que descarga el resumen
 completo de Pp/Ppk (con filtros aplicados).
+
+Fase 3b.2: cuando el filtro deja 0 filas, se oculta el contenido
+dinámico completo (grids + dropdown + gráfico) y se muestra un
+empty_state() en `capability-empty-content`. Los IDs internos
+(capability-pp, capability-grafico, etc.) siguen existiendo — solo
+quedan ocultos.
 """
 
 from __future__ import annotations
@@ -78,55 +84,62 @@ def crear_capability_section(variables_config: dict) -> html.Div:
             dcc.Store(id="store-capacidad"),
             html.Div(
                 [
-                    _crear_card_metrica("Variables evaluadas", "capability-total-variables"),
-                    _crear_card_metrica("Ppk mínimo", "capability-ppk-minimo"),
-                    _crear_card_metrica("Variables marginales", "capability-marginales"),
-                    _crear_card_metrica("Variables no capaces", "capability-no-capaces"),
-                ],
-                className="quality-metrics-grid",
-            ),
-            html.Div(
-                [
-                    html.Label("Variable"),
-                    dcc.Dropdown(
-                        id="capability-variable-selector",
-                        options=opciones_variable,
-                        value=valor_inicial,
-                        clearable=False,
-                    ),
-                ],
-                className="filter-control",
-            ),
-            html.Div(
-                [
-                    _crear_card_metrica("Pp", "capability-pp"),
-                    _crear_card_metrica("Ppk", "capability-ppk"),
-                    _crear_card_metrica("Promedio", "capability-media"),
                     html.Div(
                         [
-                            html.Div(
-                                "σ",
-                                className="quality-metric-label quality-metric-label--symbol",
-                            ),
-                            html.Div(id="capability-sigma", className="quality-metric-value"),
+                            _crear_card_metrica("Variables evaluadas", "capability-total-variables"),
+                            _crear_card_metrica("Ppk mínimo", "capability-ppk-minimo"),
+                            _crear_card_metrica("Variables marginales", "capability-marginales"),
+                            _crear_card_metrica("Variables no capaces", "capability-no-capaces"),
                         ],
-                        className="quality-metric-card",
+                        className="quality-metrics-grid",
                     ),
+                    html.Div(
+                        [
+                            html.Label("Variable"),
+                            dcc.Dropdown(
+                                id="capability-variable-selector",
+                                options=opciones_variable,
+                                value=valor_inicial,
+                                clearable=False,
+                            ),
+                        ],
+                        className="filter-control",
+                    ),
+                    html.Div(
+                        [
+                            _crear_card_metrica("Pp", "capability-pp"),
+                            _crear_card_metrica("Ppk", "capability-ppk"),
+                            _crear_card_metrica("Promedio", "capability-media"),
+                            html.Div(
+                                [
+                                    html.Div(
+                                        "σ",
+                                        className="quality-metric-label quality-metric-label--symbol",
+                                    ),
+                                    html.Div(id="capability-sigma", className="quality-metric-value"),
+                                ],
+                                className="quality-metric-card",
+                            ),
+                        ],
+                        className="quality-metrics-grid",
+                    ),
+                    html.Div(
+                        [
+                            _crear_card_metrica("Dentro de spec", "capability-pct-dentro"),
+                            _crear_card_metrica("Bajo LSL", "capability-pct-bajo-lsl"),
+                            _crear_card_metrica("Sobre USL", "capability-pct-sobre-usl"),
+                            _crear_card_metrica("PPM total", "capability-ppm-total"),
+                        ],
+                        className="quality-metrics-grid",
+                    ),
+                    html.Div(id="capability-estado", className="quality-analysis-card"),
+                    dcc.Graph(id="capability-grafico"),
+                    html.Div(id="capability-observaciones", className="section-subtitle"),
                 ],
-                className="quality-metrics-grid",
+                id="capability-normal-content",
+                style={"display": "block"},
             ),
-            html.Div(
-                [
-                    _crear_card_metrica("Dentro de spec", "capability-pct-dentro"),
-                    _crear_card_metrica("Bajo LSL", "capability-pct-bajo-lsl"),
-                    _crear_card_metrica("Sobre USL", "capability-pct-sobre-usl"),
-                    _crear_card_metrica("PPM total", "capability-ppm-total"),
-                ],
-                className="quality-metrics-grid",
-            ),
-            html.Div(id="capability-estado", className="quality-analysis-card"),
-            dcc.Graph(id="capability-grafico"),
-            html.Div(id="capability-observaciones", className="section-subtitle"),
+            html.Div(id="capability-empty-content"),
         ],
         className="dashboard-section capability-performance",
     )

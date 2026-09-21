@@ -30,11 +30,10 @@ Nota técnica sobre bold: Plotly no expone `font.weight` en el schema de
 annotations (solo `color`, `family`, `size`). La negrita se logra
 envolviendo el texto en `<b>...</b>`.
 
-Fix UX (doble spinner): los 2 callbacks de display (resumen + variable
-seleccionada) estaban encadenados vía store-capacidad. Cada uno
-encendía el dcc.Loading de la sección, produciendo un doble spinner
-visible al cambiar filtros. Se fusionan en UN callback que escribe los
-16 outputs de una sola vez — un solo spinner, orden garantizado.
+Fase 3b.2 (empty state): cuando el filtro deja 0 filas, se oculta el
+contenido normal y se muestra un empty_state() en su lugar. Los IDs
+internos (capability-pp, capability-grafico, etc.) siguen existiendo —
+solo quedan ocultos.
 """
 
 from __future__ import annotations
@@ -46,6 +45,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, State, html
 
+from dashboard.empty_state import empty_state
 from dashboard.export_helpers import crear_descarga_csv
 from dashboard.severity_icons import prefijar_icono
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
@@ -393,28 +393,51 @@ def _outputs_variable_seleccionada(
 
 
 def construir_outputs_capacidad(data, columna, variables_config: dict) -> tuple:
-    """Función pura: produce los 16 outputs del callback consolidado.
+    """Función pura: produce los 18 outputs del callback consolidado.
 
     Orden (contrato fijo):
         0-4:   resumen (store, total, ppk_min, marginales, no_capaces)
         5-15:  variable seleccionada (pp, ppk, media, sigma, estado,
                figura, observaciones, pct_dentro, pct_bajo_lsl,
                pct_sobre_usl, ppm_total)
+        16:    style del contenedor normal (dict) — display block/none
+        17:    children del contenedor vacío (list[html.Component])
 
-    Fase 3b.2 fix UX: consolida los 2 callbacks previos (resumen y
-    variable) en uno solo. Antes se ejecutaban en cascada vía
-    store-capacidad, produciendo un doble spinner visible al cambiar
-    filtros. Ahora corren en un solo callback → un solo spinner.
-
-    Costo: al cambiar la variable seleccionada (poco frecuente), se
-    recalcula el resumen (~16 ms). Impacto despreciable.
+    Fase 3b.2 empty state: cuando el filtrado no permite calcular
+    Pp/Ppk para NINGUNA variable, se oculta el contenido normal y se
+    muestra un empty_state(). El criterio incluye 2 casos:
+      - capacidad.empty: no hay filas tras el filtrado.
+      - todas las pp son NaN: hay filas pero n < 2 por variable
+        (típico cuando el filtro deja 0-1 lotes).
     """
     capacidad = calcular_resumen_capacidad(data, variables_config)
 
     resumen = _outputs_resumen(capacidad)
     detalle = _outputs_variable_seleccionada(capacidad, columna, data)
 
-    return (*resumen, *detalle)
+    pp_series = (
+        pd.to_numeric(capacidad["pp"], errors="coerce").dropna()
+        if not capacidad.empty
+        else pd.Series([], dtype=float)
+    )
+
+    if pp_series.empty:
+        return (
+            *resumen,
+            *detalle,
+            {"display": "none"},
+            empty_state(
+                "Sin datos suficientes para evaluar capacidad",
+                hint="Ampliá el período o ajustá los filtros. Se necesitan al menos 2 lotes por variable.",
+            ),
+        )
+
+    return (
+        *resumen,
+        *detalle,
+        {"display": "block"},
+        [],
+    )
 
 
 # ---------------------------------------------------------------------
@@ -442,6 +465,9 @@ def registrar_callbacks_capability(app, variables_config: dict) -> None:
         Output("capability-pct-bajo-lsl", "children"),
         Output("capability-pct-sobre-usl", "children"),
         Output("capability-ppm-total", "children"),
+        # --- Empty state (Fase 3b.2) ---
+        Output("capability-normal-content", "style"),
+        Output("capability-empty-content", "children"),
         # --- Inputs ---
         Input("store-datos-filtrados", "data"),
         Input("capability-variable-selector", "value"),
