@@ -19,3 +19,4 @@ estructura.txt
 *.egg-info/
 build/
 dist/
+dashboard/.Rapp.history
