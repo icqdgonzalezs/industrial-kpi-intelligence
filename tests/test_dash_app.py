@@ -1,7 +1,13 @@
 """Tests de integración del dashboard Dash — contrato de callbacks.
 
-Cubren KPIs agregados, filtros encadenados (línea → equipo → turno →
-operador) y tolerancia a entradas vacías o mal formadas.
+Cubren KPIs agregados y datos filtrados. Tolerancia a entradas vacías
+o mal formadas.
+
+Nota (Fase 3b.2 fix doble spinner): los tests de filtros encadenados
+(actualizar_lineas, actualizar_equipos, actualizar_turnos,
+actualizar_operadores) se eliminaron junto con los 4 callbacks de
+cascade. Los dropdowns ahora se pre-cargan con todas las opciones al
+arranque y no tienen callback de recálculo.
 
 PRODUCCION_TOTAL_ESPERADA es la suma de units_produced del dataset
 canónico en disco (18,078 filas, seed 42). Recalcular con:
@@ -114,7 +120,7 @@ def test_actualizar_datos_filtrados_with_specific_line():
 
 
 # ---------------------------------------------------------------------
-# Filtros encadenados
+# Cascades de filtros
 # ---------------------------------------------------------------------
 
 

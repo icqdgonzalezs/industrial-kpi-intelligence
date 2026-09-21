@@ -1,3 +1,23 @@
+"""Callbacks de filtros del Control Center.
+
+Fase 3b.2 final (fix raíz): se restauran los 4 cascades de dropdowns.
+Los filtros encadenados garantizan que el usuario solo vea opciones
+válidas para la combinación actual.
+
+El doble spinner que aparecía antes era mitigado por la lentitud del
+callback de datos. Con el caché JSON + pre-binning + WebGL, los
+cascades completan en ~10-50ms. Con delay_show=500ms en los Loading,
+los cascades rápidos no muestran spinner. Solo el store callback
+(el largo) lo muestra.
+
+Arquitectura:
+- 4 callbacks de cascade (línea, equipo, turno, operador). Cada uno
+  actualiza las opciones del dropdown siguiente + resetea su value.
+- 1 callback de reset que escribe los 6 filtros al default.
+- 1 callback de datos (en data_callbacks.py) que escucha los 6 valores
+  y escribe el store.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -15,7 +35,6 @@ def configurar_callbacks_filtros(
     aplicar_filtros: Callable,
 ) -> None:
     global _DF, _APLICAR_FILTROS
-
     _DF = df
     _APLICAR_FILTROS = aplicar_filtros
 
@@ -25,16 +44,11 @@ def _obtener_dependencias() -> tuple[pd.DataFrame, Callable]:
         raise RuntimeError(
             "Los callbacks de filtros no han sido configurados."
         )
-
     return _DF, _APLICAR_FILTROS
 
 
 def valores_default_filtros(fecha_min: str, fecha_max: str) -> tuple:
     """Valores por defecto del control center, en orden de Outputs.
-
-    Función pura para poder testear el contrato de "Restaurar filtros"
-    sin instanciar Dash. El orden de los 6 valores debe coincidir
-    exactamente con el orden de Outputs del callback de reset.
 
     Returns
     -------
@@ -53,7 +67,6 @@ def valores_default_filtros(fecha_min: str, fecha_max: str) -> tuple:
 
 def _filtrar_por_periodo(start_date, end_date):
     df, aplicar_filtros = _obtener_dependencias()
-
     return aplicar_filtros(
         df,
         fecha_inicio=start_date,
@@ -124,13 +137,7 @@ def actualizar_turnos(equipo, linea, start_date, end_date):
     return opciones, "Todos"
 
 
-def actualizar_operadores(
-    turno,
-    equipo,
-    linea,
-    start_date,
-    end_date,
-):
+def actualizar_operadores(turno, equipo, linea, start_date, end_date):
     df, aplicar_filtros = _obtener_dependencias()
 
     filtrado = aplicar_filtros(
@@ -194,18 +201,8 @@ def registrar_callbacks_filtros(
         Input("filtro-periodo", "end_date"),
         prevent_initial_call=True,
     )
-    def callback_actualizar_turnos(
-        equipo,
-        linea,
-        start_date,
-        end_date,
-    ):
-        return actualizar_turnos(
-            equipo,
-            linea,
-            start_date,
-            end_date,
-        )
+    def callback_actualizar_turnos(equipo, linea, start_date, end_date):
+        return actualizar_turnos(equipo, linea, start_date, end_date)
 
     @app.callback(
         Output("filtro-operador", "options"),
@@ -217,20 +214,8 @@ def registrar_callbacks_filtros(
         Input("filtro-periodo", "end_date"),
         prevent_initial_call=True,
     )
-    def callback_actualizar_operadores(
-        turno,
-        equipo,
-        linea,
-        start_date,
-        end_date,
-    ):
-        return actualizar_operadores(
-            turno,
-            equipo,
-            linea,
-            start_date,
-            end_date,
-        )
+    def callback_actualizar_operadores(turno, equipo, linea, start_date, end_date):
+        return actualizar_operadores(turno, equipo, linea, start_date, end_date)
 
     @app.callback(
         Output("filtro-periodo", "start_date", allow_duplicate=True),

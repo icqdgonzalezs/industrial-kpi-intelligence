@@ -18,24 +18,21 @@ TABS = [
     ("tab-operacional", "Operacional"),
 ]
 
-# ---------------------------------------------------------------------
-# Loading states (Fase 3b.1)
-#
-# Parámetros del spinner estándar del dashboard. El spinner NO aparece
-# si el callback termina antes de LOADING_DELAY_MS — evita parpadeos en
-# cambios rápidos. Para los cambios de filtro reales (4-6 s) se mostrará
-# siempre, que es justamente lo que se busca: feedback honesto.
-# ---------------------------------------------------------------------
-LOADING_COLOR = "#00d4ff"   # acento cian del dashboard
-LOADING_DELAY_MS = 300
+LOADING_COLOR = "#00d4ff"
+LOADING_DELAY_MS = 500
 LOADING_TYPE = "default"
 
 
 def _loading(children):
     """Envuelve contenido en dcc.Loading con la configuración estándar.
 
-    Wrapper para no repetir los 3 parámetros del spinner en los 6 usos
+    Wrapper para no repetir los 3 parámetros del spinner en los usos
     del layout. Si mañana se ajusta el color o el delay, se cambia acá.
+
+    NOTA: la sección Control NO usa este wrapper. Gestiona su propio
+    dcc.Loading internamente (solo envuelve las 2 cartas I-MR) para
+    evitar el doble spinner consecutivo que produce Dash 4.x al
+    renderizar 2 dcc.Graph en la misma sección.
     """
     return dcc.Loading(
         children=children,
@@ -90,7 +87,7 @@ def crear_app_layout(
                 className="app-header",
             ),
             dcc.Store(id="store-datos-filtrados", storage_type="memory"),
-            _loading(crear_kpi_grid()),
+            crear_kpi_grid(),
             crear_control_center(
                 (fecha_min, fecha_max), lineas, equipos, turnos, operadores
             ),
@@ -99,14 +96,6 @@ def crear_app_layout(
                 value=TABS[0][0],
                 children=[dcc.Tab(label=label, value=tab_id) for tab_id, label in TABS],
             ),
-            # Pre-montamos las 5 secciones al arranque y solo alternamos su
-            # visibilidad con `display`. Cada dcc.Graph lleva altura explícita
-            # en su propio layout, así que no mide 0x0 aunque el padre esté
-            # oculto — y los callbacks encuentran sus componentes siempre.
-            #
-            # Cada sección va envuelta en dcc.Loading (Fase 3b.1): el spinner
-            # aparece en la sección visible mientras sus callbacks corren,
-            # sin bloquear los filtros (que están fuera del wrapper).
             html.Div(
                 [
                     html.Div(
@@ -125,7 +114,7 @@ def crear_app_layout(
                         style={"display": "none"},
                     ),
                     html.Div(
-                        _loading(crear_control_charts_section(variables_criticas)),
+                        crear_control_charts_section(variables_criticas),
                         id="section-control",
                         style={"display": "none"},
                     ),
