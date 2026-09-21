@@ -187,14 +187,20 @@ def test_construir_outputs_capacidad_con_datos():
 
 
 def test_construir_outputs_capacidad_sin_datos_devuelve_empty_state():
-    """Con filtrado vacío: contenido normal oculto, empty_state visible."""
+    """Con filtrado vacío: contenido normal oculto, empty_state visible.
+
+    Nota (Fase 3b.2): el mensaje del empty_state es "Sin datos suficientes
+    para evaluar capacidad" tras unificar el criterio (incluye tanto 0
+    filas como n<2). El mensaje anterior ("Sin datos de capacidad con
+    los filtros actuales") quedó obsoleto.
+    """
     resultado = construir_outputs_capacidad(None, "peso_promedio", VARIABLES_CONFIG)
 
     assert len(resultado) == 18
     assert resultado[16] == {"display": "none"}
     assert resultado[17].className == "empty-state"
     textos = [child.children for child in resultado[17].children]
-    assert "Sin datos de capacidad con los filtros actuales" in textos
+    assert "Sin datos suficientes para evaluar capacidad" in textos
 
 
 def test_construir_outputs_capacidad_empty_state_incluye_hint():
