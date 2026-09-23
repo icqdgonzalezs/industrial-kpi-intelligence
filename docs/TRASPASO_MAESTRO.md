@@ -2,7 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Fase 3b.2 completa (5/5 tabs con empty state) + baseline de tests corregido + 460 tests.
+> 🗓️ **Última actualización:** Migración a FastAPI + SQLModel + SQLite completada (capa API paralela al dashboard Dash legacy). Commit `a162f15` pusheado. 460 tests verdes, CI verde.  
+> 🚀 **Próximo paso:** Fase 4 de FastAPI — dashboard Jinja2 (`app/templates/index.html` + endpoint `/`).
 
 ---
 
@@ -23,7 +24,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 9 | 🎯 **Estilo de respuesta:** directo, técnico, sin relleno. Markdown con tablas y bloques de código. Español. |
 | 10 | 🚫 **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
 
-> 🚀 **Próximo paso concreto del proyecto:** Deuda #11 — eliminar `schema_adapter.py`. Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** Fase 4 de FastAPI — crear `app/templates/index.html` + endpoint `/` para el dashboard Jinja2. Ver sección 11.
 
 ---
 
@@ -33,16 +34,17 @@ Estás retomando un proyecto en curso. Antes de responder:
 | :--- | :--- |
 | 🏭 **Producto** | Industrial KPI Intelligence — dashboard industrial para PYMES manufactureras LatAm/España |
 | 🌐 **Ecosistema** | Primer producto de 6 SaaS (Industrial Operations Intelligence) |
-| 🛠️ **Stack** | Python 3.11.9 · Plotly Dash 4.4.1 · Plotly · pandas · numpy |
+| 🛠️ **Stack legacy (dashboard)** | Python 3.11.9 · Plotly Dash 4.4.1 · Plotly · pandas · numpy |
+| 🛠️ **Stack nuevo (API REST)** | FastAPI 0.141.1 · SQLModel 0.0.46 · SQLAlchemy 2.0.54 · Pydantic 2.13.5 · SQLite · Jinja2 3.1.6 · Uvicorn 0.53.0 |
 | 🧪 **Testing** | pytest 9.1.1 · ruff · GitHub Actions CI/CD |
-| 📏 **Estándares aplicables** | ISA-95 · TPM (OEE) · NIST 6.1.3 / ISO 22514 (Pp/Ppk) · AIAG SPC · OWASP · ISA-101 (HMI) · WCAG 2.1 |
+| 📏 **Estándares aplicables** | ISA-95 · TPM (OEE) · NIST 6.1.3 / ISO 22514 (Pp/Ppk) · AIAG SPC · OWASP · ISA-101 (HMI) · WCAG 2.1 · OpenAPI 3.1 |
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **460 passed** |
+| ✅ **Tests actuales** | **460 passed** (sin cambios tras la migración FastAPI) |
 | 🟢 **CI** | 2/2 verde (workflow CI) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main` |
-| 📊 **Producto 1 (MVP)** | ~92% |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `a162f15`. |
+| 📊 **Producto 1 (MVP)** | ~92% (dashboard Dash) + capa API nueva al 80% (falta dashboard Jinja2) |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -53,15 +55,17 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### ✅ Cerrado (commiteado + pusheado + CI verde)
 
+**Dashboard Dash legacy (Fase 3b.2 completa):**
+
 - ✅ Bloques UX-1, UX-2, UX-3 (base visual del dashboard)
 - ✅ Bloque 3A: adapter EN→ES + loader rewired a dataset canónico (18,078 filas)
 - ✅ Fix σ del generador (σ=2.0 / 0.63)
 - ✅ Fix SPC: Regla 1 contextualizada con falsos positivos esperados
 - ✅ Refactor thresholds a YAML (SSOT)
 - ✅ Fix σ minúscula (σ vs Σ)
-- ✅ Fix labels del histograma (arriba del plot, `yref='paper'`)
-- ✅ Fix tipografía ISA-101 (16px bold blanco)
-- ✅ Fix color de líneas (gris neutro vs cian)
+- ✅ Fix labels del histograma
+- ✅ Fix tipografía ISA-101
+- ✅ Fix color de líneas
 - ✅ **Fix #4** (`45903d2`): 4 KPIs de spec performance
 - ✅ **Fix #5** (`fd1a338`): barras horizontales en Operacional
 - ✅ **Bloque 5.5** (`fd1a338`): segmented control + microcopy + bugfix clickData
@@ -72,37 +76,50 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **Fase σ** (`8138498`): Migración de umbrales Ppk + PPM a YAML SSOT
 - ✅ **Doc** (`c2ab9ed` + `f3eb79c` + `5be2e6b`): README, workflow renombrado a CI, VISION.md, ARCHITECTURE.md
 - ✅ **Repo hygiene** (`e58151b`): docs movidos a `docs/`, basura eliminada, `.gitignore` completado
-- ✅ **Fase 3a** (`35d12c4` a `c9a2efb`): Export CSV — 5/5 tabs (Capacidad, Calidad, Control, Diagnóstico, Operacional)
-- ✅ **Fix bug Pareto** (`e0d50f2`): anotación "Umbral 80%" ya no colisiona con tick del eje secundario
-- ✅ **Fix "Restaurar filtros"** (`2fe8e89`): callback implementado (antes era botón decorativo sin handler)
-- ✅ **Chore dev** (`8ca225d`): `dev_tools_ui=True` para desarrollo local
-- ✅ **Perf cache JSON** (`6efd967`): `lru_cache` reduce reset de filtros de ~10 s a ~4-6 s
-- ✅ **Opción D** (`ba0e962`): consolidar `schema_adapter.py` dentro de `data_loader.py` (-1 archivo, -1 test file)
-- ✅ **Fase 3b.1** (`c91ae39`): loading states con `dcc.Loading` en las 6 zonas que se actualizan con filtros
-- ✅ **Perf pre-binning** (`ce2c03f`): histograma de Capacidad usa `np.histogram` + `go.Bar` (-99% payload)
-- ✅ **Perf WebGL Control** (`e7e5d49`): cartas I-MR usan `go.Scattergl` en vez de `go.Scatter` (-40% tiempo)
-- ✅ **Componente empty_state** (`6a0547e`): SSOT + CSS + 7 tests (Fase 3b.2 — base)
-- ✅ **Piloto Calidad** (`529d83f`): empty state en Calidad
-- ✅ **Fix doble spinner Capacidad** (`b9514ed`): callback consolidado
-- ✅ **Fase 3b.2 Control + cascades** (`d5542e2` + `22988f4`): cascades restaurados + `delay_show=500ms` + empty state Control
+- ✅ **Fase 3a** (`35d12c4` a `c9a2efb`): Export CSV — 5/5 tabs
+- ✅ **Fix bug Pareto** (`e0d50f2`)
+- ✅ **Fix "Restaurar filtros"** (`2fe8e89`)
+- ✅ **Chore dev** (`8ca225d`): `dev_tools_ui=True`
+- ✅ **Perf cache JSON** (`6efd967`): `lru_cache`
+- ✅ **Opción D** (`ba0e962`): consolidar `schema_adapter.py` dentro de `data_loader.py`
+- ✅ **Fase 3b.1** (`c91ae39`): loading states
+- ✅ **Perf pre-binning** (`ce2c03f`): histograma Capacidad
+- ✅ **Perf WebGL Control** (`e7e5d49`): `go.Scattergl`
+- ✅ **Componente empty_state** (`6a0547e`)
+- ✅ **Piloto Calidad** (`529d83f`)
+- ✅ **Fix doble spinner Capacidad** (`b9514ed`)
+- ✅ **Fase 3b.2 Control + cascades** (`d5542e2` + `22988f4`)
 - ✅ **.Rapp.history gitignored** (`47e3bd9`)
-- ✅ **Fase 3b.2 Capacidad** (`722297f`): empty state en Capacidad
-- ✅ **Fix test Capacidad** (`4516129`): mensaje del empty state actualizado
-- ✅ **Fase 3b.2 Diagnóstico** (`d23af82`): empty state + `construir_outputs_diagnostico` (función pura) + 3 tests
-- ✅ **Fase 3b.2 Operacional** (`9c780d8`): empty state + `construir_outputs_ranking` + `construir_outputs_detalle` + 7 tests
+- ✅ **Fase 3b.2 Capacidad** (`722297f`)
+- ✅ **Fix test Capacidad** (`4516129`)
+- ✅ **Fase 3b.2 Diagnóstico** (`d23af82`)
+- ✅ **Fase 3b.2 Operacional** (`9c780d8`)
+
+**Capa API REST (migración CSV → FastAPI — nueva en esta sesión):**
+
+- ✅ **Doc README** (`85dd7fe` — vía Web Editor): README actualizado para mencionar FastAPI + SQLModel + SQLite. Se separaron las insignias (Dash legacy + FastAPI nuevo).
+- ✅ **Migración completa** (`a162f15`): 7 archivos, 139 inserciones, 29 deleciones.
+  - ✅ `app/models.py` — Modelo SQLModel `KPI` con `sa_column=Column(DateTime(timezone=False))` (resuelve el problema de naive datetime).
+  - ✅ `app/schemas.py` — Schema Pydantic `KPICreate` (separación modelo DB ↔ schema API).
+  - ✅ `app/db.py` — Configuración de SQLite (`kpi_database.db`) + `create_db_and_tables()` + `get_session()`.
+  - ✅ `app/main.py` — FastAPI con `lifespan` moderno, `GET /kpis/` y `POST /kpis/`. Endpoints probados: 200 OK y 201 Created (este último generó `id: 4`).
+  - ✅ `migrate_csv.py` — Script de migración CSV → SQLite vía pandas + SQLModel. Migra 3 KPIs de prueba (OEE, Tasa de defectos, MTTR).
+  - ✅ `requirements.txt` — Limpiado de 74 paquetes a 8 (se quitó todo el ruido: matplotlib, jupyter, plotly, etc.).
+  - ✅ `.gitignore` — Ampliado con `*.db`, `*.sqlite`, `*.sqlite3`, `kpis.csv`, `.env`, logs y `.DS_Store`.
 
 ### 🟡 En curso
 
 - *Nada.* Sesión cerrada. Working tree limpio.
 
-### ⏳ Pendiente (roadmap en sección 7)
+### ⏳ Pendiente inmediato (Fase 4 de FastAPI)
 
-- ⏳ **Eliminar `schema_adapter.py`** (deuda #11, PRÓXIMO PASO)
-- ⏳ **Deuda #15** — debounce cascade o cascade condicional
-- ⏳ **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (deuda #16)
-- ⏳ **Bloque 3B** — Docker + Compose
-- ⏳ **Rename bilingüe** (ADR-0002, incremental)
-- ⏳ **Deuda #19** — optimizar callback de 2104 ms detectado en Calidad (nueva, descubierta vía Dev Tools)
+- ⏳ **Dashboard Jinja2** (`app/templates/index.html` + endpoint `GET /`) — pendiente de creación en esta sesión.
+- ⏳ **Eliminar `schema_adapter.py`** (deuda #11 legacy del dashboard Dash).
+- ⏳ **Deuda #15** — debounce cascade o cascade condicional.
+- ⏳ **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (deuda #16).
+- ⏳ **Bloque 3B** — Docker + Compose.
+- ⏳ **Deuda #19** — optimizar callback de 2104 ms en Calidad.
+- ⏳ **Tests para la capa FastAPI** — actualmente no hay tests unitarios para `app/`.
 
 ---
 
@@ -110,6 +127,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
+| `a162f15` | **feat: migrar de CSV a FastAPI + SQLModel + SQLite** (7 files, +139/-29) | 460 |
+| `85dd7fe` | docs: migrar de CSV a FastAPI + SQLModel + SQLite en README (vía Web Editor) | 460 |
 | `9c780d8` | Feat(ux): add empty state to Operacional (Fase 3b.2) | 460 |
 | `d23af82` | Feat(ux): add empty state to Diagnóstico (Fase 3b.2) | 453 |
 | `db0bd52` | Docs(handoff): update TRASPASO to Fase 3b.2 partial state | 450 |
@@ -160,157 +179,107 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → 270 → 274 → 279 → 284 → 290 → 295 → 316 → 335 → 343 → 359 → 390 → 408 → 411 → 414 → 416 → 423 → 429 → 434 → 427 → 430 → 437 → 446 → **450** → **453** → **460**
-> 
-> *Corrección de baseline: el TRASPASO anterior decía 449 al cerrar Capacidad; el stash-check reveló que el número real era **450**. Off-by-one benigno, corregido en esta versión. Después: +3 por empty state Diagnóstico (`d23af82`), +7 por empty state Operacional (`9c780d8`) → **460**.*
+> 📈 **Evolución de tests:** 263 → ... → 450 → **453** → **460** → **460** (estable).  
+> La migración FastAPI **no añadió tests** todavía. Deuda nueva: cubrir `app/` con pytest.
 
 ---
 
 ## 4️⃣ DECISIONES TÉCNICAS CLAVE
 
-### 4.1 🔄 Patrón strangler para migración EN→ES (ADR-0001)
-- **Estado:** deuda diferida. La consolidación Opción D ya se hizo (ver 4.14).
-- La migración completa A' (mover los 4 módulos analíticos a inglés y eliminar la traducción) queda para sesión dedicada (5-8 h, riesgo medio).
+### 4.1 a 4.24 — Dashboard Dash legacy
+*(Sin cambios: ver versión anterior del TRASPASO. Se mantienen vigentes: patrón strangler ADR-0001, SSOT YAML, SPC contextualizado, ISA-101, escala AIAG SPC, empty_state, cascades, perf cache, WebGL, etc.)*
 
-### 4.2 🗃️ SSOT en YAML para umbrales
-- **Solución:** externalizar a `config/quality_config.yaml`.
-- **Secciones activas:** `kpi_thresholds`, `ppk_thresholds`, `ppm_thresholds`, `variables_criticas`, `variables[]`.
+### 4.25 🚀 Coexistencia Dash legacy + FastAPI nuevo
+- **Decisión:** la capa FastAPI se construye **en paralelo**, sin tocar el dashboard Dash existente.
+- **Motivo:** el dashboard Dash funciona al 92% del MVP con 460 tests verdes y CI verde. Reescribirlo todo a FastAPI sería un riesgo innecesario en esta fase.
+- **Estrategia:** la carpeta `app/` y `migrate_csv.py` conviven con `dashboard/`, `src/`, `tests/` originales. Migración gradual.
+- **Consecuencia:** el repo tiene dos puntos de entrada:
+  - `python -m dashboard.dash_app` → dashboard Dash (puerto 8050).
+  - `uvicorn app.main:app --reload` → API FastAPI (puerto 8000).
+- **Lección:** el patrón *strangler* aplica también a nivel de arquitectura completa, no solo de módulos. La migración de Dash a FastAPI se hará módulo a módulo.
 
-### 4.3 📈 SPC contextualizado (Regla 1 con falsos positivos)
-- **Solución:** `resumen_control_estadistico()` calcula esperados = n × 0.0027.
+### 4.26 🧩 Separación modelo DB ↔ schema API (FastAPI)
+- **Problema:** SQLModel con `table=True` no ejecuta los validadores de Pydantic correctamente. Un `field_validator` en el modelo de tabla no convierte `"2026-09-23T10:00:00"` (string) a `datetime` antes de llegar a SQLite.
+- **Solución:** separar en dos modelos:
+  - `KPI` (en `app/models.py`): modelo de tabla (`table=True`), sin validadores.
+  - `KPICreate` (en `app/schemas.py`): schema Pydantic puro (`BaseModel`), con validación automática de `datetime`.
+- **Flujo:** el endpoint recibe `KPICreate`, convierte a `KPI` con `KPI(**kpi_data.model_dump())`, e inserta. En ese punto el `timestamp` ya es un `datetime` nativo.
+- **Lección:** es la arquitectura estándar de FastAPI en producción. Separar entrada (Pydantic) de persistencia (SQLModel/SQLAlchemy).
 
-### 4.4 🏭 Rendimiento vs Capacidad (Fix #4)
-- **Solución:** 4 KPIs nuevos: % dentro, % bajo LSL, % sobre USL, PPM total.
-- **Lección:** Ppk solo oculta diferencias de rendimiento real.
+### 4.27 ⏰ Tratamiento del `timestamp` naive en SQLModel 0.0.46
+- **Problema:** SQLModel 0.0.46 exige por defecto que los `datetime` tengan timezone (`timezone-aware`). Las fechas del CSV son naive (sin zona horaria, hora local de planta).
+- **Error:** `ValueError: Datetime values must have timezone information. Use datetime.now(timezone.utc), or annotate the field with NaiveDatetime for naive storage.`
+- **Soluciones evaluadas:**
+  - `NaiveDatetime` de Pydantic → **NO existe** como tipo importable en SQLModel 0.0.46.
+  - `field_validator` en modelo `table=True` → **NO se ejecuta** correctamente.
+  - **✅ Adoptada:** `sa_column=Column(DateTime(timezone=False))`.
+- **Código final:**
+  ```python
+  from sqlalchemy import Column, DateTime
+  from sqlmodel import Field, SQLModel
 
-### 4.5 🖥️ ISA-101 para HMI industrial
-- **Solución:** labels 16px bold blanco fuera del plot, líneas grises dashed 1.8px.
-- **Lección:** datos medidos y referencias calculadas ocupan canales visuales distintos.
+  class KPI(SQLModel, table=True):
+      id: Optional[int] = Field(default=None, primary_key=True)
+      nombre: str
+      valor: float
+      unidad: str
+      timestamp: datetime = Field(sa_column=Column(DateTime(timezone=False)))
+      linea_produccion: str
+  ```
+- **Lección:** cuando SQLModel impone un default restrictivo, `sa_column` es la vía de escape a SQLAlchemy crudo sin romper el modelo.
 
-### 4.6 🎯 Escala AIAG SPC para clasificación Ppk (Fix #7)
-- 🟢 `Ppk ≥ 1.67` → **Clase mundial**
-- 🟡 `1.33 ≤ Ppk < 1.67` → **Capaz**
-- 🟠 `1.00 ≤ Ppk < 1.33` → **Marginal**
-- 🔴 `Ppk < 1.00` → **No capaz**
+### 4.28 🔄 Flujo de trabajo con `git clone` en vez de `git init`
+- **Problema:** la carpeta local `~/industrial-kpi-intelligence/` creada con `mkdir` no era un repo git. `git status` daba `fatal: not a git repository`.
+- **Solución adoptada:** en vez de `git init` + `git remote add` (que puede causar conflictos con el historial remoto), se hizo:
+  1. Backup de la carpeta actual: `mv industrial-kpi-intelligence industrial-kpi-intelligence-local`.
+  2. Clonar limpio: `git clone <repo>`.
+  3. Copiar los archivos nuevos al clon: `cp -R ~/.../app .` etc.
+  4. Commit + push normal.
+- **Lección:** `git clone` es más seguro que `git init` + `remote add` cuando ya existe historial en el remoto. Evita merges raros y conflictos de historial.
 
-### 4.7 🏷️ SSOT de labels visibles (Fix #5.6)
-- **Solución:** `LABELS_EJES_DIMENSION = {value: label}` derivado de `DIMENSIONES_DISPONIBLES`.
+### 4.29 🧹 Limpieza del `requirements.txt` post-`pip freeze`
+- **Problema:** `pip3 freeze > requirements.txt` capturó **74 paquetes** instalados en el Python global del usuario (matplotlib, jupyter, plotly, pytest, etc.). Solo 8 son del proyecto.
+- **Solución:** escribir manualmente las 8 dependencias reales:
+  ```
+  fastapi==0.141.1
+  uvicorn==0.53.0
+  sqlmodel==0.0.46
+  SQLAlchemy==2.0.54
+  pydantic==2.13.5
+  Jinja2==3.1.6
+  pandas==3.0.5
+  python-dateutil==2.9.0.post0
+  ```
+- **Lección:** `pip freeze` es peligroso en entornos sin venv. **Nunca** usar el output crudo como `requirements.txt` de un proyecto. Mejor: escribir las dependencias top-level + las transitivas críticas a mano.
 
-### 4.8 ♿ Iconografía no cromática en semáforos (Fase 4a — WCAG 2.1 §1.4.1)
-- **Solución:** SSOT `dashboard/severity_icons.py` con `prefijar_icono()`.
+### 4.30 🔒 .gitignore ampliado
+- **Añadido:**
+  ```
+  # Base de datos (NO subir a GitHub)
+  *.db
+  *.sqlite
+  *.sqlite3
 
-### 4.9 🎯 Migración de umbrales Ppk + PPM a YAML SSOT (Fase σ)
-- **Solución:** `src/capability_thresholds.py` (clasificación pura + loaders cacheados).
-- **Lección:** un YAML que no se lee es peor que no tener YAML.
+  # Entorno
+  .env
 
-### 4.10 📥 Patrón de Export CSV (Fase 3a — piloto Capacidad)
-- **Solución:** `dashboard/export_helpers.py` con `nombre_csv()`, `boton_export()`, `crear_descarga_csv()`.
-- **Patrón replicable:** cada tab necesita 3 cambios (component + callback + tests).
+  # Logs y alertas
+  *.log
+  *.alerts
 
-### 4.11 📥 Variante del patrón Export CSV (Fase 3a-β a 3a-ε)
-- **Contexto:** 4 de 5 tabs no tienen `store-<tab>` propio.
-- **Variante adoptada:** el callback de export lee de `store-datos-filtrados` (y `store-capacidad` para Diagnóstico) y recomputa el análisis en el momento.
-- **Lección:** *Derive, don't store.* Un Store que existe solo para alimentar a un consumidor puede reemplazarse por una función pura.
+  # Datos de prueba (CSV)
+  kpis.csv
+  ```
+- **Motivo:** `kpi_database.db` no debe subirse a GitHub. Contiene datos locales. `kpis.csv` es dato de prueba.
+- **Verificación post-commit:** `git status` **NO** muestra `kpi_database.db` como untracked. ✅ Confirmado en el commit `a162f15`.
 
-### 4.12 📥 Decisiones de formato por tab (Fase 3a)
-
-| Tab | Formato del CSV | Razón |
+### 4.31 🌐 URLs del proyecto (post-migración)
+| Servicio | URL | Comando |
 | :--- | :--- | :--- |
-| **Capacidad** | Tabla Pp/Ppk completa | Salida ya calculada en `store-capacidad` |
-| **Calidad** | Pareto de defectos | Concentración de causas |
-| **Control** | Tabla I + MR unificada con límites constantes | Un solo CSV autocontenido. MR alineado con `None` en el primer punto. |
-| **Diagnóstico** | Tabla de hallazgos (severidad, categoria, titulo, mensaje, score) | Salida del motor de reglas. Orden por score heredado. |
-| **Operacional** | Ranking por dimensión (no el drill-down) | Exportá el dato, no la vista. El ranking es determinístico, el drill-down es efímero. |
-
-### 4.13 🔧 Implementación de "Restaurar filtros" (bug fix)
-- **Problema:** botón en el layout sin callback.
-- **Solución:** función pura `valores_default_filtros()` + callback reset con `allow_duplicate=True` + `prevent_initial_call=True`.
-- **Lección:** en Dash, un botón sin callback no falla silenciosamente — simplemente no hace nada.
-- **Nota sobre import:** `PreventUpdate` vive en `dash.exceptions`, no en `dash` raíz.
-
-### 4.14 🔧 Consolidación del adapter (Opción D, ADR-0001)
-- **Problema:** `src/schema_adapter.py` era un módulo independiente con test file dedicado, pero ya no era un módulo con vida propia — era detalle interno del loader.
-- **Solución:** su lógica se fusionó en `dashboard/data_loader.py` como funciones y constantes privadas (`_adaptar_a_esquema_legacy`). El módulo y su test file se eliminaron.
-- **Neto:** 434 → 427 tests, -1 archivo de código, -1 test file.
-- **Lección:** cuando una pieza de UI o lógica necesita un dato derivable de otro que ya está en memoria, derivalo, no lo guardes. Un archivo con "vida propia" que solo sirve a otro archivo es candidato a consolidación.
-- **⚠️ Nota:** el archivo físico `src/schema_adapter.py` **todavía existe** en el repo (deuda #11). La lógica se consolidó pero el archivo no se eliminó.
-
-### 4.15 ⚡ Caché de parseo JSON (perf)
-- **Problema:** ~10 callbacks consumidores de `store-datos-filtrados` deserializaban el mismo JSON (18,078 filas, 2.63 MB).
-- **Medición con print temporal:** 10 parseos × ~650 ms promedio = ~6.5 s de los 10 s totales.
-- **Solución:** `@lru_cache(maxsize=2)` sobre `_parse_json_cached(json_data)` en `dashboard/utils.py`.
-- **Decisiones clave:**
-  - `maxsize=2`, no 128: mantiene el JSON actual + el previo. Memoria acotada (~60 MB).
-  - `.copy()` defensivo: el DataFrame cacheado es compartido entre los 10 callbacks. La copia cuesta ~10 ms (despreciable vs 500 ms de parseo).
-- **Ganancia medida:** reset de filtros de ~10 s → ~4-6 s. **-50%**.
-
-### 4.16 📊 Pre-binning con numpy en histogramas (perf)
-- **Problema:** `go.Histogram(x=serie, nbinsx=24)` envía los 18,078 valores crudos al navegador. El binning se hacía en JavaScript.
-- **Solución:** `np.histogram(serie, bins=24)` (C puro) + `go.Bar(x=centros, y=counts)`. Se envían solo 24 barras.
-- **Ganancia:** **-99%** del payload de la figura (~350 KB → ~2 KB). Menor tiempo de serialización + render instantáneo.
-- **Lección:** cuando un gráfico de Plotly tiene >1000 puntos, pre-binear con numpy es casi siempre la decisión correcta.
-
-### 4.17 🚀 WebGL para series grandes (perf)
-- **Problema:** las cartas I y MR renderizaban ~18,000 puntos cada una con `go.Scatter`, que crea un elemento SVG por punto. Con ~36,000 elementos DOM, el navegador tardaba 2-4 s solo en rendering.
-- **Solución:** `go.Scattergl` en vez de `go.Scatter`. Misma API, mismo look visual, pero renderiza sobre WebGL (canvas).
-- **Ganancia medida:** Control pasa de 3-5 s a 2-3 s. **-40%**.
-- **Lección:** la elección del tipo de trace en Plotly es una decisión de performance, no solo estética. `Scattergl` es 10-100× más rápido para series >5k puntos.
-
-### 4.18 📉 Resumen de la optimización
-
-| Fix | Tiempo total |
-| :--- | :---: |
-| Inicio | ~10 s |
-| Caché JSON (`6efd967`) | ~4-6 s |
-| Pre-binning histograma (`ce2c03f`) | ~3-5 s |
-| WebGL Control (`e7e5d49`) | ~2-3 s |
-
-> **-70%** del tiempo original con 3 fixes quirúrgicos. Los 2-3 s actuales con spinner son defendibles para una herramienta analítica profesional.
-
-**Deuda residual (diferida):** el transporte del `store-datos-filtrados` (2.63 MB × ~10 callbacks) es probablemente el cuello restante. Fix candidato: `ServersideOutput` de `dash-extensions` (-95% tráfico, 2-3 h). No implementado. Se reevaluará si el uso real lo justifica.
-
-**Deuda nueva (detectada vía Dash Dev Tools):** callback de **2104 ms** en zona Calidad. No coincide con los fixes previos. Candidato a investigar en sesión de performance dedicada. Ver deuda #19.
-
-### 4.19 🧩 Componente SSOT empty_state (Fase 3b.2)
-- **Solución:** `dashboard/empty_state.py` con `empty_state(mensaje, hint=None, icono="📭")` → `html.Div`.
-- **CSS:** `.empty-state`, `.empty-state-icon`, `.empty-state-message`, `.empty-state-hint`.
-- **Aplicado en:** Calidad, Control, Capacidad, Diagnóstico, Operacional (**5/5 tabs**).
-- **Lección:** un empty state no es solo un `if df.empty`. Es un contrato visual — mensaje consistente, jerarquía tipográfica, hint accionable.
-
-### 4.20 🔄 Cascades de filtros (Fase 3b.2)
-- **Decisión final:** restaurar los 4 cascades (equipo→línea, turno→equipo, operador→turno).
-- **Razón:** relación estructural (nombre de equipo empieza con `{linea}-`). Sin cascade, combos inválidos dan empty state sin explicación.
-- **Trade-off:** los cascades disparan múltiples fires del store → 2 spinners visuales.
-- **Mitigación:** `delay_show=500ms` evita spinners en cascades rápidos.
-
-### 4.21 ⚡ Doble spinner residual (deuda #15)
-- Al cambiar Línea: cascade equipo + reset value → store callback 2 veces.
-- **Fix candidato:** `debounce` 200ms en store callback o cascade condicional.
-- Diferido a Fase 3b.3 v2 o 3c.
-
-### 4.22 🧩 Empty state con condición ampliada (Fase 3b.2 — Capacidad)
-- **Problema:** con `capacidad.empty` (0 filas), el caso "1 fila → n<2 → NaN" no se cubría. Los KPIs mostraban "Sin datos" individuales.
-- **Fix:** condición ampliada a `pp_series.empty` (todas las pp NaN).
-- **Mensaje unificado:** "Sin datos suficientes para evaluar capacidad".
-- **Lección:** cuando se define empty state por "no hay datos", cubrir 3 casos: 0 filas, n<2 por variable, n≥2.
-
-### 4.23 🧩 Patrón consolidado: función pura + callback thin (Fase 3b.2)
-- **Decisión:** cada callback que tenía lógica condicional de empty state se refactorizó extrayendo una **función pura** (`construir_outputs_*`) y dejando el callback como una línea.
-- **Aplicado en:**
-  - `quality_performance_callbacks.py`: `construir_outputs_calidad` (piloto, `529d83f`).
-  - `diagnostics_callbacks.py`: `construir_outputs_diagnostico` (`d23af82`).
-  - `operational_analysis_callbacks.py`: `construir_outputs_ranking` + `construir_outputs_detalle` (`9c780d8`).
-- **Beneficio:** los tests validan el contrato sin instanciar Dash. Los callbacks son trivialmente correctos (una línea).
-- **Lección:** cuando un callback tiene >3 branches condicionales, extraer una función pura es la decisión correcta. La cobertura de tests sube, el debug baja.
-
-### 4.24 🧩 Estados epistémicos distintos → mensajes distintos (Fase 3b.2)
-- **Problema:** el callback de detalle de Operacional tenía `if filtrado.empty or not dimension: return "Selecciona una dimensión..."`. Esa condición **mezclaba dos estados distintos** bajo un mismo mensaje.
-- **Fix:** separar los branches:
-  - `filtrado.empty` → `empty_state` (no hay datos crudos; el problema es de filtros).
-  - `not dimension` → string "Selecciona una dimensión" (hay datos, falta configurar).
-  - `valor_seleccionado is None` → string "Haz clic en una barra" (hay datos y dimensión, falta interactuar).
-- **Regla:** empty_state **solo** cuando "no hay nada". Si "hay pero falta acción del usuario", usar texto plano. El 📭 sería engañoso.
-- **Lección:** los estados epistémicos distintos merecen mensajes distintos. Colapsarlos en un solo branch es una deuda de UX latente.
+| Dashboard Dash (legacy) | `http://127.0.0.1:8050` | `python -m dashboard.dash_app` |
+| API FastAPI + Swagger UI | `http://127.0.0.1:8000/docs` | `uvicorn app.main:app --reload` |
+| OpenAPI JSON | `http://127.0.0.1:8000/openapi.json` | (mismo servidor) |
+| Dashboard Jinja2 (pendiente) | `http://127.0.0.1:8000/` | (mismo servidor) |
 
 ---
 
@@ -318,7 +287,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Archivo | Tests | Cobertura conceptual |
 | :--- | :---: | :--- |
-| `test_app_layout.py` | 4 | Smoke layout + 6 wrappers de `dcc.Loading` (Fase 3b.1) |
+| `test_app_layout.py` | 4 | Smoke layout + 6 wrappers de `dcc.Loading` |
 | `test_capability.py` | 40 | Pp/Ppk + clasificar_ppk + rendimiento spec |
 | `test_capability_callbacks.py` | 25 | Callbacks + estado + iconos + export CSV + empty state |
 | `test_capability_thresholds.py` | 28 | SSOT: clasificación pura + loaders |
@@ -326,10 +295,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_control_charts_callbacks.py` | 14 | Wiring + figuras + export CSV + empty state |
 | `test_dash_app.py` | 11 | Callbacks top + filtros |
 | `test_data_generator.py` | 15 | Generador determinista seed=42 |
-| `test_data_loader.py` | 17 | Carga + traducción EN→ES consolidada (Opción D) |
+| `test_data_loader.py` | 17 | Carga + traducción EN→ES consolidada |
 | `test_dataset_metadata.py` | 21 | Frescura del dataset |
 | `test_diagnostics.py` | 13 | Reglas de diagnóstico |
-| `test_diagnostics_callbacks.py` | **14** | Resumen + export CSV + **3 tests de `construir_outputs_diagnostico`** |
+| `test_diagnostics_callbacks.py` | 14 | Resumen + export CSV + 3 tests de `construir_outputs_diagnostico` |
 | `test_empty_state.py` | 7 | Contrato del componente SSOT |
 | `test_export_helpers.py` | 16 | `nombre_csv` + `boton_export` + `crear_descarga_csv` |
 | `test_filter_callbacks.py` | 4 | `valores_default_filtros` + smoke reset + cascade equipo |
@@ -340,7 +309,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_kpis.py` | 32 | FPY, defectos, scrap, reproceso |
 | `test_oee.py` | 25 | OEE (A×P×Q) ISA-95 |
 | `test_oee_presenter.py` | 6 | Presentación OEE |
-| `test_operational_analysis_callbacks.py` | **42** | Drill-down + labels + export CSV + **7 tests de `construir_outputs_ranking/_detalle`** |
+| `test_operational_analysis_callbacks.py` | 42 | Drill-down + labels + export CSV + 7 tests de `construir_outputs_ranking/_detalle` |
 | `test_plant_overview.py` | 6 | Vista de planta |
 | `test_plant_overview_components.py` | 5 | Componentes UI |
 | `test_quality_performance_callbacks.py` | 15 | FPY, Pareto + export CSV + empty state |
@@ -351,65 +320,63 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_validation.py` | 22 | Validación de contratos |
 | **TOTAL** | **460** | ✅ **Todos verdes** |
 
+> ⚠️ **Deuda nueva:** `app/`, `migrate_csv.py` **no tienen tests todavía**. Se ha de añadir:
+> - `tests/test_app_models.py` — validación del modelo `KPI`.
+> - `tests/test_app_schemas.py` — validación de `KPICreate` (datetime parse).
+> - `tests/test_app_endpoints.py` — tests de `GET /kpis/` y `POST /kpis/` con `TestClient` de FastAPI.
+> - `tests/test_migrate_csv.py` — test de migración de un CSV temporal.
+> Estimación: 1.5 h, +25 tests aprox.
+
 ---
 
 ## 6️⃣ DEUDA TÉCNICA CONOCIDA
 
 | # | Deuda | Impacto | Prioridad |
 | :---: | :--- | :--- | :---: |
-| 1-4 | ~~README, capacidad, timestamp, barras~~ | — | ✅ Resueltas |
-| 5 | ~~Export CSV por tab (5/5 completados)~~ | — | ✅ Resuelta (Fase 3a) |
-| 6 | ~~Sin empty states en tabs~~ | — | ✅ **Resuelta (Fase 3b.2 — 5/5 tabs)** |
-| 7-10 | ~~Iconografía, Docker, umbrales, doc~~ | — | ✅ Resueltas o en roadmap |
-| **11** | **`schema_adapter.py` (archivo físico pendiente de eliminar)** | Arquitectura | 🔴 **Alta — PRÓXIMO PASO** |
-| **12** | **Doble convención bilingüe (ADR-0002)** | Mantenibilidad | 🟡 Media |
-| 13 | ~~Performance: parseo + histograma + Control~~ | — | ✅ Resuelta |
-| 14 | ~~WebGL cartas Control~~ | — | ✅ Resuelta (`e7e5d49`) |
-| **15** | **Doble spinner al cambiar Línea** | UX | 🟡 Media |
-| **16** | **KPIs de rendimiento heredan severidad agregada** | UX | 🟡 Media |
-| **17** | **Dataset sintético homogéneo inter-línea** | Validación | 🟢 Baja |
-| 18 | ~~Empty state Capacidad no cubre n<2~~ | — | ✅ Resuelta (`4516129`) |
-| **19** | **Callback de 2104 ms en zona Calidad (detectado vía Dev Tools)** | Performance | 🟡 Media (nueva) |
-| **20** | **Verificación UI de empty states A1/A2 no automatizable sin `dash.testing`** | Testing infra | 🟢 Baja (nueva) |
+| **11** | `schema_adapter.py` (archivo físico pendiente de eliminar) | Arquitectura | 🔴 **Alta** |
+| **12** | Doble convención bilingüe (ADR-0002) | Mantenibilidad | 🟡 Media |
+| **15** | Doble spinner al cambiar Línea | UX | 🟡 Media |
+| **16** | KPIs de rendimiento heredan severidad agregada | UX | 🟡 Media |
+| **17** | Dataset sintético homogéneo inter-línea | Validación | 🟢 Baja |
+| **19** | Callback de 2104 ms en zona Calidad | Performance | 🟡 Media |
+| **20** | Verificación UI de empty states no automatizable | Testing infra | 🟢 Baja |
+| **21 🆕** | **Falta dashboard Jinja2** (`app/templates/index.html` + endpoint `/`) | Feature | 🔴 **Alta (próximo paso)** |
+| **22 🆕** | **Sin tests para `app/`** (FastAPI + SQLModel + migrate_csv) | Testing | 🟡 Media |
+| **23 🆕** | **`kpi_database.db` se migra manualmente** (no automatizado en CI) | Automatización | 🟢 Baja |
+| **24 🆕** | **Doble stack de dashboards** (Dash legacy 8050 + Jinja2 nuevo 8000) | Mantenibilidad | 🟡 Media (transitoria) |
 
 ### 📌 Detalle de deudas activas
 
-**Deuda 11 — Eliminación de `schema_adapter.py`:** ⚠️ **PRÓXIMO PASO**
-- El archivo físico `src/schema_adapter.py` aún existe. La lógica ya se consolidó en `data_loader.py` (Opción D, `ba0e962`), pero el archivo transitorio no se eliminó.
-- **Fix:** 
-  1. `grep -rn "schema_adapter" src/ dashboard/ tests/` → confirmar que nada lo importa.
-  2. `git rm src/schema_adapter.py`.
-  3. `pytest` + `ruff check .`.
-  4. Commit `chore(cleanup): remove legacy schema_adapter.py (Opción D follow-up)`.
-- **Estimación:** 1 h.
+**Deuda 11 — Eliminación de `schema_adapter.py`:** ⚠️ **Pendiente (era el próximo paso antes de la migración FastAPI)**
+- `grep -rn "schema_adapter" src/ dashboard/ tests/ --include="*.py"` → confirmar que nada lo importa.
+- `git rm src/schema_adapter.py` → `pytest` + `ruff check .` → commit `chore(cleanup): remove legacy schema_adapter.py`.
 
 **Deuda 15 — Doble spinner residual:**
 - Cascade equipo + reset → 2 fires del store.
 - **Fix candidato:** `debounce` 200ms o cascade condicional.
-- Diferido a Fase 3b.3 v2 o 3c.
 
 **Deuda 16 — Semántica color KPIs rendimiento:**
 - Los 4 KPIs heredan severidad agregada del PPM total.
-- "Bajo LSL 0.00%" aparece en ⚠ cuando debería ser ✅.
 - **Fix:** severidad individual por KPI (Fase 3c).
 
-**Deuda 17 — Dataset homogéneo:**
-- σ inter-línea ~2.0 uniforme (varía 2% entre L1, L2, L3).
-- En planta real variaría >20%. Límite del generador.
-- Validar con dataset real antes de producción.
-
 **Deuda 19 — Callback de 2104 ms (nueva):**
-- Detectado en Dash Dev Tools: grafo de callbacks muestra un nodo con timing de **2104 ms** en la zona de Calidad.
-- No coincide con los fixes de performance previos.
-- **Hipótesis:** puede ser el callback de Calidad que corre al cambiar filtro, sin optimizar.
-- **Fix propuesto:** identificar el callback exacto (Dev Tools → click en el nodo), instrumentar con prints temporales, medir, aplicar optimización (posible pre-binning o cache).
-- **Estimación:** 1-2 h de investigación + fix.
+- Detectado en Dash Dev Tools: nodo con timing de **2104 ms** en zona de Calidad.
+- **Fix propuesto:** identificar callback exacto, instrumentar, medir, aplicar optimización.
 
-**Deuda 20 — Verificación UI de empty states (nueva):**
-- Dash Dev Tools en Dash 4.4.1 expone inputs en **modo solo-lectura** (sin edición). No se puede forzar `store-datos-filtrados.data` a vacío desde la UI.
-- **Fix propuesto:** test de integración con `dash.testing.TestServer` que arranque la app en memoria, inyecte un store vacío, y verifique el output del callback.
-- **Estimación:** 30-45 min.
-- **Diferido a:** sesión dedicada de infra de tests de integración.
+**Deuda 21 🆕 — Dashboard Jinja2 pendiente:**
+- Crear `app/templates/index.html` + endpoint `GET /` en `app/main.py`.
+- `Jinja2Templates(directory="app/templates")`.
+- Tabla HTML con `{{ kpis }}` iterando.
+- **Estimación:** 30 min.
+
+**Deuda 22 🆕 — Sin tests para `app/`:**
+- `test_app_models.py`, `test_app_schemas.py`, `test_app_endpoints.py` (con `TestClient`), `test_migrate_csv.py`.
+- **Estimación:** 1.5 h, +25 tests.
+
+**Deuda 24 🆕 — Doble stack de dashboards:**
+- Dash legacy (puerto 8050) + FastAPI/Jinja2 (puerto 8000).
+- **Transitoria.** Una vez el dashboard Jinja2 cubra todas las funcionalidades del Dash, se retira el Dash.
+- **Estrategia:** strangler a nivel de dashboard, tab por tab.
 
 ---
 
@@ -417,15 +384,17 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **σ** | **Eliminar `schema_adapter.py` (deuda #11) — PRÓXIMO PASO** | 1 h | 🔴 Alta |
-| **3b.3** | **Deuda #15:** debounce cascade o cascade condicional | 30 min | 🟡 Media |
-| **3c** | **Deuda #16 (severidad KPIs) + Chip filtros activos** | 1.5 h | 🟡 Media |
-| **perf** | **Deuda #19:** investigar callback 2104 ms de Calidad | 1-2 h | 🟡 Media |
-| **test infra** | **Deuda #20:** test de integración `dash.testing.TestServer` | 30-45 min | 🟢 Baja |
-| **5** | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
-| **σ** | Migración completa EN→ES (Opción A') | 5-8 h | 🔴 Alta (diferida) |
-| **σ** | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
-| — | `ServersideOutput` (si el uso lo justifica) | 2-3 h | 🟢 Baja (diferida) |
+| **4.FastAPI.1** | **Dashboard Jinja2 (`app/templates/index.html` + endpoint `/`)** | 30 min | 🔴 **Alta — PRÓXIMO PASO** |
+| **4.FastAPI.2** | **Tests para `app/`** (`test_app_*.py`) | 1.5 h | 🟡 Media |
+| **4.FastAPI.3** | Commit + push del dashboard Jinja2 | 10 min | 🔴 Alta |
+| σ legacy | Eliminar `schema_adapter.py` (deuda #11) | 1 h | 🔴 Alta |
+| 3b.3 legacy | Deuda #15: debounce cascade | 30 min | 🟡 Media |
+| 3c legacy | Deuda #16 (severidad KPIs) + Chip filtros activos | 1.5 h | 🟡 Media |
+| perf legacy | Deuda #19: callback 2104 ms Calidad | 1-2 h | 🟡 Media |
+| 5 legacy | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
+| σ legacy | Migración completa EN→ES (Opción A') | 5-8 h | 🔴 Alta (diferida) |
+| σ legacy | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
+| — | `ServersideOutput` (si el uso lo justifica) | 2-3 h | 🟢 Baja |
 
 ---
 
@@ -453,14 +422,16 @@ which python   # DEBE mostrar .../venv/bin/python
 | `git pull origin main --rebase` tras Web Editor. | Nunca `git pull` sin `--rebase` si editaste fuera. |
 | `git reset --soft HEAD~1` para reescribir el último commit. | Nunca `git rebase -i` si no estás cómodo con Vim. |
 | `git status` ANTES y DESPUÉS del `git add`. | Asumir que el add agregó todo. |
-| 1 fix = 1 commit = 1 lista corta de archivos. 4+ archivos → evaluar dividir. | Commit con 6+ archivos mezclando propósitos. |
+| 1 fix = 1 commit = 1 lista corta de archivos. | Commit con 6+ archivos mezclando propósitos. |
+| **`git clone` en vez de `git init`** cuando ya hay historial remoto. | `git init` + `remote add` + push (puede causar merge raro). |
+| **`cp -R` desde backup a clon fresco** tras migraciones grandes. | Trabajar en carpeta `mkdir` sin repo git. |
 
 ### ✍️ Commits
 
 - **Conventional Commits:** `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`, `polish:`, `perf:`.
 - **Un fix = un commit.** No mezclar propósitos.
 - **Título en inglés**, cuerpo en español si aplica.
-- **Verificar el mensaje antes de commitear.** No copiar/pegar el mensaje de otro commit.
+- **Verificar el mensaje antes de commitear.**
 - **Antes de cambiar un string de UI:** `grep -rn "string_viejo" src/ dashboard/ tests/`. Actualizar tests junto con el código.
 
 ### 🤖 CI/CD
@@ -474,12 +445,12 @@ which python   # DEBE mostrar .../venv/bin/python
 - Ver el archivo antes de tocar.
 - Verificación visual con `⌘ + Shift + R` obligatoria.
 - **Regla C.1:** sin números no hay cierre.
-- **Excepción:** si el estado a verificar es inalcanzable desde la UI (dataset homogéneo, control radio-style, etc.), documentar la limitación en el commit y validar por test unitario.
 
 ### 💾 Código
 
 - **Idioma del código:** inglés. Docstrings y comentarios: español.
-- **Arquitectura:** `src/` (lógica) / `dashboard/` (presentación) / `tests/`.
+- **Arquitectura legacy:** `src/` (lógica) / `dashboard/` (presentación) / `tests/`.
+- **Arquitectura nueva:** `app/` (FastAPI + SQLModel + templates).
 - **Nomenclatura:** capacidad `world_class` / `capable` / `marginal` / `not_capable`. Severidad `success` / `warning` / `danger` / `neutral`.
 
 ### 🛠️ Protocolo de cada fix
@@ -498,21 +469,15 @@ which python   # DEBE mostrar .../venv/bin/python
 
 ### 🚀 Scripts de fix quirúrgico
 
-Cuando un cambio afecta un archivo grande, usar un script Python temporal:
-
 ```bash
 cat > fix_xxx.py <<'EOF'
 from pathlib import Path
-
 p = Path("ruta/al/archivo.py")
 text = p.read_text()
 original = text
-
-# asserts + replace
 if "old_string" not in text:
     raise SystemExit("✗ No se encontró el patrón esperado")
 text = text.replace("old_string", "new_string", 1)
-
 if text != original:
     p.write_text(text)
     print("✓ Archivo guardado")
@@ -522,14 +487,12 @@ git diff ruta/al/archivo.py
 rm fix_xxx.py
 ```
 
-> 💡 Es más seguro que `nano` para cambios grandes. El script se auto-verifica, es idempotente y no deja basura.
-
 ### 🔄 Protocolo de cambio de chat
 
 **Cuándo cambiar:**
 - Después de cerrar cada fase de mediana duración (con commit + CI verde).
 - Después de ~40-50 mensajes densos en la misma sesión.
-- Inmediatamente si aparecen 2+ síntomas de degradación (respuestas lentas, mezcla de contextos, olvido de decisiones previas, capturas que no suben).
+- Inmediatamente si aparecen 2+ síntomas de degradación.
 
 **Cómo cambiar (protocolo):**
 1. Cerrar el ciclo en curso (commit + push + CI verde).
@@ -539,102 +502,89 @@ rm fix_xxx.py
 5. Abrir chat nuevo.
 6. Pegar el mensaje de transición (sección 12) + TRASPASO completo.
 
+### 🆕 Reglas nuevas (esta sesión)
+
+- **Antes de `pip freeze > requirements.txt`:** verificar que estás en un venv. Si no, escribir el requirements a mano.
+- **Al añadir un servicio nuevo (FastAPI):** usar puerto distinto al existente (8000 vs 8050) para coexistencia.
+- **Al migrar de una tecnología a otra:** empezar con capa aditiva (nuevo `app/` sin tocar `src/`). No romper el legacy.
+- **Antes de crear un nuevo directorio del proyecto:** verificar dónde está el proyecto original con `git remote -v` y `ls`. Nunca `mkdir` a ciegas en `$HOME`.
+
 ---
 
 ## 9️⃣ ⚠️ HISTORIAL DE ERRORES — NO REPETIR
 
+*(Se mantienen los errores previos. Nuevos de esta sesión:)*
+
 | ❌ Error | ✅ Correcto |
 | :--- | :--- |
-| Editar CSS a ciegas | Ver el archivo antes de tocarlo |
-| Wildcard `div[class*="Select"]` | Selectores específicos |
-| `plotly_dark` pisa trazas | Aplicar tema sin tocar trazas |
-| Reconstruir archivos sin ver el original | Leer primero, siempre |
-| `git switch` / `git restore` | Usar `git checkout` |
-| `git push --force` sin verificar | `--force-with-lease` primero |
-| Asumir que el CSS se aplicó | Verificación visual con `⌘ + Shift + R` |
-| Commitear sin tests verdes | Gates primero |
-| Commit sin `git add` previo | `add` → `status` → `commit` → `push` |
-| Copiar totales de una era previa | Recalcular desde el CSV actual |
-| `git push` sin fetch previo | `git fetch origin` antes |
-| `font.weight` en Plotly annotations | No existe. Usar HTML `<b>` |
-| Cian sobre cian | Referencias en gris, datos en color |
-| Commitear test que importa archivo NO staged | Archivo + dependencias juntos |
-| Diagnosticar CI sin leer el log | Pedir log del run rojo |
-| Password de GitHub en `git push` | PAT con scope `workflow` |
-| Modelo LLM hardcodeado sin fallback | Escalera de modelos |
-| Heredoc largo pegado en terminal (>2KB) | Dividir en chunks o usar `pbpaste` |
-| `pbpaste` con comandos en el portapapeles | Verificar con `wc -l` + `head -3` tras escribir |
-| Pegar markdown en TextEdit (macOS) | TextEdit convierte a rich text. Usar GitHub Web Editor |
-| Asumir que archivo creado tiene el contenido correcto | Verificar con `wc -l` + `head -5` + `tail -5` |
-| Untracked file bloquea `git pull` | `rm` del archivo local, luego `pull` |
-| Editar en Web Editor y olvidar `git pull --rebase` | Pull con `--rebase` antes del próximo comando local |
-| Documentación con "próximo paso" desincronizado | `grep -n "próximo paso"` y actualizar TODAS las ubicaciones |
-| Asumir contrato de terceros sin verificar (`dcc.send_data_frame`) | Ver tests del piloto antes de inventar contrato. Usar `in`, no `==`, para keys de librerías |
-| Importar `PreventUpdate` desde `dash` | Importar desde `dash.exceptions` |
-| Copiar/pegar mensaje de commit de otro commit | Verificar el mensaje antes del commit |
-| `git rebase HEAD~N` sin `-i` | Sin `-i` no abre editor: no reescribe nada. Usar `-i` o preferir `git reset --soft` |
-| Leer SHA de una captura de pantalla | Copiar SHAs de la terminal, no de screenshots |
-| Buscar el panel Dash en Chrome DevTools (F12) | No está ahí. Está dentro de la app, como botón flotante |
-| Buscar el panel Dash en la modebar de Plotly | No es la modebar. Es un botón flotante en la esquina inferior derecha de la app |
-| `⌘+D` para Dash Dev Tools | Es `⌘+D` de Chrome (bookmark). El atajo de Dash es `Ctrl+D` y solo después de abrir el panel |
-| Asumir que Dash Dev Tools permite editar inputs | En Dash 4.4.1 es **solo-lectura** para inputs. Sirve para observar, no inyectar |
-| Optimizar sin medir | Instrumentar con `print` temporales, medir antes de tocar |
-| Correr `pytest`/`ruff` sin venv activo | `ModuleNotFoundError: No module named 'dash'`. Verificar `which python` primero. |
-| Asumir que `dcc.send_data_frame` devuelve base64 | En Dash 4.x, `content` es bytes del CSV crudo. |
-| Asumir nombre de función de otro módulo sin ver | Usar `monkeypatch` para desacoplar tests de dependencias externas. |
-| Pegar contenido de archivos Python en terminal bash | La terminal ejecuta, no edita. Usar script temporal o Web Editor. |
-| `Ctrl+K` en `nano` sin saber qué borra | Antes de tocar, identificar exactamente qué líneas. O mejor: script Python de fix quirúrgico. |
-| Optimizar por memoria de patrones (`.replace()` en pandas) | Pandas evolucionó. Medir con benchmark antes de asumir. |
-| Commitear 4+ archivos sin `git status` intermedio | Verificar staged vs unstaged antes de commitear. |
-| Asumir que el empty state cubre todos los casos de "sin datos" | Cubrir 0 filas, n<2, y NaN. Ver 4.22. |
-| Escribir un `cat > script.py <<EOF` y olvidar ejecutarlo | Después del `cat >` **siempre** correr `python script.py` y luego `rm script.py`. El `cat` solo escribe, no ejecuta. |
-| Asumir baseline de tests sin verificarlo | El TRASPASO decía 449 pero el real era 450. **Verificar con `pytest --collect-only -q \| tail -3`** tras un `git stash` cuando haya dudas. |
+| **`mkdir -p ~/industrial-kpi-intelligence/app/...`** sin preguntar dónde está el proyecto. | Preguntar primero: `git remote -v` + `ls ~/Projects/`. Trabajar en el proyecto existente. |
+| **Asumir que una carpeta nueva es el proyecto activo.** | Verificar con `git status` si es repo git y con `ls` si tiene los archivos originales. |
+| **`pip3 freeze > requirements.txt` en Python global.** | Escribir el `requirements.txt` a mano con las dependencias top-level + transitivas críticas. |
+| **`git init` + `git remote add`** cuando ya hay historial remoto. | `git clone` fresco + `cp -R` del trabajo nuevo. Evita merges de historial. |
+| **Asumir que `NaiveDatetime` es importable desde `sqlmodel`.** | **NO existe.** Usar `sa_column=Column(DateTime(timezone=False))`. |
+| **Confiar en `field_validator` en modelo SQLModel `table=True`.** | Pydantic no ejecuta validadores en modelos de tabla. Separar en `schemas.py` (`BaseModel`). |
+| **Enviar `"id": 0` en POST a FastAPI.** | El `id` es autoincremental. **Nunca** enviarlo en el body de un POST de creación. |
+| **Confundir el "example value" de Swagger UI con datos reales.** | El ejemplo se muestra por defecto. Para ver datos reales: clic en **"Try it out"** → **"Execute"**. |
+| **`git push` sin PAT** → `Invalid username or token`. | Usar el PAT con scope `repo` + `workflow` como contraseña. Nunca la contraseña de GitHub. |
+| **`rm -rf` de carpetas duplicadas sin verificar.** | Backup primero (`mv` a `.bak`), verificar en el proyecto original, luego borrar. |
 
 ---
 
 ## 🔟 📁 ARCHIVOS CLAVE Y COMANDOS
 
-### 🗂️ Estructura del proyecto
+### 🗂️ Estructura del proyecto (post-migración)
 
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md
-├── README.md                              # 460 tests + badges
+├── README.md                              # 460 tests + badges (Dash + FastAPI)
 ├── VISION.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
 ├── pyproject.toml
-├── requirements.txt
+├── requirements.txt                       # 8 deps (FastAPI stack)
 ├── Procfile / render.yaml
-├── .gitignore                             # +.Rapp.history
+├── .gitignore                             # +*.db, *.sqlite, kpis.csv, .env
 ├── .github/workflows/tests.yml            # Workflow "CI"
-├── assets/style.css                       # +empty-state, +empty-state-icon, ...
+├── assets/style.css
+│
+├── app/                                   # 🆕 CAPA FASTAPI
+│   ├── __init__.py
+│   ├── main.py                            # FastAPI app + lifespan + GET/POST /kpis/
+│   ├── models.py                          # SQLModel KPI (sa_column=DateTime(timezone=False))
+│   ├── schemas.py                         # Pydantic KPICreate
+│   ├── db.py                              # SQLite + create_db_and_tables + get_session
+│   └── templates/                         # 🚧 PENDIENTE: index.html (Jinja2)
+│
 ├── config/
 │   ├── generator_config.yaml
 │   ├── plant_config.yaml
 │   └── quality_config.yaml
-├── dashboard/
-│   ├── app_layout.py                      # +dcc.Loading en 6 zonas (Fase 3b.1)
-│   ├── empty_state.py                     # SSOT empty state (Fase 3b.2)
-│   ├── export_helpers.py                  # SSOT export CSV
-│   ├── severity_icons.py                  # SSOT iconos
-│   ├── filter_callbacks.py                # reset callback + cascades
-│   ├── utils.py                           # +lru_cache en _parse_json_cached
-│   ├── capability_callbacks.py            # +np.histogram +go.Bar + empty state
-│   ├── control_charts_callbacks.py        # +go.Scattergl + empty state
-│   ├── data_loader.py                     # +_adaptar_a_esquema_legacy (Opción D)
-│   ├── diagnostics_callbacks.py           # +construir_outputs_diagnostico + empty state
-│   ├── operational_analysis_callbacks.py  # +construir_outputs_ranking/_detalle + empty state
-│   ├── quality_performance_callbacks.py   # +construir_outputs_calidad + empty state
-│   └── ...                                # resto sin cambios
+│
+├── dashboard/                             # Legacy Dash (puerto 8050)
+│   ├── app_layout.py
+│   ├── empty_state.py
+│   ├── export_helpers.py
+│   ├── severity_icons.py
+│   ├── filter_callbacks.py
+│   ├── utils.py
+│   ├── capability_callbacks.py
+│   ├── control_charts_callbacks.py
+│   ├── data_loader.py
+│   ├── diagnostics_callbacks.py
+│   ├── operational_analysis_callbacks.py
+│   ├── quality_performance_callbacks.py
+│   └── ...
+│
 ├── data/
 ├── docs/
-│   ├── adr/                               # ADR-0001 (parcial), ADR-0002
+│   ├── adr/
 │   ├── TRASPASO_MAESTRO.md                # Este archivo
 │   └── ...
 ├── imagenes/
 ├── scripts/
-├── src/
+│
+├── src/                                   # Lógica legacy
 │   ├── capability.py
 │   ├── capability_thresholds.py
 │   ├── control_charts.py
@@ -646,6 +596,10 @@ industrial-kpi-intelligence/
 │   ├── oee.py
 │   ├── schema_adapter.py                  # PENDIENTE eliminar (deuda #11)
 │   └── validation.py
+│
+├── migrate_csv.py                         # 🆕 CSV → SQLite
+├── kpi_database.db                        # 🆕 Local, NO en git (gitignored)
+│
 └── tests/                                 # 460 tests
     ├── test_empty_state.py
     └── ...
@@ -659,16 +613,30 @@ cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-int
 source venv/bin/activate
 which python                    # DEBE mostrar .../venv/bin/python
 
-# Gates
+# Gates legacy
 pytest                          # 460 passed
 ruff check .                    # All checks passed!
 
-# Regenerar dataset
-python -m src.data_generator
-
-# Arrancar dashboard
+# Arrancar dashboard Dash (legacy)
 python -m dashboard.dash_app    # http://127.0.0.1:8050
 lsof -ti:8050 | xargs kill -9
+
+# Arrancar API FastAPI (nuevo)
+uvicorn app.main:app --reload   # http://127.0.0.1:8000/docs
+lsof -ti:8000 | xargs kill -9
+
+# Migrar CSV → SQLite
+python3 migrate_csv.py          # Crea kpi_database.db
+
+# Verificar datos en SQLite
+python3 -c "
+from sqlmodel import Session, select
+from app.db import engine
+from app.models import KPI
+with Session(engine) as session:
+    for k in session.exec(select(KPI)).all():
+        print(f'{k.id} | {k.nombre} | {k.valor} {k.unidad}')
+"
 
 # Commit conventional
 git add <archivos>
@@ -682,22 +650,15 @@ git push origin main
 
 # Tras edición en Web Editor
 git pull origin main --rebase
-
-# Verificar baseline de tests (útil ante discrepancia)
-git stash push -m "pending" <archivos>
-pytest --collect-only -q | tail -3
-git stash pop
-
-# Script de fix quirúrgico (ver sección 8)
 ```
 
 ---
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 Deuda #11 — Eliminar `schema_adapter.py`
+### 📋 Deuda #21 — Crear dashboard Jinja2 (Fase 4 FastAPI)
 
-**Contexto:** la consolidación Opción D (`ba0e962`) fusionó la **lógica** de `schema_adapter.py` dentro de `data_loader.py`, pero el **archivo físico** todavía existe. Es un vestigio que confunde la lectura del repo.
+**Contexto:** la API FastAPI funciona (GET + POST verificados), pero aún no hay dashboard HTML. Falta el endpoint `GET /` y el template `app/templates/index.html`.
 
 **Verificación previa (regla #4 — antes de tocar):**
 
@@ -705,60 +666,60 @@ git stash pop
 cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence
 source venv/bin/activate
 
-# 1) ¿Algo importa schema_adapter?
-grep -rn "schema_adapter" src/ dashboard/ tests/ --include="*.py"
+# 1) ¿Existe la carpeta templates?
+ls -la app/templates/ 2>/dev/null || echo "No existe, hay que crearla"
 
-# 2) ¿Qué contiene el archivo? (para estar 100% seguros)
-cat src/schema_adapter.py
+# 2) ¿Existe el endpoint / en main.py?
+grep -n "def dashboard\|TemplateResponse\|Jinja2Templates" app/main.py
 
-# 3) ¿Hay tests que lo referencien?
-ls tests/ | grep -i schema
+# 3) ¿Está Jinja2 instalado?
+python -c "import jinja2; print(jinja2.__version__)"
 ```
-
-**Decisión esperada:**
-- Si el `grep` **no devuelve nada** → eliminar el archivo directo.
-- Si el `grep` devuelve imports → **parar** y refactorizar el import antes de eliminar (no debería pasar, porque la Opción D ya consolidó).
 
 **Plan de ejecución:**
 
-1. **Verificación** (arriba).
-2. **Eliminar el archivo:**
-   ```bash
-   git rm src/schema_adapter.py
+1. **Crear carpeta:** `mkdir -p app/templates`
+2. **Crear template HTML:** `app/templates/index.html` con tabla `{{ kpis }}`.
+3. **Añadir imports en `app/main.py`:**
+   ```python
+   from fastapi import Request
+   from fastapi.responses import HTMLResponse
+   from fastapi.templating import Jinja2Templates
+
+   templates = Jinja2Templates(directory="app/templates")
    ```
-3. **Gates:**
-   ```bash
-   pytest                          # → 460 passed (no cambia, ya no se importa)
-   ruff check .                    # → All checks passed!
+4. **Añadir endpoint al final de `app/main.py`:**
+   ```python
+   @app.get("/", response_class=HTMLResponse)
+   def dashboard(request: Request, session: Session = Depends(get_session)):
+       kpis = session.exec(select(KPI)).all()
+       return templates.TemplateResponse("index.html", {"request": request, "kpis": kpis})
    ```
-4. **Verificación visual** (⌘+Shift+R) — la app no debe romperse. Si el archivo estaba huérfano, no cambia nada.
-5. **`git status`** → solo `src/schema_adapter.py` staged como deleted.
-6. **Commit:**
+5. **Verificación visual:** `uvicorn app.main:app --reload` → abrir `http://127.0.0.1:8000/`.
+6. **Gates:** `pytest` + `ruff check .` (sin cambios esperados).
+7. **`git status`** → `app/templates/index.html` + `app/main.py` modificados.
+8. **Commit:**
    ```bash
    git commit -F - <<'EOF'
-   chore(cleanup): remove legacy schema_adapter.py (Opción D follow-up)
+   feat(fastapi): add Jinja2 dashboard for KPI visualization
 
-   La lógica del adapter se consolidó en dashboard/data_loader.py
-   (commit ba0e962). El archivo físico quedó huérfano desde entonces:
-   ningún módulo lo importa, ningún test lo referencia.
-
-   Esta es la fase final de la Opción D — eliminar el vestigio para
-   que el repo refleje la arquitectura real.
+   Añade endpoint GET / que renderiza tabla HTML con todos los KPIs.
+   Completa la capa de presentación del stack FastAPI + SQLModel.
    EOF
    git push origin main
    ```
-7. **Verificar CI 2/2 verde.**
+9. **Verificar CI 2/2 verde.**
 
-**⏱️ Estimación:** 1 h (incluye verificación + commit + CI).
+**⏱️ Estimación:** 30 min.
 
-### 📌 Después de deuda #11
+### 📌 Después del dashboard Jinja2
 
-1. **Deuda #15** — debounce cascade o cascade condicional (30 min).
-2. **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (1.5 h).
-3. **Deuda #19** — investigar callback 2104 ms de Calidad (1-2 h).
-4. **Docker + Compose** (2 h).
-5. **Migración completa EN→ES** (5-8 h, sesión dedicada).
-6. **Deuda #20** — test de integración `dash.testing.TestServer` (30-45 min).
+1. **Tests para `app/`** (deuda #22, 1.5 h, +25 tests).
+2. **Eliminar `schema_adapter.py`** (deuda #11 legacy, 1 h).
+3. **Deuda #15** — debounce cascade (30 min).
+4. **Fase 3c** — Chip de filtros activos + severidad individual en KPIs (1.5 h).
+5. **Deuda #19** — investigar callback 2104 ms de Calidad (1-2 h).
+6. **Docker + Compose** (2 h).
 
 ---
 
@@ -768,40 +729,41 @@ ls tests/ | grep -i schema
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
 
-Estado: Fase 3a completa (5/5 tabs export CSV) + 3b.1 (loading) + 3b.3 (performance)
-+ Opción D (consolidación loader) + Fase 3b.2 COMPLETA (5/5 tabs con empty state:
-Calidad, Control, Capacidad, Diagnóstico, Operacional) + cascades de filtros restaurados.
-460 tests, CI verde, working tree limpio.
-Performance: ~2-3 s por cambio de filtro (era ~10 s al inicio).
+Estado: Fase 3b.2 completa (5/5 tabs con empty state) + cascades restaurados + 460 tests verdes.
+Además, MIGRACIÓN A FASTAPI + SQLMODEL + SQLITE COMPLETADA (commit a162f15):
+- app/models.py, app/schemas.py, app/db.py, app/main.py
+- migrate_csv.py (CSV → SQLite)
+- requirements.txt limpiado (8 deps)
+- .gitignore ampliado (*.db, *.sqlite, kpis.csv)
+- GET /kpis/ y POST /kpis/ verificados en Swagger UI (200 y 201)
+Performance: ~2-3 s por cambio de filtro en el dashboard Dash legacy.
 
-Próximo paso: Deuda #11 — eliminar src/schema_adapter.py (archivo huérfano tras
-Opción D). Verificación previa con grep, luego git rm, gates, commit, CI.
+Próximo paso: Deuda #21 — crear dashboard Jinja2 (app/templates/index.html + endpoint /).
+Estimación 30 min. Ver sección 11 del TRASPASO.
 
 Deudas activas relevantes:
-- #11 eliminar schema_adapter.py (alta, próximo paso)
-- #15 debounce cascade (media)
-- #16 severidad individual KPIs rendimiento (media)
-- #19 callback 2104 ms en Calidad (nueva, detectada vía Dev Tools)
-- #20 test integración dash.testing.TestServer (baja)
+- #21 dashboard Jinja2 (alta, próximo paso)
+- #22 sin tests para app/ (media)
+- #11 eliminar schema_adapter.py (alta, legacy)
+- #15 debounce cascade (media, legacy)
+- #16 severidad individual KPIs rendimiento (media, legacy)
+- #19 callback 2104 ms en Calidad (media, legacy)
 
 Reglas clave:
 - Protocolo de arranque: cd + source venv/bin/activate + verificar `which python`
 - Leer el archivo antes de tocar
 - git status ANTES y DESPUÉS de cada git add
-- Un fix = un commit (1 lista corta de archivos; 4+ evaluar dividir)
-- Verificación visual con ⌘ + Shift + R obligatoria (excepción documentada si el estado es inalcanzable desde la UI)
+- Un fix = un commit
+- Verificación visual con ⌘ + Shift + R obligatoria
 - pytest + ruff verdes antes de commitear
-- Si CI falla: leer el log del step rojo antes de proponer fix
 - NO usar TextEdit para markdown: usar GitHub Web Editor
-- Tras editar en Web Editor, hacer git pull --rebase
-- Antes de cambiar un string de UI: grep -rn "string_viejo" src/ dashboard/ tests/
-- Antes de optimizar: medir con instrumentación temporal
-- Los `print` de instrumentación NUNCA se commitean
-- Para cambios en archivos grandes: script Python de fix quirúrgico, no nano
-- Después de escribir un script con `cat > script.py <<EOF`, SIEMPRE correrlo y borrarlo
-- Empty state cubre 3 casos: 0 filas, n<2 por variable, NaN
-- Dash Dev Tools en 4.4.1 es solo-lectura (no permite editar inputs)
-- Patrón consolidado: función pura + callback thin (ver 4.23)
+- Tras editar en Web Editor: git pull --rebase
+- Antes de crear un nuevo directorio del proyecto: verificar dónde está el proyecto original
+- NUNCA enviar "id": 0 en POST a FastAPI
+- NUNCA confundir el "example value" de Swagger UI con datos reales
+- Al separar modelo DB vs schema API: usar schemas.py con BaseModel puro
+- Al añadir un servicio nuevo: puerto distinto (8000 FastAPI vs 8050 Dash)
+- Al migrar de tecnología: capa aditiva, no romper el legacy
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -813,47 +775,49 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 
 ## 1️⃣3️⃣ 🎓 NOTAS DE MENTOR (para el próximo asistente)
 
-Este usuario no es un junior. Es un ingeniero químico con criterio técnico real. Ha demostrado:
-
-- 🔍 **Detectar bugs por inspección visual** (anotación sobrepuesta, botón decorativo, tab lento, doble spinner).
-- 📊 **Pedir diagnóstico con datos** cuando CI falla, no con fe.
-- 🔄 **Aceptar reversiones** cuando una decisión no funciona (cascades restaurados tras evaluar el trade-off).
-- 🎯 **Mantener disciplina en cada fix** (incluyendo reparar commits incompletos como `22988f4`).
-- ⚖️ **Decidir con criterio cuándo parar** (2-3 s son aceptables, no seguir con premature optimization).
-- 📏 **Medir antes de optimizar** (los benchmarks refutaron 3 hipótesis mías).
-- 🧘 **Tener paciencia con procesos** que no salen a la primera (nano, terminal saturado, Dev Tools).
-- 🧩 **Extraer patrones a componentes SSOT** cuando el tercer uso del mismo patrón lo justifica (empty_state, export_helpers, severity_icons, funciones puras `construir_outputs_*`).
-- 🔬 **Seguir protocolos paso a paso** sin atajos, incluso cuando el proceso se ve tedioso (verificación visual, gates, `git status` pre/post-add).
-
 ### 🎯 Cómo tratarlo
 
 - **Como colega senior, no como aprendiz.**
 - Explicá el *por qué* de las decisiones técnicas, no solo el *cómo*.
-- Citá normas industriales cuando aplique.
+- Citá normas industriales cuando aplique (ISA-95, NIST, AIAG, ISO).
 - **Valorá la honestidad por sobre la complacencia.**
 - No quiere halagos, quiere producto de calidad.
-- Cuando te equivoques (ej. recomendar nano sin verificar, asumir patrones de pandas, asumir baseline de tests), decilo claro y corregí.
+- Cuando te equivoques (ej. recomendar `NaiveDatetime` sin verificar, `mkdir` a ciegas en `$HOME`, asumir que el "example value" de Swagger es el output real), decilo claro y corregí.
 
 ### 🏆 Hitos acumulados
 
 - ✅ **Fase 3a completa** (5/5 tabs con export CSV).
-- ✅ **Opción D** — consolidación de la lógica del adapter (bajó 1 archivo + 1 test file).
-- ✅ **Fase 3b.1** — loading states en las 6 zonas del layout.
-- ✅ **Fase 3b.3** — performance: -70% del tiempo original con 3 fixes quirúrgicos.
-- ✅ **Fase 3b.2 completa** — componente SSOT `empty_state` + **5/5 tabs migrados** (Calidad, Control, Capacidad, Diagnóstico, Operacional) + cascades restaurados con `delay_show=500ms` + patrón consolidado "función pura + callback thin".
-- ✅ **460 tests, 0 regresiones**, working tree limpio.
-- ✅ **Corrección de baseline** — el TRASPASO tenía off-by-one (449 vs 450 real). Detectado vía `git stash` + `pytest --collect-only`.
-- ✅ **Dash Dev Tools explorado** — grafo de callbacks completo, detección de callback lento (2104 ms en Calidad → deuda #19), confirmación de que en Dash 4.4.1 es solo-lectura.
+- ✅ **Opción D** — consolidación del adapter.
+- ✅ **Fase 3b.1** — loading states.
+- ✅ **Fase 3b.3** — performance: -70% del tiempo original.
+- ✅ **Fase 3b.2 completa** — empty states en 5/5 tabs + cascades.
+- ✅ **460 tests, 0 regresiones.**
+- ✅ **Migración a FastAPI + SQLModel + SQLite** (commit `a162f15`).
+- ✅ **Persistencia real con SQLite** + modelo `KPI` funcional.
+- ✅ **Doble stack coexistente:** Dash legacy (8050) + FastAPI (8000).
+- ✅ **Comprensión del patrón de seguridad `sa_column`** para sobreescribir defaults restrictivos de SQLModel.
 
-### 🔬 Lecciones metodológicas del ciclo 3b.2
+### 🔬 Lecciones metodológicas de este ciclo
 
-- **"Estado inalcanzable desde la UI" es una categoría válida de verificación.** Cuando el dataset sintético cubre todas las combinaciones y los controles son radio-style, algunos branches son imposibles de provocar manualmente. En esos casos: (a) validar por test unitario, (b) documentar la limitación en el commit, (c) proponer test de integración como deuda (ver #20).
-- **Extraer función pura antes de testear.** Cuando un callback tiene >3 branches, extraer la lógica a `construir_outputs_*` es lo correcto. Los tests bajan en coste, el wiring queda trivial.
-- **Los estados epistémicos distintos merecen mensajes distintos.** `filtrado.empty` ≠ `not dimension` ≠ `valor_seleccionado is None`. Mezclar branches en una misma condición es una deuda de UX latente (ver 4.24).
-- **El `cat > script.py <<EOF` no ejecuta el script.** Siempre correr `python script.py` y luego `rm script.py` después de escribirlo.
+- **Capa aditiva primero, refactor después.** Cuando se migra de una tecnología a otra, empezar con una carpeta nueva (`app/`) que coexiste con la legacy. No romper el legacy. El patrón strangler aplica a nivel de arquitectura completa.
+- **Preguntar antes de crear.** Antes de `mkdir -p ~/proyecto/app`, preguntar dónde está el proyecto original con `git remote -v` y `ls`. Evita carpetas duplicadas en `$HOME`.
+- **Separar modelo DB ↔ schema API es no negociable en FastAPI.** `KPI` (tabla) ≠ `KPICreate` (schema). Sin esta separación, Pydantic no convierte strings a `datetime` en modelos de tabla.
+- **Swagger UI muestra ejemplos, no datos reales.** Para ver la respuesta del endpoint, siempre clic en "Try it out" → "Execute". Confundir uno con otro genera horas de depuración fantasma.
+- **`sa_column` es la vía de escape.** Cuando SQLModel impone un default demasiado estricto (timezone-aware datetime), `sa_column=Column(...)` permite volver a SQLAlchemy crudo sin romper el modelo.
+- **`pip freeze` no es `requirements.txt`.** Un `requirements.txt` limpio se escribe a mano con las dependencias top-level + transitivas críticas. `pip freeze` captura todo el entorno, no el proyecto.
+- **`git clone` > `git init` cuando ya hay historial remoto.** El segundo puede causar merges de historial raros. El primero es limpio y predecible.
+- **Los modelos de IA gratuitos en terminal a veces se desvían.** Cuando `dsf` (fixer) recibe un script, a veces lo reescribe entero en vez de corregirlo. Revisar siempre el output con `cat` + `git diff`.
+
+### 📊 Métricas del ciclo
+
+- **Commits:** 2 (1 web + 1 local).
+- **Archivos tocados:** 7 (5 nuevos, 2 modificados).
+- **Líneas:** +139 / -29.
+- **Tests:** 460 → 460 (sin cambios).
+- **Tiempo total:** ~3 h de sesión distribuida.
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Fase 3b.2 completa (5/5 tabs con empty state) + baseline de tests corregido + 460 tests.  
-> 🚀 **Próximo paso:** Deuda #11 — eliminar `src/schema_adapter.py`.
+> 🗓️ **Última actualización:** Migración FastAPI + SQLModel + SQLite completada (commit `a162f15`).  
+> 🚀 **Próximo paso:** Deuda #21 — crear dashboard Jinja2 (`app/templates/index.html` + endpoint `GET /`).
