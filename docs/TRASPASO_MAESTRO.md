@@ -2,7 +2,7 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Fase 3b.2 parcial (3/5 tabs con empty state) + cascades restaurados + 449 tests.
+> 🗓️ **Última actualización:** Fase 3b.2 completa (5/5 tabs con empty state) + baseline de tests corregido + 460 tests.
 
 ---
 
@@ -23,7 +23,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 9 | 🎯 **Estilo de respuesta:** directo, técnico, sin relleno. Markdown con tablas y bloques de código. Español. |
 | 10 | 🚫 **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
 
-> 🚀 **Próximo paso concreto del proyecto:** Fase 3b.2 — replicar empty state a Diagnóstico y Operacional. Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** Deuda #11 — eliminar `schema_adapter.py`. Ver sección 11.
 
 ---
 
@@ -39,10 +39,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **449 passed** |
+| ✅ **Tests actuales** | **460 passed** |
 | 🟢 **CI** | 2/2 verde (workflow CI) |
 | 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main` |
-| 📊 **Producto 1 (MVP)** | ~90% |
+| 📊 **Producto 1 (MVP)** | ~92% |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -88,6 +88,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **.Rapp.history gitignored** (`47e3bd9`)
 - ✅ **Fase 3b.2 Capacidad** (`722297f`): empty state en Capacidad
 - ✅ **Fix test Capacidad** (`4516129`): mensaje del empty state actualizado
+- ✅ **Fase 3b.2 Diagnóstico** (`d23af82`): empty state + `construir_outputs_diagnostico` (función pura) + 3 tests
+- ✅ **Fase 3b.2 Operacional** (`9c780d8`): empty state + `construir_outputs_ranking` + `construir_outputs_detalle` + 7 tests
 
 ### 🟡 En curso
 
@@ -95,11 +97,12 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### ⏳ Pendiente (roadmap en sección 7)
 
-- ⏳ **Fase 3b.2** — Empty state en Diagnóstico y Operacional (**PRÓXIMO PASO**)
-- ⏳ **Eliminar `schema_adapter.py`** (deuda activa, alta prioridad)
+- ⏳ **Eliminar `schema_adapter.py`** (deuda #11, PRÓXIMO PASO)
+- ⏳ **Deuda #15** — debounce cascade o cascade condicional
 - ⏳ **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (deuda #16)
 - ⏳ **Bloque 3B** — Docker + Compose
 - ⏳ **Rename bilingüe** (ADR-0002, incremental)
+- ⏳ **Deuda #19** — optimizar callback de 2104 ms detectado en Calidad (nueva, descubierta vía Dev Tools)
 
 ---
 
@@ -107,8 +110,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
-| `4516129` | Fix(test): update Capacidad empty state test after message change | 449 |
-| `722297f` | Feat(ux): add empty state to Capacidad tab (Fase 3b.2) | 449 |
+| `9c780d8` | Feat(ux): add empty state to Operacional (Fase 3b.2) | 460 |
+| `d23af82` | Feat(ux): add empty state to Diagnóstico (Fase 3b.2) | 453 |
+| `db0bd52` | Docs(handoff): update TRASPASO to Fase 3b.2 partial state | 450 |
+| `4516129` | Fix(test): update Capacidad empty state test after message change | 450 |
+| `722297f` | Feat(ux): add empty state to Capacidad tab (Fase 3b.2) | 450 |
 | `47e3bd9` | Chore(gitignore): exclude .Rapp.history | 446 |
 | `22988f4` | Fix(ux): complete Fase 3b.2 commit (archivos faltantes) | 446 |
 | `d5542e2` | Fix(filters): restore cascades + delay_show 500ms + empty state Control | 446 |
@@ -154,9 +160,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → 270 → 274 → 279 → 284 → 290 → 295 → 316 → 335 → 343 → 359 → 390 → 408 → 411 → 414 → 416 → 423 → 429 → 434 → 427 → 430 → 437 → 446 → **449**
+> 📈 **Evolución de tests:** 263 → 270 → 274 → 279 → 284 → 290 → 295 → 316 → 335 → 343 → 359 → 390 → 408 → 411 → 414 → 416 → 423 → 429 → 434 → 427 → 430 → 437 → 446 → **450** → **453** → **460**
 > 
-> *Bajó de 434 a 427 al eliminar `test_schema_adapter.py` en Opción D; subió a 430 con los 3 tests de `test_app_layout.py`; subió a 437 con los 7 tests de `test_empty_state.py`; subió a 446 con empty states de Calidad + Control + cascades; subió a 449 con los tests de empty state de Capacidad.*
+> *Corrección de baseline: el TRASPASO anterior decía 449 al cerrar Capacidad; el stash-check reveló que el número real era **450**. Off-by-one benigno, corregido en esta versión. Después: +3 por empty state Diagnóstico (`d23af82`), +7 por empty state Operacional (`9c780d8`) → **460**.*
 
 ---
 
@@ -227,6 +233,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 - **Solución:** su lógica se fusionó en `dashboard/data_loader.py` como funciones y constantes privadas (`_adaptar_a_esquema_legacy`). El módulo y su test file se eliminaron.
 - **Neto:** 434 → 427 tests, -1 archivo de código, -1 test file.
 - **Lección:** cuando una pieza de UI o lógica necesita un dato derivable de otro que ya está en memoria, derivalo, no lo guardes. Un archivo con "vida propia" que solo sirve a otro archivo es candidato a consolidación.
+- **⚠️ Nota:** el archivo físico `src/schema_adapter.py` **todavía existe** en el repo (deuda #11). La lógica se consolidó pero el archivo no se eliminó.
 
 ### 4.15 ⚡ Caché de parseo JSON (perf)
 - **Problema:** ~10 callbacks consumidores de `store-datos-filtrados` deserializaban el mismo JSON (18,078 filas, 2.63 MB).
@@ -249,7 +256,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 - **Ganancia medida:** Control pasa de 3-5 s a 2-3 s. **-40%**.
 - **Lección:** la elección del tipo de trace en Plotly es una decisión de performance, no solo estética. `Scattergl` es 10-100× más rápido para series >5k puntos.
 
-### 4.18 📉 Resumen de la optimización (sesión previa)
+### 4.18 📉 Resumen de la optimización
 
 | Fix | Tiempo total |
 | :--- | :---: |
@@ -262,10 +269,12 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 **Deuda residual (diferida):** el transporte del `store-datos-filtrados` (2.63 MB × ~10 callbacks) es probablemente el cuello restante. Fix candidato: `ServersideOutput` de `dash-extensions` (-95% tráfico, 2-3 h). No implementado. Se reevaluará si el uso real lo justifica.
 
+**Deuda nueva (detectada vía Dash Dev Tools):** callback de **2104 ms** en zona Calidad. No coincide con los fixes previos. Candidato a investigar en sesión de performance dedicada. Ver deuda #19.
+
 ### 4.19 🧩 Componente SSOT empty_state (Fase 3b.2)
 - **Solución:** `dashboard/empty_state.py` con `empty_state(mensaje, hint=None, icono="📭")` → `html.Div`.
 - **CSS:** `.empty-state`, `.empty-state-icon`, `.empty-state-message`, `.empty-state-hint`.
-- **Aplicado en:** Calidad, Control, Capacidad (3/5 tabs).
+- **Aplicado en:** Calidad, Control, Capacidad, Diagnóstico, Operacional (**5/5 tabs**).
 - **Lección:** un empty state no es solo un `if df.empty`. Es un contrato visual — mensaje consistente, jerarquía tipográfica, hint accionable.
 
 ### 4.20 🔄 Cascades de filtros (Fase 3b.2)
@@ -279,11 +288,29 @@ Estás retomando un proyecto en curso. Antes de responder:
 - **Fix candidato:** `debounce` 200ms en store callback o cascade condicional.
 - Diferido a Fase 3b.3 v2 o 3c.
 
-### 4.22 🧩 Empty state con condición ampliada (Fase 3b.2)
+### 4.22 🧩 Empty state con condición ampliada (Fase 3b.2 — Capacidad)
 - **Problema:** con `capacidad.empty` (0 filas), el caso "1 fila → n<2 → NaN" no se cubría. Los KPIs mostraban "Sin datos" individuales.
 - **Fix:** condición ampliada a `pp_series.empty` (todas las pp NaN).
 - **Mensaje unificado:** "Sin datos suficientes para evaluar capacidad".
 - **Lección:** cuando se define empty state por "no hay datos", cubrir 3 casos: 0 filas, n<2 por variable, n≥2.
+
+### 4.23 🧩 Patrón consolidado: función pura + callback thin (Fase 3b.2)
+- **Decisión:** cada callback que tenía lógica condicional de empty state se refactorizó extrayendo una **función pura** (`construir_outputs_*`) y dejando el callback como una línea.
+- **Aplicado en:**
+  - `quality_performance_callbacks.py`: `construir_outputs_calidad` (piloto, `529d83f`).
+  - `diagnostics_callbacks.py`: `construir_outputs_diagnostico` (`d23af82`).
+  - `operational_analysis_callbacks.py`: `construir_outputs_ranking` + `construir_outputs_detalle` (`9c780d8`).
+- **Beneficio:** los tests validan el contrato sin instanciar Dash. Los callbacks son trivialmente correctos (una línea).
+- **Lección:** cuando un callback tiene >3 branches condicionales, extraer una función pura es la decisión correcta. La cobertura de tests sube, el debug baja.
+
+### 4.24 🧩 Estados epistémicos distintos → mensajes distintos (Fase 3b.2)
+- **Problema:** el callback de detalle de Operacional tenía `if filtrado.empty or not dimension: return "Selecciona una dimensión..."`. Esa condición **mezclaba dos estados distintos** bajo un mismo mensaje.
+- **Fix:** separar los branches:
+  - `filtrado.empty` → `empty_state` (no hay datos crudos; el problema es de filtros).
+  - `not dimension` → string "Selecciona una dimensión" (hay datos, falta configurar).
+  - `valor_seleccionado is None` → string "Haz clic en una barra" (hay datos y dimensión, falta interactuar).
+- **Regla:** empty_state **solo** cuando "no hay nada". Si "hay pero falta acción del usuario", usar texto plano. El 📭 sería engañoso.
+- **Lección:** los estados epistémicos distintos merecen mensajes distintos. Colapsarlos en un solo branch es una deuda de UX latente.
 
 ---
 
@@ -302,7 +329,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_data_loader.py` | 17 | Carga + traducción EN→ES consolidada (Opción D) |
 | `test_dataset_metadata.py` | 21 | Frescura del dataset |
 | `test_diagnostics.py` | 13 | Reglas de diagnóstico |
-| `test_diagnostics_callbacks.py` | 11 | Resumen + export CSV |
+| `test_diagnostics_callbacks.py` | **14** | Resumen + export CSV + **3 tests de `construir_outputs_diagnostico`** |
 | `test_empty_state.py` | 7 | Contrato del componente SSOT |
 | `test_export_helpers.py` | 16 | `nombre_csv` + `boton_export` + `crear_descarga_csv` |
 | `test_filter_callbacks.py` | 4 | `valores_default_filtros` + smoke reset + cascade equipo |
@@ -313,7 +340,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_kpis.py` | 32 | FPY, defectos, scrap, reproceso |
 | `test_oee.py` | 25 | OEE (A×P×Q) ISA-95 |
 | `test_oee_presenter.py` | 6 | Presentación OEE |
-| `test_operational_analysis_callbacks.py` | 35 | Drill-down + labels + export CSV |
+| `test_operational_analysis_callbacks.py` | **42** | Drill-down + labels + export CSV + **7 tests de `construir_outputs_ranking/_detalle`** |
 | `test_plant_overview.py` | 6 | Vista de planta |
 | `test_plant_overview_components.py` | 5 | Componentes UI |
 | `test_quality_performance_callbacks.py` | 15 | FPY, Pareto + export CSV + empty state |
@@ -322,7 +349,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_severity_icons.py` | 9 | `prefijar_icono` + SSOT iconos |
 | `test_utils.py` | 7 | Tema oscuro + cache de parseo JSON |
 | `test_validation.py` | 22 | Validación de contratos |
-| **TOTAL** | **449** | ✅ **Todos verdes** |
+| **TOTAL** | **460** | ✅ **Todos verdes** |
 
 ---
 
@@ -332,9 +359,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | :---: | :--- | :--- | :---: |
 | 1-4 | ~~README, capacidad, timestamp, barras~~ | — | ✅ Resueltas |
 | 5 | ~~Export CSV por tab (5/5 completados)~~ | — | ✅ Resuelta (Fase 3a) |
-| **6** | **Sin empty states en 2 de 5 tabs (Diagnóstico, Operacional)** | Robustez | 🟡 Media |
+| 6 | ~~Sin empty states en tabs~~ | — | ✅ **Resuelta (Fase 3b.2 — 5/5 tabs)** |
 | 7-10 | ~~Iconografía, Docker, umbrales, doc~~ | — | ✅ Resueltas o en roadmap |
-| **11** | **`schema_adapter.py` (adapter transitorio)** | Arquitectura | 🔴 Alta |
+| **11** | **`schema_adapter.py` (archivo físico pendiente de eliminar)** | Arquitectura | 🔴 **Alta — PRÓXIMO PASO** |
 | **12** | **Doble convención bilingüe (ADR-0002)** | Mantenibilidad | 🟡 Media |
 | 13 | ~~Performance: parseo + histograma + Control~~ | — | ✅ Resuelta |
 | 14 | ~~WebGL cartas Control~~ | — | ✅ Resuelta (`e7e5d49`) |
@@ -342,19 +369,19 @@ Estás retomando un proyecto en curso. Antes de responder:
 | **16** | **KPIs de rendimiento heredan severidad agregada** | UX | 🟡 Media |
 | **17** | **Dataset sintético homogéneo inter-línea** | Validación | 🟢 Baja |
 | 18 | ~~Empty state Capacidad no cubre n<2~~ | — | ✅ Resuelta (`4516129`) |
+| **19** | **Callback de 2104 ms en zona Calidad (detectado vía Dev Tools)** | Performance | 🟡 Media (nueva) |
+| **20** | **Verificación UI de empty states A1/A2 no automatizable sin `dash.testing`** | Testing infra | 🟢 Baja (nueva) |
 
 ### 📌 Detalle de deudas activas
 
-**Deuda 11 — Eliminación de `schema_adapter.py`:**
-- El adapter aún existe como archivo transitorio. La consolidación Opción D fusionó su lógica en `data_loader.py`, pero el archivo físico no se ha eliminado.
-- **Fix:** eliminar el archivo + verificar que ningún import lo referencie. **1 h.**
-
-**Deuda 13 — Performance residual (diferida):**
-- ✅ **Resuelto:** caché JSON (-50%), pre-binning histograma (-99% payload figura), WebGL Control (-40% Control).
-- **Tiempo actual:** ~2-3 s por cambio de filtro.
-- ⏳ **Residual:** transporte del `store-datos-filtrados` (2.63 MB × ~10 callbacks). Hipótesis no confirmada con Network tab.
-- **Fix candidato:** `ServersideOutput` de `dash-extensions` (-95% tráfico, 2-3 h).
-- **Diferido a:** cuando el uso real o un cliente lo justifique.
+**Deuda 11 — Eliminación de `schema_adapter.py`:** ⚠️ **PRÓXIMO PASO**
+- El archivo físico `src/schema_adapter.py` aún existe. La lógica ya se consolidó en `data_loader.py` (Opción D, `ba0e962`), pero el archivo transitorio no se eliminó.
+- **Fix:** 
+  1. `grep -rn "schema_adapter" src/ dashboard/ tests/` → confirmar que nada lo importa.
+  2. `git rm src/schema_adapter.py`.
+  3. `pytest` + `ruff check .`.
+  4. Commit `chore(cleanup): remove legacy schema_adapter.py (Opción D follow-up)`.
+- **Estimación:** 1 h.
 
 **Deuda 15 — Doble spinner residual:**
 - Cascade equipo + reset → 2 fires del store.
@@ -371,19 +398,33 @@ Estás retomando un proyecto en curso. Antes de responder:
 - En planta real variaría >20%. Límite del generador.
 - Validar con dataset real antes de producción.
 
+**Deuda 19 — Callback de 2104 ms (nueva):**
+- Detectado en Dash Dev Tools: grafo de callbacks muestra un nodo con timing de **2104 ms** en la zona de Calidad.
+- No coincide con los fixes de performance previos.
+- **Hipótesis:** puede ser el callback de Calidad que corre al cambiar filtro, sin optimizar.
+- **Fix propuesto:** identificar el callback exacto (Dev Tools → click en el nodo), instrumentar con prints temporales, medir, aplicar optimización (posible pre-binning o cache).
+- **Estimación:** 1-2 h de investigación + fix.
+
+**Deuda 20 — Verificación UI de empty states (nueva):**
+- Dash Dev Tools en Dash 4.4.1 expone inputs en **modo solo-lectura** (sin edición). No se puede forzar `store-datos-filtrados.data` a vacío desde la UI.
+- **Fix propuesto:** test de integración con `dash.testing.TestServer` que arranque la app en memoria, inyecte un store vacío, y verifique el output del callback.
+- **Estimación:** 30-45 min.
+- **Diferido a:** sesión dedicada de infra de tests de integración.
+
 ---
 
 ## 7️⃣ ROADMAP PENDIENTE
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **3b.2** | **Empty state en Diagnóstico y Operacional — PRÓXIMO PASO** | 1.5 h | 🟡 Media |
-| **σ** | **Eliminar `schema_adapter.py` (deuda #11)** | 1 h | 🔴 Alta |
+| **σ** | **Eliminar `schema_adapter.py` (deuda #11) — PRÓXIMO PASO** | 1 h | 🔴 Alta |
 | **3b.3** | **Deuda #15:** debounce cascade o cascade condicional | 30 min | 🟡 Media |
 | **3c** | **Deuda #16 (severidad KPIs) + Chip filtros activos** | 1.5 h | 🟡 Media |
+| **perf** | **Deuda #19:** investigar callback 2104 ms de Calidad | 1-2 h | 🟡 Media |
+| **test infra** | **Deuda #20:** test de integración `dash.testing.TestServer` | 30-45 min | 🟢 Baja |
+| **5** | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
 | **σ** | Migración completa EN→ES (Opción A') | 5-8 h | 🔴 Alta (diferida) |
 | **σ** | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
-| **5** | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
 | — | `ServersideOutput` (si el uso lo justifica) | 2-3 h | 🟢 Baja (diferida) |
 
 ---
@@ -433,6 +474,7 @@ which python   # DEBE mostrar .../venv/bin/python
 - Ver el archivo antes de tocar.
 - Verificación visual con `⌘ + Shift + R` obligatoria.
 - **Regla C.1:** sin números no hay cierre.
+- **Excepción:** si el estado a verificar es inalcanzable desde la UI (dataset homogéneo, control radio-style, etc.), documentar la limitación en el commit y validar por test unitario.
 
 ### 💾 Código
 
@@ -532,17 +574,21 @@ rm fix_xxx.py
 | Copiar/pegar mensaje de commit de otro commit | Verificar el mensaje antes del commit |
 | `git rebase HEAD~N` sin `-i` | Sin `-i` no abre editor: no reescribe nada. Usar `-i` o preferir `git reset --soft` |
 | Leer SHA de una captura de pantalla | Copiar SHAs de la terminal, no de screenshots |
-| Asumir que la extensión "Dash Dev Tools" está instalada | En Dash 4.x sin extensión, el panel es un botón flotante |
-| Buscar el panel Dash en Chrome DevTools (F12) | No está ahí. Está dentro de la app misma |
+| Buscar el panel Dash en Chrome DevTools (F12) | No está ahí. Está dentro de la app, como botón flotante |
+| Buscar el panel Dash en la modebar de Plotly | No es la modebar. Es un botón flotante en la esquina inferior derecha de la app |
+| `⌘+D` para Dash Dev Tools | Es `⌘+D` de Chrome (bookmark). El atajo de Dash es `Ctrl+D` y solo después de abrir el panel |
+| Asumir que Dash Dev Tools permite editar inputs | En Dash 4.4.1 es **solo-lectura** para inputs. Sirve para observar, no inyectar |
 | Optimizar sin medir | Instrumentar con `print` temporales, medir antes de tocar |
 | Correr `pytest`/`ruff` sin venv activo | `ModuleNotFoundError: No module named 'dash'`. Verificar `which python` primero. |
 | Asumir que `dcc.send_data_frame` devuelve base64 | En Dash 4.x, `content` es bytes del CSV crudo. |
-| Asumir nombre de función de otro módulo sin ver | `from src.data_generator import generar_dataset` falló. Usar `monkeypatch` para desacoplar tests de dependencias externas. |
-| Pegar contenido de archivos Python en terminal bash | La terminal ejecuta, no edita. Usar `nano`, script temporal, o Web Editor. |
+| Asumir nombre de función de otro módulo sin ver | Usar `monkeypatch` para desacoplar tests de dependencias externas. |
+| Pegar contenido de archivos Python en terminal bash | La terminal ejecuta, no edita. Usar script temporal o Web Editor. |
 | `Ctrl+K` en `nano` sin saber qué borra | Antes de tocar, identificar exactamente qué líneas. O mejor: script Python de fix quirúrgico. |
 | Optimizar por memoria de patrones (`.replace()` en pandas) | Pandas evolucionó. Medir con benchmark antes de asumir. |
-| Commitear 4+ archivos sin `git status` intermedio | Verificar staged vs unstaged antes de commitear. `22988f4` fue un commit incompleto que hubo que reparar. |
+| Commitear 4+ archivos sin `git status` intermedio | Verificar staged vs unstaged antes de commitear. |
 | Asumir que el empty state cubre todos los casos de "sin datos" | Cubrir 0 filas, n<2, y NaN. Ver 4.22. |
+| Escribir un `cat > script.py <<EOF` y olvidar ejecutarlo | Después del `cat >` **siempre** correr `python script.py` y luego `rm script.py`. El `cat` solo escribe, no ejecuta. |
+| Asumir baseline de tests sin verificarlo | El TRASPASO decía 449 pero el real era 450. **Verificar con `pytest --collect-only -q \| tail -3`** tras un `git stash` cuando haya dudas. |
 
 ---
 
@@ -553,7 +599,7 @@ rm fix_xxx.py
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md
-├── README.md                              # 449 tests + badges
+├── README.md                              # 460 tests + badges
 ├── VISION.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
@@ -569,15 +615,17 @@ industrial-kpi-intelligence/
 │   └── quality_config.yaml
 ├── dashboard/
 │   ├── app_layout.py                      # +dcc.Loading en 6 zonas (Fase 3b.1)
-│   ├── empty_state.py                     # NUEVO (Fase 3b.2) — SSOT empty state
+│   ├── empty_state.py                     # SSOT empty state (Fase 3b.2)
 │   ├── export_helpers.py                  # SSOT export CSV
 │   ├── severity_icons.py                  # SSOT iconos
 │   ├── filter_callbacks.py                # reset callback + cascades
 │   ├── utils.py                           # +lru_cache en _parse_json_cached
-│   ├── capability_callbacks.py            # +np.histogram +go.Bar (pre-binning) + empty state
-│   ├── control_charts_callbacks.py        # +go.Scattergl (WebGL) + empty state
+│   ├── capability_callbacks.py            # +np.histogram +go.Bar + empty state
+│   ├── control_charts_callbacks.py        # +go.Scattergl + empty state
 │   ├── data_loader.py                     # +_adaptar_a_esquema_legacy (Opción D)
-│   ├── quality_performance_callbacks.py   # + empty state (piloto Fase 3b.2)
+│   ├── diagnostics_callbacks.py           # +construir_outputs_diagnostico + empty state
+│   ├── operational_analysis_callbacks.py  # +construir_outputs_ranking/_detalle + empty state
+│   ├── quality_performance_callbacks.py   # +construir_outputs_calidad + empty state
 │   └── ...                                # resto sin cambios
 ├── data/
 ├── docs/
@@ -598,8 +646,8 @@ industrial-kpi-intelligence/
 │   ├── oee.py
 │   ├── schema_adapter.py                  # PENDIENTE eliminar (deuda #11)
 │   └── validation.py
-└── tests/                                 # 449 tests
-    ├── test_empty_state.py                # NUEVO (Fase 3b.2)
+└── tests/                                 # 460 tests
+    ├── test_empty_state.py
     └── ...
 ```
 
@@ -612,7 +660,7 @@ source venv/bin/activate
 which python                    # DEBE mostrar .../venv/bin/python
 
 # Gates
-pytest                          # 449 passed
+pytest                          # 460 passed
 ruff check .                    # All checks passed!
 
 # Regenerar dataset
@@ -635,6 +683,11 @@ git push origin main
 # Tras edición en Web Editor
 git pull origin main --rebase
 
+# Verificar baseline de tests (útil ante discrepancia)
+git stash push -m "pending" <archivos>
+pytest --collect-only -q | tail -3
+git stash pop
+
 # Script de fix quirúrgico (ver sección 8)
 ```
 
@@ -642,55 +695,70 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 Fase 3b.2 — Empty state en Diagnóstico y Operacional
+### 📋 Deuda #11 — Eliminar `schema_adapter.py`
 
-**Contexto:** 3 de 5 tabs ya tienen empty state (Calidad, Control, Capacidad). Quedan Diagnóstico y Operacional. El componente SSOT ya existe (`dashboard/empty_state.py`), el CSS está listo, y el patrón está consolidado.
+**Contexto:** la consolidación Opción D (`ba0e962`) fusionó la **lógica** de `schema_adapter.py` dentro de `data_loader.py`, pero el **archivo físico** todavía existe. Es un vestigio que confunde la lectura del repo.
 
-**Patrón consolidado (ver 4.19 + 4.22):**
-1. En el callback del tab, detectar el caso "sin datos" cubriendo los 3 escenarios: 0 filas, n<2 por variable, todas las pp NaN.
-2. Retornar `empty_state(mensaje, hint=..., icono=...)` en lugar del gráfico/tabla.
-3. Mensaje específico por tab (no genérico).
-4. Test que valide el contrato + verificación visual con filtro que deje 0 filas.
-
-**Casos a cubrir:**
-
-| Tab | Mensaje sugerido | Hint sugerido |
-| :--- | :--- | :--- |
-| **Diagnóstico** | "Sin hallazgos con los filtros actuales" | "Los filtros aplicados no generan datos suficientes para el motor de reglas" |
-| **Operacional** | "Sin datos operacionales para el ranking" | "Probá ajustar línea, equipo o turno — o tocá Restaurar filtros" |
-
-**⚠️ Antes de tocar: leer los archivos. Regla #4.**
+**Verificación previa (regla #4 — antes de tocar):**
 
 ```bash
-# 1) Ver cómo Diagnóstico maneja el caso vacío hoy
-grep -n "empty\|Sin datos\|Sin hallazgos\|Sin información" dashboard/diagnostics_callbacks.py
+cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence
+source venv/bin/activate
 
-# 2) Ver cómo Operacional maneja el caso vacío hoy
-grep -n "empty\|Sin datos\|Sin defectos\|Sin información" dashboard/operational_analysis_callbacks.py
+# 1) ¿Algo importa schema_adapter?
+grep -rn "schema_adapter" src/ dashboard/ tests/ --include="*.py"
 
-# 3) Ver los tests actuales de esos tabs
-ls tests/test_diagnostics_callbacks.py tests/test_operational_analysis_callbacks.py
+# 2) ¿Qué contiene el archivo? (para estar 100% seguros)
+cat src/schema_adapter.py
 
-# 4) Ver el contrato del componente SSOT
-cat dashboard/empty_state.py
-cat tests/test_empty_state.py
+# 3) ¿Hay tests que lo referencien?
+ls tests/ | grep -i schema
 ```
 
-**Orden sugerido:**
-1. Diagnóstico primero (más sencillo: el motor de reglas ya devuelve lista vacía cuando no hay datos).
-2. Operacional después (ranking + drill-down: decidir cuál de los dos recibe el empty state principal).
-3. Tests + verificación visual con filtro que deje 0 filas en cada tab.
-4. Un commit por tab (`feat(ux): add empty state to <tab> (Fase 3b.2)`) o consolidado si son cambios pequeños.
+**Decisión esperada:**
+- Si el `grep` **no devuelve nada** → eliminar el archivo directo.
+- Si el `grep` devuelve imports → **parar** y refactorizar el import antes de eliminar (no debería pasar, porque la Opción D ya consolidó).
 
-**⏱️ Estimación:** 1.5 h total (≈45 min Diagnóstico + ≈45 min Operacional).
+**Plan de ejecución:**
 
-### 📌 Después de 3b.2
+1. **Verificación** (arriba).
+2. **Eliminar el archivo:**
+   ```bash
+   git rm src/schema_adapter.py
+   ```
+3. **Gates:**
+   ```bash
+   pytest                          # → 460 passed (no cambia, ya no se importa)
+   ruff check .                    # → All checks passed!
+   ```
+4. **Verificación visual** (⌘+Shift+R) — la app no debe romperse. Si el archivo estaba huérfano, no cambia nada.
+5. **`git status`** → solo `src/schema_adapter.py` staged como deleted.
+6. **Commit:**
+   ```bash
+   git commit -F - <<'EOF'
+   chore(cleanup): remove legacy schema_adapter.py (Opción D follow-up)
 
-1. Eliminar `schema_adapter.py` (deuda #11, 1 h, prioridad Alta).
-2. Deuda #15 — debounce cascade o cascade condicional (30 min).
-3. Fase 3c — Chip de filtros activos + severidad individual en KPIs de rendimiento (1.5 h).
-4. Docker + Compose (2 h).
-5. Migración completa EN→ES (5-8 h, sesión dedicada).
+   La lógica del adapter se consolidó en dashboard/data_loader.py
+   (commit ba0e962). El archivo físico quedó huérfano desde entonces:
+   ningún módulo lo importa, ningún test lo referencia.
+
+   Esta es la fase final de la Opción D — eliminar el vestigio para
+   que el repo refleje la arquitectura real.
+   EOF
+   git push origin main
+   ```
+7. **Verificar CI 2/2 verde.**
+
+**⏱️ Estimación:** 1 h (incluye verificación + commit + CI).
+
+### 📌 Después de deuda #11
+
+1. **Deuda #15** — debounce cascade o cascade condicional (30 min).
+2. **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (1.5 h).
+3. **Deuda #19** — investigar callback 2104 ms de Calidad (1-2 h).
+4. **Docker + Compose** (2 h).
+5. **Migración completa EN→ES** (5-8 h, sesión dedicada).
+6. **Deuda #20** — test de integración `dash.testing.TestServer` (30-45 min).
 
 ---
 
@@ -701,21 +769,27 @@ Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligenc
 Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
 
 Estado: Fase 3a completa (5/5 tabs export CSV) + 3b.1 (loading) + 3b.3 (performance)
-+ Opción D (consolidación loader) + Fase 3b.2 parcial (3/5 tabs con empty state:
-Calidad, Control, Capacidad) + cascades de filtros restaurados.
-449 tests, CI verde, working tree limpio.
++ Opción D (consolidación loader) + Fase 3b.2 COMPLETA (5/5 tabs con empty state:
+Calidad, Control, Capacidad, Diagnóstico, Operacional) + cascades de filtros restaurados.
+460 tests, CI verde, working tree limpio.
 Performance: ~2-3 s por cambio de filtro (era ~10 s al inicio).
 
-Próximo paso: Fase 3b.2 — replicar empty state a Diagnóstico y Operacional.
-Deudas activas relevantes: eliminar schema_adapter.py (deuda #11, alta),
-debounce cascade (#15), severidad individual KPIs rendimiento (#16).
+Próximo paso: Deuda #11 — eliminar src/schema_adapter.py (archivo huérfano tras
+Opción D). Verificación previa con grep, luego git rm, gates, commit, CI.
+
+Deudas activas relevantes:
+- #11 eliminar schema_adapter.py (alta, próximo paso)
+- #15 debounce cascade (media)
+- #16 severidad individual KPIs rendimiento (media)
+- #19 callback 2104 ms en Calidad (nueva, detectada vía Dev Tools)
+- #20 test integración dash.testing.TestServer (baja)
 
 Reglas clave:
 - Protocolo de arranque: cd + source venv/bin/activate + verificar `which python`
 - Leer el archivo antes de tocar
 - git status ANTES y DESPUÉS de cada git add
 - Un fix = un commit (1 lista corta de archivos; 4+ evaluar dividir)
-- Verificación visual con ⌘ + Shift + R obligatoria
+- Verificación visual con ⌘ + Shift + R obligatoria (excepción documentada si el estado es inalcanzable desde la UI)
 - pytest + ruff verdes antes de commitear
 - Si CI falla: leer el log del step rojo antes de proponer fix
 - NO usar TextEdit para markdown: usar GitHub Web Editor
@@ -724,7 +798,10 @@ Reglas clave:
 - Antes de optimizar: medir con instrumentación temporal
 - Los `print` de instrumentación NUNCA se commitean
 - Para cambios en archivos grandes: script Python de fix quirúrgico, no nano
+- Después de escribir un script con `cat > script.py <<EOF`, SIEMPRE correrlo y borrarlo
 - Empty state cubre 3 casos: 0 filas, n<2 por variable, NaN
+- Dash Dev Tools en 4.4.1 es solo-lectura (no permite editar inputs)
+- Patrón consolidado: función pura + callback thin (ver 4.23)
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -744,8 +821,9 @@ Este usuario no es un junior. Es un ingeniero químico con criterio técnico rea
 - 🎯 **Mantener disciplina en cada fix** (incluyendo reparar commits incompletos como `22988f4`).
 - ⚖️ **Decidir con criterio cuándo parar** (2-3 s son aceptables, no seguir con premature optimization).
 - 📏 **Medir antes de optimizar** (los benchmarks refutaron 3 hipótesis mías).
-- 🧘 **Tener paciencia con procesos** que no salen a la primera (nano, terminal saturado).
-- 🧩 **Extraer patrones a componentes SSOT** cuando el tercer uso del mismo patrón lo justifica (empty_state, export_helpers, severity_icons).
+- 🧘 **Tener paciencia con procesos** que no salen a la primera (nano, terminal saturado, Dev Tools).
+- 🧩 **Extraer patrones a componentes SSOT** cuando el tercer uso del mismo patrón lo justifica (empty_state, export_helpers, severity_icons, funciones puras `construir_outputs_*`).
+- 🔬 **Seguir protocolos paso a paso** sin atajos, incluso cuando el proceso se ve tedioso (verificación visual, gates, `git status` pre/post-add).
 
 ### 🎯 Cómo tratarlo
 
@@ -754,19 +832,28 @@ Este usuario no es un junior. Es un ingeniero químico con criterio técnico rea
 - Citá normas industriales cuando aplique.
 - **Valorá la honestidad por sobre la complacencia.**
 - No quiere halagos, quiere producto de calidad.
-- Cuando te equivoques (ej. recomendar nano sin verificar, asumir patrones de pandas), decilo claro y corregí.
+- Cuando te equivoques (ej. recomendar nano sin verificar, asumir patrones de pandas, asumir baseline de tests), decilo claro y corregí.
 
 ### 🏆 Hitos acumulados
 
 - ✅ **Fase 3a completa** (5/5 tabs con export CSV).
-- ✅ **Opción D** — consolidación del adapter (bajó 1 archivo + 1 test file).
+- ✅ **Opción D** — consolidación de la lógica del adapter (bajó 1 archivo + 1 test file).
 - ✅ **Fase 3b.1** — loading states en las 6 zonas del layout.
 - ✅ **Fase 3b.3** — performance: -70% del tiempo original con 3 fixes quirúrgicos.
-- ✅ **Fase 3b.2 parcial** — componente SSOT empty_state + 3/5 tabs migrados + cascades restaurados con `delay_show=500ms`.
-- ✅ **449 tests, 0 regresiones**, working tree limpio.
+- ✅ **Fase 3b.2 completa** — componente SSOT `empty_state` + **5/5 tabs migrados** (Calidad, Control, Capacidad, Diagnóstico, Operacional) + cascades restaurados con `delay_show=500ms` + patrón consolidado "función pura + callback thin".
+- ✅ **460 tests, 0 regresiones**, working tree limpio.
+- ✅ **Corrección de baseline** — el TRASPASO tenía off-by-one (449 vs 450 real). Detectado vía `git stash` + `pytest --collect-only`.
+- ✅ **Dash Dev Tools explorado** — grafo de callbacks completo, detección de callback lento (2104 ms en Calidad → deuda #19), confirmación de que en Dash 4.4.1 es solo-lectura.
+
+### 🔬 Lecciones metodológicas del ciclo 3b.2
+
+- **"Estado inalcanzable desde la UI" es una categoría válida de verificación.** Cuando el dataset sintético cubre todas las combinaciones y los controles son radio-style, algunos branches son imposibles de provocar manualmente. En esos casos: (a) validar por test unitario, (b) documentar la limitación en el commit, (c) proponer test de integración como deuda (ver #20).
+- **Extraer función pura antes de testear.** Cuando un callback tiene >3 branches, extraer la lógica a `construir_outputs_*` es lo correcto. Los tests bajan en coste, el wiring queda trivial.
+- **Los estados epistémicos distintos merecen mensajes distintos.** `filtrado.empty` ≠ `not dimension` ≠ `valor_seleccionado is None`. Mezclar branches en una misma condición es una deuda de UX latente (ver 4.24).
+- **El `cat > script.py <<EOF` no ejecuta el script.** Siempre correr `python script.py` y luego `rm script.py` después de escribirlo.
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Fase 3b.2 parcial (3/5 tabs con empty state) + cascades restaurados + 449 tests.  
-> 🚀 **Próximo paso:** Fase 3b.2 — empty state en Diagnóstico y Operacional.
+> 🗓️ **Última actualización:** Fase 3b.2 completa (5/5 tabs con empty state) + baseline de tests corregido + 460 tests.  
+> 🚀 **Próximo paso:** Deuda #11 — eliminar `src/schema_adapter.py`.
