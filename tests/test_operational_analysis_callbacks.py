@@ -10,6 +10,8 @@ from dashboard.operational_analysis_callbacks import (
     _color_por_ratio,
     _extraer_valor_seleccionado,
     _label_dimension,
+    construir_outputs_detalle,
+    construir_outputs_ranking,
     crear_figura_ranking,
     crear_panel_detalle,
     exportar_operacional_csv,
@@ -313,3 +315,93 @@ def test_exportar_operacional_csv_incluye_columnas_del_ranking():
 )
 def test_exportar_operacional_csv_sin_datos_devuelve_none(data, dimension):
     assert exportar_operacional_csv(data, dimension) is None
+
+# ─────────────────────────────────────────────────────────────
+# Fase 3b.2 — Contrato de construir_outputs_ranking / _detalle
+# ─────────────────────────────────────────────────────────────
+
+
+def _dataset_json() -> str:
+    """Serializa el fixture al JSON que consume el loader de filtros."""
+    return _dataset().to_json(orient="split", date_format="iso")
+
+
+def _click_en(valor: str) -> dict:
+    """Construye un clickData de Plotly apuntando a `valor` en el eje Y.
+
+    Con orientation='h', Plotly reporta la categoría en 'y'. Este helper
+    replica ese contrato para no acoplarnos a detalles de Plotly.
+    """
+    return {"points": [{"y": valor}]}
+
+
+def test_construir_outputs_ranking_con_datos():
+    """Con datos y dimensión, la figura tiene traces (no está vacía)."""
+    figura = construir_outputs_ranking(_dataset_json(), "equipo")
+    assert len(figura.data) > 0
+
+
+def test_construir_outputs_ranking_sin_datos():
+    """Dataset vacío → figura sin traces.
+
+    El output del ranking es `figure`, no puede recibir `empty_state`.
+    El estado vacío se comunica con una figura sin traces.
+    """
+    data_vacio = pd.DataFrame().to_json(orient="split", date_format="iso")
+    figura = construir_outputs_ranking(data_vacio, "equipo")
+    assert len(figura.data) == 0
+
+
+def test_construir_outputs_ranking_sin_dimension():
+    """Dimensión None → figura sin traces (no puede agrupar)."""
+    figura = construir_outputs_ranking(_dataset_json(), None)
+    assert len(figura.data) == 0
+
+
+def test_construir_outputs_detalle_con_datos_y_click():
+    """Con datos, dimensión y click válido → panel normal del grupo."""
+    panel = construir_outputs_detalle(
+        _click_en("EQ-B"), "equipo", _dataset_json()
+    )
+
+    texto = str(panel)
+    assert "EQ-B" in texto
+    assert "Sin datos operacionales" not in texto
+
+
+def test_construir_outputs_detalle_sin_datos():
+    """Sin datos crudos → empty_state con mensaje de dominio.
+
+    El hint sugiere ajustar filtros, no elegir dimensión: el problema
+    es de datos, no de configuración.
+    """
+    data_vacio = pd.DataFrame().to_json(orient="split", date_format="iso")
+    salida = construir_outputs_detalle(_click_en("EQ-B"), "equipo", data_vacio)
+
+    texto = str(salida)
+    assert "Sin datos operacionales para el ranking" in texto
+    assert "Restaurar filtros" in texto
+
+
+def test_construir_outputs_detalle_sin_dimension():
+    """Sin dimensión (pero con datos) → string de acción, NO empty_state.
+
+    Regresión: un empty_state acá sería engañoso — hay datos, solo
+    falta elegir cómo agrupar.
+    """
+    salida = construir_outputs_detalle(
+        _click_en("EQ-B"), None, _dataset_json()
+    )
+    assert salida == "Selecciona una dimensión para ver el detalle."
+
+
+def test_construir_outputs_detalle_sin_click():
+    """Sin click en una barra → string de acción, NO empty_state.
+
+    Regresión: hay datos y dimensión, solo falta interactuar. El 📭
+    sugeriría "no hay nada", pero sí hay.
+    """
+    salida = construir_outputs_detalle(None, "equipo", _dataset_json())
+    assert salida == (
+        "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
+    )

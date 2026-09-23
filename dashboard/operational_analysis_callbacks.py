@@ -32,6 +32,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 from dash import Input, Output, State, html
 
+from dashboard.empty_state import empty_state
 from dashboard.export_helpers import crear_descarga_csv
 from dashboard.operational_analysis_components import LABELS_EJES_DIMENSION
 from dashboard.utils import aplicar_tema_oscuro, leer_dataframe_filtrado
@@ -236,6 +237,65 @@ def exportar_operacional_csv(data, dimension):
     return crear_descarga_csv(json_data, "operacional")
 
 
+def construir_outputs_ranking(data, dimension) -> go.Figure:
+    """Función pura: produce la figura del ranking operacional.
+
+    Extraída del callback para testear el contrato sin instanciar Dash.
+
+    Returns
+    -------
+    go.Figure
+        Figura del ranking agrupado por `dimension`, o figura sin traces
+        si no hay datos crudos o no hay dimensión seleccionada. Como
+        `operational-ranking-chart` es un `dcc.Graph` con output
+        `figure`, el estado vacío se comunica con una figura vacía
+        (no puede recibir `empty_state`, que es HTML).
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    if filtrado.empty or not dimension:
+        return aplicar_tema_oscuro(go.Figure())
+
+    return crear_figura_ranking(filtrado, dimension)
+
+
+def construir_outputs_detalle(click_data, dimension, data):
+    """Función pura: produce el `children` del panel de detalle.
+
+    Extraída del callback para testear el contrato sin instanciar Dash.
+
+    Distingue tres estados epistémicos distintos, igual que en Diagnóstico:
+
+      1. `filtrado.empty` → empty_state. No hay datos crudos; el hint
+         sugiere ajustar filtros.
+      2. `not dimension` → string de acción. Hay datos, falta elegir
+         cómo agrupar.
+      3. `valor_seleccionado is None` → string de acción. Hay datos y
+         dimensión, falta click en una barra.
+
+    Solo el caso 1 devuelve `empty_state`. Los casos 2 y 3 son
+    "esperando acción del usuario", no "no hay nada" — usar 📭 sería
+    engañoso y confundiría el diagnóstico del operador.
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    if filtrado.empty:
+        return empty_state(
+            "Sin datos operacionales para el ranking",
+            hint="Probá ajustar línea, equipo o turno — o tocá 'Restaurar filtros'.",
+        )
+
+    if not dimension:
+        return "Selecciona una dimensión para ver el detalle."
+
+    valor_seleccionado = _extraer_valor_seleccionado(click_data)
+
+    if valor_seleccionado is None:
+        return "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
+
+    return crear_panel_detalle(filtrado, dimension, valor_seleccionado)
+
+
 def registrar_callbacks_operational_analysis(app) -> None:
     @app.callback(
         Output("operational-ranking-chart", "figure"),
@@ -243,12 +303,7 @@ def registrar_callbacks_operational_analysis(app) -> None:
         Input("operational-dimension-selector", "value"),
     )
     def callback_actualizar_ranking(data, dimension):
-        filtrado = leer_dataframe_filtrado(data)
-
-        if filtrado.empty or not dimension:
-            return aplicar_tema_oscuro(go.Figure())
-
-        return crear_figura_ranking(filtrado, dimension)
+        return construir_outputs_ranking(data, dimension)
 
     @app.callback(
         Output("operational-ranking-chart", "clickData"),
@@ -271,17 +326,7 @@ def registrar_callbacks_operational_analysis(app) -> None:
         Input("store-datos-filtrados", "data"),
     )
     def callback_actualizar_detalle(click_data, dimension, data):
-        filtrado = leer_dataframe_filtrado(data)
-
-        if filtrado.empty or not dimension:
-            return "Selecciona una dimensión para ver el detalle."
-
-        valor_seleccionado = _extraer_valor_seleccionado(click_data)
-
-        if valor_seleccionado is None:
-            return "Haz clic en una barra del gráfico para ver el detalle de ese grupo."
-
-        return crear_panel_detalle(filtrado, dimension, valor_seleccionado)
+        return construir_outputs_detalle(click_data, dimension, data)
 
     @app.callback(
         Output("download-operacional", "data"),
