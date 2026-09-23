@@ -11,5 +11,5 @@ ignore = ["E501"]
 "app/main.py" = ["B008"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "tests/app"]
 addopts = "-ra"
