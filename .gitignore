@@ -22,3 +22,9 @@ venv/
 
 # Datos de prueba (CSV)
 kpis.csv
+
+# Testing artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
