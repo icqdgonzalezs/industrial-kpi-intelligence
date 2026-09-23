@@ -13,6 +13,7 @@ import pandas as pd
 from dash import Input, Output, State
 
 from dashboard.diagnostics_components import crear_tarjeta_hallazgo
+from dashboard.empty_state import empty_state
 from dashboard.export_helpers import crear_descarga_csv
 from dashboard.utils import leer_dataframe_filtrado
 from src.diagnostics import generar_diagnostico
@@ -82,6 +83,65 @@ def exportar_diagnostico_csv(data, capacidad_json):
     return crear_descarga_csv(json_data, "diagnostico")
 
 
+def construir_outputs_diagnostico(data, capacidad_json) -> tuple:
+    """Función pura: produce la tupla de 5 outputs del callback de Diagnóstico.
+
+    Orden de outputs (contrato fijo):
+        0: contador PRIORITY (str)
+        1: contador WATCH (str)
+        2: contador INFO (str)
+        3: resumen ejecutivo (str)
+        4: lista de tarjetas de hallazgo o [empty_state] (list)
+
+    Extraída del callback para testear el contrato sin instanciar Dash.
+
+    Decisión de UX (Fase 3b.2): cuando no hay datos, los 3 contadores
+    quedan en "0" y el resumen ejecutivo en "". El empty_state del
+    quinto output comunica el estado al usuario. Los contadores en "0"
+    son informativos (0 hallazgos = período limpio, no app rota).
+    """
+    filtrado = leer_dataframe_filtrado(data)
+
+    if filtrado.empty:
+        return (
+            "0", "0", "0", "",
+            [empty_state(
+                "Sin datos para diagnosticar",
+                hint="Ajustá los filtros o tocá 'Restaurar filtros'.",
+            )],
+        )
+
+    capacidad = _leer_capacidad(capacidad_json)
+    diagnostico = generar_diagnostico(filtrado, capacidad)
+
+    if diagnostico.empty:
+        return (
+            "0", "0", "0", "",
+            [empty_state(
+                "Sin hallazgos con los filtros actuales",
+                hint="Los filtros aplicados no generan datos suficientes para el motor de reglas.",
+            )],
+        )
+
+    n_priority = int((diagnostico["severidad"] == "PRIORITY").sum())
+    n_watch = int((diagnostico["severidad"] == "WATCH").sum())
+    n_info = int((diagnostico["severidad"] == "INFO").sum())
+
+    resumen = crear_resumen_ejecutivo(diagnostico)
+
+    tarjetas = [
+        crear_tarjeta_hallazgo(
+            fila["severidad"],
+            fila["categoria"],
+            fila["titulo"],
+            fila["mensaje"],
+        )
+        for _, fila in diagnostico.iterrows()
+    ]
+
+    return str(n_priority), str(n_watch), str(n_info), resumen, tarjetas
+
+
 def registrar_callbacks_diagnostics(app) -> None:
     @app.callback(
         Output("diagnostics-count-priority", "children"),
@@ -93,40 +153,7 @@ def registrar_callbacks_diagnostics(app) -> None:
         Input("store-capacidad", "data"),
     )
     def callback_actualizar_diagnostico(data, capacidad_json):
-        filtrado = leer_dataframe_filtrado(data)
-
-        if filtrado.empty:
-            return "0", "0", "0", "Sin datos para diagnosticar.", []
-
-        capacidad = _leer_capacidad(capacidad_json)
-        diagnostico = generar_diagnostico(filtrado, capacidad)
-
-        if diagnostico.empty:
-            return (
-                "0",
-                "0",
-                "0",
-                "Sin hallazgos que requieran atención en el período seleccionado.",
-                [],
-            )
-
-        n_priority = int((diagnostico["severidad"] == "PRIORITY").sum())
-        n_watch = int((diagnostico["severidad"] == "WATCH").sum())
-        n_info = int((diagnostico["severidad"] == "INFO").sum())
-
-        resumen = crear_resumen_ejecutivo(diagnostico)
-
-        tarjetas = [
-            crear_tarjeta_hallazgo(
-                fila["severidad"],
-                fila["categoria"],
-                fila["titulo"],
-                fila["mensaje"],
-            )
-            for _, fila in diagnostico.iterrows()
-        ]
-
-        return str(n_priority), str(n_watch), str(n_info), resumen, tarjetas
+        return construir_outputs_diagnostico(data, capacidad_json)
 
     @app.callback(
         Output("download-diagnostico", "data"),

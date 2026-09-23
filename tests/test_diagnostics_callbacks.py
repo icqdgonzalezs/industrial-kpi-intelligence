@@ -5,6 +5,7 @@ import pytest
 
 from dashboard import diagnostics_callbacks as diag_mod
 from dashboard.diagnostics_callbacks import (
+    construir_outputs_diagnostico,
     crear_resumen_ejecutivo,
     exportar_diagnostico_csv,
 )
@@ -172,3 +173,95 @@ def test_exportar_diagnostico_csv_sin_hallazgos_devuelve_none(monkeypatch):
     data = df.to_json(orient="split", date_format="iso")
 
     assert exportar_diagnostico_csv(data, None) is None
+
+# ─────────────────────────────────────────────────────────────
+# Fase 3b.2 — Contrato de construir_outputs_diagnostico
+# ─────────────────────────────────────────────────────────────
+
+
+def test_construir_outputs_diagnostico_sin_datos():
+    """Dataset vacío → contadores en "0", resumen vacío, un empty_state.
+
+    Distingue el estado "sin datos crudos" del estado "sin hallazgos"
+    (dataset con datos pero motor sin alertas). Son estados epistémicos
+    distintos y el mensaje del empty_state debe reflejarlo.
+    """
+    df = pd.DataFrame()
+    data = df.to_json(orient="split", date_format="iso")
+
+    outputs = construir_outputs_diagnostico(data, None)
+
+    assert len(outputs) == 5
+    assert outputs[0] == "0"
+    assert outputs[1] == "0"
+    assert outputs[2] == "0"
+    assert outputs[3] == ""
+    assert isinstance(outputs[4], list)
+    assert len(outputs[4]) == 1
+
+    texto = str(outputs[4][0])
+    assert "Sin datos para diagnosticar" in texto
+    assert "Restaurar filtros" in texto
+
+
+def test_construir_outputs_diagnostico_sin_hallazgos(monkeypatch):
+    """Dataset con filas pero motor sin hallazgos → empty_state distinto.
+
+    El motor de reglas se mockea para aislar el contrato del callback
+    de las reglas de negocio reales (mismo patrón que los tests de
+    export). El mensaje debe distinguir "sin hallazgos" de "sin datos".
+    """
+    monkeypatch.setattr(
+        diag_mod,
+        "generar_diagnostico",
+        lambda filtrado, capacidad: pd.DataFrame(),
+    )
+
+    df = pd.DataFrame({"peso": [100.0, 101.0, 99.0]})
+    data = df.to_json(orient="split", date_format="iso")
+    # capacidad_json debe ser JSON válido: _leer_capacidad lo parsea
+    # ANTES de llegar al branch de diagnostico.empty.
+    capacidad_vacia = pd.DataFrame().to_json(orient="split", date_format="iso")
+
+    outputs = construir_outputs_diagnostico(data, capacidad_vacia)
+
+    assert outputs[0] == "0"
+    assert outputs[1] == "0"
+    assert outputs[2] == "0"
+    assert outputs[3] == ""
+    assert len(outputs[4]) == 1
+
+    texto = str(outputs[4][0])
+    assert "Sin hallazgos con los filtros actuales" in texto
+    assert "motor de reglas" in texto
+
+
+def test_construir_outputs_diagnostico_con_hallazgos(monkeypatch):
+    """Con hallazgos reales: la lista tiene tarjetas, NO empty_state.
+
+    Verifica el branch "camino feliz" para evitar una regresión donde
+    el empty_state se active por error cuando sí hay datos.
+    """
+    monkeypatch.setattr(
+        diag_mod,
+        "generar_diagnostico",
+        lambda filtrado, capacidad: _diagnostico_simulado(),
+    )
+
+    df = pd.DataFrame({"peso": [100.0, 101.0, 99.0]})
+    data = df.to_json(orient="split", date_format="iso")
+    capacidad_vacia = pd.DataFrame().to_json(orient="split", date_format="iso")
+
+    outputs = construir_outputs_diagnostico(data, capacidad_vacia)
+
+    # _diagnostico_simulado() tiene 1 PRIORITY, 1 WATCH, 1 INFO.
+    assert outputs[0] == "1"
+    assert outputs[1] == "1"
+    assert outputs[2] == "1"
+    assert outputs[3] != ""  # resumen NO vacío cuando hay hallazgos
+    assert len(outputs[4]) == 3
+
+    texto = str(outputs[4])
+    assert "Sin datos" not in texto
+    assert "Sin hallazgos" not in texto
+    assert "Alto scrap" in texto
