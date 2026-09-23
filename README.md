@@ -3,12 +3,15 @@
 ## 🚀 Industrial Production & Quality Analytics Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Dash](https://img.shields.io/badge/Dash-Plotly-00CC96?logo=plotly&logoColor=white)](https://dash.plotly.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141.1-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![SQLModel](https://img.shields.io/badge/SQLModel-0.0.46-FF6F00?logo=python&logoColor=white)](https://sqlmodel.tiangolo.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Jinja2](https://img.shields.io/badge/Jinja2-3.1.6-B41717?logo=jinja&logoColor=white)](https://jinja.palletsprojects.com/)
 [![Tests](https://img.shields.io/badge/Tests-390%20passing-brightgreen)](tests/)
 [![CI](https://github.com/icqdgonzalezs/industrial-kpi-intelligence/actions/workflows/tests.yml/badge.svg)](https://github.com/icqdgonzalezs/industrial-kpi-intelligence/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Elastic_License_2.0-blue)](LICENSE)
 
-**Panel de control de KPIs de calidad industrial** con cálculo real de FPY, tasas de scrap/reproceso, diagrama de Pareto, comparación operacional (línea/turno/máquina), análisis de capacidad de proceso (**Pp/Ppk**, NIST 6.1.3) y motor OEE (**Availability × Performance × Quality**, ISA-95/TPM).
+**API REST y panel de control de KPIs de calidad industrial** con cálculo real de FPY, tasas de scrap/reproceso, diagrama de Pareto, comparación operacional (línea/turno/máquina), análisis de capacidad de proceso (**Pp/Ppk**, NIST 6.1.3) y motor OEE (**Availability × Performance × Quality**, ISA-95/TPM).
 
 ---
 
@@ -23,7 +26,9 @@ Una planta de envasado con **múltiples líneas, 23 equipos y 3 turnos** necesit
 3. Comparar desempeño por línea, máquina, turno y operador.
 4. Evaluar capacidad de proceso (**Pp/Ppk**, Six Sigma) de variables críticas.
 5. Calcular **OEE** de equipos críticos bajo estándar ISA-95/TPM.
-6. Generar conclusiones accionables, no solo gráficos.
+6. Exponer todos los KPIs a través de una **API REST** (FastAPI) para integración con ERP, MES o PLCs.
+7. Visualizar los KPIs en un **dashboard web** (Jinja2) para toma de decisiones.
+8. Generar conclusiones accionables, no solo gráficos.
 
 ---
 
@@ -87,8 +92,10 @@ Quality = Good Units / Total Units Produced # = FPY
 | Herramienta | Uso |
 |---|---|
 | Python 3.11 | Lenguaje base (compatibilidad con pyarrow en macOS antiguos) |
-| Plotly Dash | Dashboard interactivo (migración completa desde Streamlit) |
-| Plotly | Gráficos interactivos |
+| **FastAPI** | Framework web para la API REST y el dashboard |
+| **SQLModel** | ORM (SQLAlchemy + Pydantic) para modelar la base de datos |
+| **SQLite** | Base de datos relacional ligera (sin servidor) |
+| **Jinja2** | Motor de plantillas para el dashboard HTML |
 | Pandas / NumPy | Procesamiento de datos |
 | PyYAML | Configuración externalizada |
 | Pytest | Suite de **390 tests** unitarios |
@@ -111,13 +118,17 @@ source venv/bin/activate   # Windows: venv\Scripts\activate
 # Instalar dependencias
 pip install -r requirements.txt
 
-# Ejecutar el dashboard (desarrollo)
-python -m dashboard.dash_app
-# → abre http://127.0.0.1:8050
+# Migrar datos desde CSV a SQLite (solo la primera vez)
+python3 migrate_csv.py
 
-# Ejecutar el dashboard (producción, mismo comando que usa Render)
-gunicorn dashboard.dash_app:server
+# Levantar el servidor FastAPI (API + Dashboard)
+uvicorn app.main:app --reload
 ```
+
+**URLs disponibles:**
+- **API (Swagger UI):** http://127.0.0.1:8000/docs
+- **Dashboard HTML:** http://127.0.0.1:8000/
+- **Documentación OpenAPI:** http://127.0.0.1:8000/openapi.json
 
 ⚠️ **Nota de compatibilidad (macOS 10.14 Mojave o anterior):** este proyecto requiere **Python 3.11**, no 3.13+. pyarrow (dependencia del stack de datos) no publica binarios precompilados para Python 3.13 en macOS antiguos. Instalar Python 3.11 desde python.org si es necesario.
 
@@ -143,10 +154,47 @@ python scripts/check_oee_distribution.py
 
 ---
 
+## 🌐 API REST — Endpoints
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/kpis/` | Lista todos los KPIs registrados |
+| `POST` | `/kpis/` | Crea un nuevo KPI |
+| `GET` | `/` | Dashboard HTML con tabla de KPIs |
+| `GET` | `/docs` | Documentación interactiva (Swagger UI) |
+
+**Ejemplo con `curl`:**
+
+```bash
+# Listar todos los KPIs
+curl http://127.0.0.1:8000/kpis/
+
+# Crear un nuevo KPI
+curl -X POST http://127.0.0.1:8000/kpis/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Disponibilidad",
+    "valor": 95.2,
+    "unidad": "%",
+    "timestamp": "2026-09-23T10:00:00",
+    "linea_produccion": "Linea 3"
+  }'
+```
+
+---
+
 ## 📁 Estructura del proyecto
 
 ```
 industrial-kpi-intelligence/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                    # Aplicación FastAPI (endpoints + dashboard)
+│   ├── models.py                  # Modelo SQLModel (tabla KPI)
+│   ├── schemas.py                 # Schema Pydantic para validación de entrada
+│   ├── db.py                      # Configuración de SQLite y sesión
+│   └── templates/
+│       └── index.html             # Dashboard HTML con Jinja2
 ├── config/
 │   ├── quality_config.yaml        # LSL/USL, umbrales Ppk (Six Sigma)
 │   ├── plant_config.yaml          # Definición de líneas, equipos, turnos, operadores
@@ -155,12 +203,9 @@ industrial-kpi-intelligence/
 │   ├── raw/                       # Dataset sintético canónico (18k registros, EN)
 │   └── legacy/                    # Dataset histórico retirado (documentado en ADR-0001)
 ├── dashboard/
-│   ├── dash_app.py                # Aplicación Dash (punto de entrada)
-│   ├── app_layout.py              # Composición + navegación por pestañas
-│   ├── utils.py                   # Helpers compartidos (tema Plotly, filtros)
-│   ├── oee_presenter.py           # Mapping de keys estables OEE → labels ES/EN
-│   ├── <módulo>_components.py     # Componentes por pestaña
-│   └── <módulo>_callbacks.py      # Callbacks Dash por pestaña (delgados)
+│   ├── dash_app.py                # (Legacy) Aplicación Dash previa
+│   ├── app_layout.py              # (Legacy) Composición + navegación por pestañas
+│   └── ...                        # (Legacy) Componentes y callbacks
 ├── src/
 │   ├── data_generator.py          # Generador de datos (supuestos documentados)
 │   ├── schema_adapter.py          # Adapter EN → ES (Camino A, ADR-0001)
@@ -182,6 +227,7 @@ industrial-kpi-intelligence/
 │   └── style.css                  # Tema oscuro "sala de control"
 ├── imagenes/                      # Capturas del dashboard para el README
 ├── .github/workflows/tests.yml    # CI: ruff + pytest en cada push
+├── migrate_csv.py                 # Script de migración de CSV a SQLite
 ├── requirements.txt               # Dependencias con versiones fijadas
 ├── pyproject.toml                 # Configuración de Ruff y pytest
 ├── Procfile / render.yaml         # Deploy en Render (gunicorn)
@@ -190,7 +236,6 @@ industrial-kpi-intelligence/
 ├── LICENSE                        # Elastic License 2.0
 └── README.md
 ```
-
 
 ---
 
@@ -202,7 +247,7 @@ industrial-kpi-intelligence/
 
 3. **OEE en 0.8733 de planta** con Performance limitado por pérdidas de ritmo (micro-paradas, ajustes, variabilidad de turno) — coherente con benchmarks industriales.
 
-4. **Líneas futuras**: carta de control X-bar/R multivariante, incorporación de datos reales de planta vía OPC-UA, y despliegue con autenticación JWT + RBAC (Semana 3 en curso).
+4. **Líneas futuras**: carta de control X-bar/R multivariante, incorporación de datos reales de planta vía OPC-UA, autenticación JWT + RBAC, y despliegue productivo con PostgreSQL.
 
 ---
 
