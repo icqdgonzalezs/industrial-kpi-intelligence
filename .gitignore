@@ -1,22 +1,24 @@
-venv/
+# Python
 __pycache__/
-*.pyc
-.pytest_cache/
-.DS_Store
-.env
-.env.*
-!.env.example
-.coverage
-estructura.txt
-# Ruff cache
-.ruff_cache/
-
-# IDEs
-.vscode/
-.idea/
-
-# Packaging
+*.py[cod]
 *.egg-info/
-build/
-dist/
-dashboard/.Rapp.history
+.venv/
+venv/
+
+# Base de datos (NO subir a GitHub)
+*.db
+*.sqlite
+*.sqlite3
+
+# macOS
+.DS_Store
+
+# Entorno
+.env
+
+# Logs y alertas
+*.log
+*.alerts
+
+# Datos de prueba (CSV)
+kpis.csv
