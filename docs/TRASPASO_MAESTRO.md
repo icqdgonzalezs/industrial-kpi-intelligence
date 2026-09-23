@@ -2,8 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Migración a FastAPI + SQLModel + SQLite completada (capa API paralela al dashboard Dash legacy). Commit `a162f15` pusheado. 460 tests verdes, CI verde.  
-> 🚀 **Próximo paso:** Fase 4 de FastAPI — dashboard Jinja2 (`app/templates/index.html` + endpoint `/`).
+> 🗓️ **Última actualización:** Ciclo #21 + #22 cerrado (dashboard Jinja2 + tests para `app/`). Commit `0c59acc` pusheado. **477 tests verdes, CI 2/2 verde verificado (run #112).**  
+> 🚀 **Próximo paso:** Fase IA — chat con KPIs (RAG + LLM). Ver sección 11.
 
 ---
 
@@ -23,8 +23,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 8 | 📊 **Si algo falla, pedir datos crudos** (salida de terminal, log de CI), no proponer fixes por especulación. |
 | 9 | 🎯 **Estilo de respuesta:** directo, técnico, sin relleno. Markdown con tablas y bloques de código. Español. |
 | 10 | 🚫 **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
+| 11 | 🔍 **Ningún push sin verificar el run CI anterior.** El "verde" del TRASPASO es foto histórica, no estado vivo. |
 
-> 🚀 **Próximo paso concreto del proyecto:** Fase 4 de FastAPI — crear `app/templates/index.html` + endpoint `/` para el dashboard Jinja2. Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** Fase IA.1 — chat con KPIs (RAG + LLM, proveedor Groq). Ver sección 11.
 
 ---
 
@@ -36,15 +37,16 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 🌐 **Ecosistema** | Primer producto de 6 SaaS (Industrial Operations Intelligence) |
 | 🛠️ **Stack legacy (dashboard)** | Python 3.11.9 · Plotly Dash 4.4.1 · Plotly · pandas · numpy |
 | 🛠️ **Stack nuevo (API REST)** | FastAPI 0.141.1 · SQLModel 0.0.46 · SQLAlchemy 2.0.54 · Pydantic 2.13.5 · SQLite · Jinja2 3.1.6 · Uvicorn 0.53.0 |
-| 🧪 **Testing** | pytest 9.1.1 · ruff · GitHub Actions CI/CD |
+| 🛠️ **Stack IA (próximo)** | Groq API (Llama 3.3 70B) · SDK OpenAI-compatible · python-dotenv |
+| 🧪 **Testing** | pytest 9.1.1 · pytest-cov 7.1.0 · ruff 0.16.6 · httpx2 2.13.1 · GitHub Actions CI/CD |
 | 📏 **Estándares aplicables** | ISA-95 · TPM (OEE) · NIST 6.1.3 / ISO 22514 (Pp/Ppk) · AIAG SPC · OWASP · ISA-101 (HMI) · WCAG 2.1 · OpenAPI 3.1 |
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **460 passed** (sin cambios tras la migración FastAPI) |
-| 🟢 **CI** | 2/2 verde (workflow CI) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `a162f15`. |
-| 📊 **Producto 1 (MVP)** | ~92% (dashboard Dash) + capa API nueva al 80% (falta dashboard Jinja2) |
+| ✅ **Tests actuales** | **477 passed** (460 legacy + 17 app/) |
+| 🟢 **CI** | 2/2 verde **verificado** (run #112, commit `0c59acc`) |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `0c59acc`. |
+| 📊 **Producto 1 (MVP)** | ~92% (dashboard Dash) + capa API al 90% (dashboard Jinja2 + tests OK). **Migración completa Dash → FastAPI en curso.** |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -95,31 +97,38 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **Fase 3b.2 Diagnóstico** (`d23af82`)
 - ✅ **Fase 3b.2 Operacional** (`9c780d8`)
 
-**Capa API REST (migración CSV → FastAPI — nueva en esta sesión):**
+**Capa API REST (migración CSV → FastAPI):**
 
-- ✅ **Doc README** (`85dd7fe` — vía Web Editor): README actualizado para mencionar FastAPI + SQLModel + SQLite. Se separaron las insignias (Dash legacy + FastAPI nuevo).
-- ✅ **Migración completa** (`a162f15`): 7 archivos, 139 inserciones, 29 deleciones.
-  - ✅ `app/models.py` — Modelo SQLModel `KPI` con `sa_column=Column(DateTime(timezone=False))` (resuelve el problema de naive datetime).
-  - ✅ `app/schemas.py` — Schema Pydantic `KPICreate` (separación modelo DB ↔ schema API).
-  - ✅ `app/db.py` — Configuración de SQLite (`kpi_database.db`) + `create_db_and_tables()` + `get_session()`.
-  - ✅ `app/main.py` — FastAPI con `lifespan` moderno, `GET /kpis/` y `POST /kpis/`. Endpoints probados: 200 OK y 201 Created (este último generó `id: 4`).
-  - ✅ `migrate_csv.py` — Script de migración CSV → SQLite vía pandas + SQLModel. Migra 3 KPIs de prueba (OEE, Tasa de defectos, MTTR).
-  - ✅ `requirements.txt` — Limpiado de 74 paquetes a 8 (se quitó todo el ruido: matplotlib, jupyter, plotly, etc.).
-  - ✅ `.gitignore` — Ampliado con `*.db`, `*.sqlite`, `*.sqlite3`, `kpis.csv`, `.env`, logs y `.DS_Store`.
+- ✅ **Doc README** (`85dd7fe` — Web Editor): badges separados (Dash legacy + FastAPI nuevo).
+- ✅ **Migración CSV → FastAPI + SQLModel + SQLite** (`a162f15`): 7 archivos, +139/-29.
+  - ✅ `app/models.py` — Modelo `KPI` con `sa_column=Column(DateTime(timezone=False))`.
+  - ✅ `app/schemas.py` — Schema `KPICreate` (BaseModel puro, separación DB ↔ API).
+  - ✅ `app/db.py` — SQLite + `create_db_and_tables()` + `get_session()`.
+  - ✅ `app/main.py` — FastAPI con `lifespan`, `GET /kpis/` y `POST /kpis/`.
+  - ✅ `migrate_csv.py` — Script de migración CSV → SQLite.
+  - ✅ `requirements.txt` — limpieza inicial.
+  - ✅ `.gitignore` — ampliado.
+
+**Ciclo #21 + #22 (nuevo — este bloque):**
+
+- ✅ **`54ac5ed`** — `chore(gitignore): ignore testing artifacts` (`.coverage`, `htmlcov/`, `.pytest_cache/`).
+- ✅ **`785b0c4`** — `fix(ci): restore requirements.txt for both stacks` (job `test` del CI).
+- ✅ **`a561fff`** — `fix(lint): resolve ruff findings in FastAPI layer` (job `lint` + per-file-ignores B008).
+- ✅ **`724f4ac`** — `feat(fastapi): add Jinja2 dashboard for KPI visualization` (**deuda #21 cerrada**). `app/templates/index.html` + endpoint `GET /`.
+- ✅ **`0c59acc`** — `test(app): add unit + integration tests for FastAPI layer` (**deuda #22 cerrada**). 17 tests con `TestClient` + SQLite en memoria.
 
 ### 🟡 En curso
 
-- *Nada.* Sesión cerrada. Working tree limpio.
+- *Nada.* Working tree limpio. CI #112 verde verificado.
 
-### ⏳ Pendiente inmediato (Fase 4 de FastAPI)
+### ⏳ Pendiente inmediato (Fase IA)
 
-- ⏳ **Dashboard Jinja2** (`app/templates/index.html` + endpoint `GET /`) — pendiente de creación en esta sesión.
-- ⏳ **Eliminar `schema_adapter.py`** (deuda #11 legacy del dashboard Dash).
-- ⏳ **Deuda #15** — debounce cascade o cascade condicional.
-- ⏳ **Fase 3c** — Chip de filtros activos + severidad individual en KPIs de rendimiento (deuda #16).
-- ⏳ **Bloque 3B** — Docker + Compose.
+- ⏳ **Fase IA.1** — Chat con KPIs (RAG + LLM, Groq). Ver sección 11.
+- ⏳ **Deuda #11** — eliminar `schema_adapter.py` legacy.
+- ⏳ **Deuda #15** — debounce cascade.
+- ⏳ **Deuda #16** — severidad individual en KPIs de rendimiento.
 - ⏳ **Deuda #19** — optimizar callback de 2104 ms en Calidad.
-- ⏳ **Tests para la capa FastAPI** — actualmente no hay tests unitarios para `app/`.
+- ⏳ **Migración completa Dash → FastAPI** (ver decisión 4.32).
 
 ---
 
@@ -127,8 +136,13 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
-| `a162f15` | **feat: migrar de CSV a FastAPI + SQLModel + SQLite** (7 files, +139/-29) | 460 |
-| `85dd7fe` | docs: migrar de CSV a FastAPI + SQLModel + SQLite en README (vía Web Editor) | 460 |
+| `0c59acc` | **test(app): add unit + integration tests for FastAPI layer** (7 files, +310/-2) | 477 |
+| `724f4ac` | **feat(fastapi): add Jinja2 dashboard for KPI visualization** | 460 |
+| `a561fff` | Fix(lint): resolve ruff findings in FastAPI layer | 460 |
+| `785b0c4` | Fix(ci): restore requirements.txt for both stacks | 460 |
+| `54ac5ed` | Chore(gitignore): ignore testing artifacts | 460 |
+| `a162f15` | feat: migrar de CSV a FastAPI + SQLModel + SQLite (7 files, +139/-29) | 460 |
+| `85dd7fe` | docs: migrar de CSV a FastAPI + SQLModel + SQLite en README (Web Editor) | 460 |
 | `9c780d8` | Feat(ux): add empty state to Operacional (Fase 3b.2) | 460 |
 | `d23af82` | Feat(ux): add empty state to Diagnóstico (Fase 3b.2) | 453 |
 | `db0bd52` | Docs(handoff): update TRASPASO to Fase 3b.2 partial state | 450 |
@@ -179,111 +193,78 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → ... → 450 → **453** → **460** → **460** (estable).  
-> La migración FastAPI **no añadió tests** todavía. Deuda nueva: cubrir `app/` con pytest.
+> 📈 **Evolución de tests:** 263 → ... → 450 → 453 → 460 → **477** (460 legacy + 17 app/).  
+> ✅ **CI verde real verificado** (run #112). Los runs rojos #107, #108, #109 quedan como histórico.
 
 ---
 
 ## 4️⃣ DECISIONES TÉCNICAS CLAVE
 
 ### 4.1 a 4.24 — Dashboard Dash legacy
-*(Sin cambios: ver versión anterior del TRASPASO. Se mantienen vigentes: patrón strangler ADR-0001, SSOT YAML, SPC contextualizado, ISA-101, escala AIAG SPC, empty_state, cascades, perf cache, WebGL, etc.)*
+*(Sin cambios: patrón strangler ADR-0001, SSOT YAML, SPC contextualizado, ISA-101, escala AIAG SPC, empty_state, cascades, perf cache, WebGL, etc.)*
 
 ### 4.25 🚀 Coexistencia Dash legacy + FastAPI nuevo
 - **Decisión:** la capa FastAPI se construye **en paralelo**, sin tocar el dashboard Dash existente.
-- **Motivo:** el dashboard Dash funciona al 92% del MVP con 460 tests verdes y CI verde. Reescribirlo todo a FastAPI sería un riesgo innecesario en esta fase.
-- **Estrategia:** la carpeta `app/` y `migrate_csv.py` conviven con `dashboard/`, `src/`, `tests/` originales. Migración gradual.
-- **Consecuencia:** el repo tiene dos puntos de entrada:
-  - `python -m dashboard.dash_app` → dashboard Dash (puerto 8050).
-  - `uvicorn app.main:app --reload` → API FastAPI (puerto 8000).
-- **Lección:** el patrón *strangler* aplica también a nivel de arquitectura completa, no solo de módulos. La migración de Dash a FastAPI se hará módulo a módulo.
+- **Motivo:** el dashboard Dash funciona al 92% del MVP con 460 tests verdes.
+- **Estrategia:** `app/` convive con `dashboard/`, `src/`, `tests/`. Migración gradual.
+- **Consecuencia:** dos puntos de entrada:
+  - `python -m dashboard.dash_app` → Dash (puerto 8050).
+  - `uvicorn app.main:app --reload` → FastAPI (puerto 8000).
+- **Lección:** patrón *strangler* aplicado a nivel de arquitectura completa.
 
-### 4.26 🧩 Separación modelo DB ↔ schema API (FastAPI)
-- **Problema:** SQLModel con `table=True` no ejecuta los validadores de Pydantic correctamente. Un `field_validator` en el modelo de tabla no convierte `"2026-09-23T10:00:00"` (string) a `datetime` antes de llegar a SQLite.
-- **Solución:** separar en dos modelos:
-  - `KPI` (en `app/models.py`): modelo de tabla (`table=True`), sin validadores.
-  - `KPICreate` (en `app/schemas.py`): schema Pydantic puro (`BaseModel`), con validación automática de `datetime`.
-- **Flujo:** el endpoint recibe `KPICreate`, convierte a `KPI` con `KPI(**kpi_data.model_dump())`, e inserta. En ese punto el `timestamp` ya es un `datetime` nativo.
-- **Lección:** es la arquitectura estándar de FastAPI en producción. Separar entrada (Pydantic) de persistencia (SQLModel/SQLAlchemy).
+### 4.26 🧩 Separación modelo DB ↔ schema API
+- **Problema:** SQLModel `table=True` no ejecuta validadores de Pydantic.
+- **Solución:** `KPI` (tabla) ≠ `KPICreate` (schema Pydantic).
+- **Flujo:** endpoint recibe `KPICreate` → convierte con `KPI(**kpi_data.model_dump())` → inserta.
+- **Lección:** arquitectura estándar de FastAPI en producción.
 
 ### 4.27 ⏰ Tratamiento del `timestamp` naive en SQLModel 0.0.46
-- **Problema:** SQLModel 0.0.46 exige por defecto que los `datetime` tengan timezone (`timezone-aware`). Las fechas del CSV son naive (sin zona horaria, hora local de planta).
-- **Error:** `ValueError: Datetime values must have timezone information. Use datetime.now(timezone.utc), or annotate the field with NaiveDatetime for naive storage.`
-- **Soluciones evaluadas:**
-  - `NaiveDatetime` de Pydantic → **NO existe** como tipo importable en SQLModel 0.0.46.
-  - `field_validator` en modelo `table=True` → **NO se ejecuta** correctamente.
-  - **✅ Adoptada:** `sa_column=Column(DateTime(timezone=False))`.
-- **Código final:**
-  ```python
-  from sqlalchemy import Column, DateTime
-  from sqlmodel import Field, SQLModel
-
-  class KPI(SQLModel, table=True):
-      id: Optional[int] = Field(default=None, primary_key=True)
-      nombre: str
-      valor: float
-      unidad: str
-      timestamp: datetime = Field(sa_column=Column(DateTime(timezone=False)))
-      linea_produccion: str
-  ```
-- **Lección:** cuando SQLModel impone un default restrictivo, `sa_column` es la vía de escape a SQLAlchemy crudo sin romper el modelo.
+- **Problema:** SQLModel exige por defecto `timezone-aware` datetimes.
+- **Solución adoptada:** `sa_column=Column(DateTime(timezone=False))`.
+- **Lección:** `sa_column` es la vía de escape cuando SQLModel impone un default restrictivo.
 
 ### 4.28 🔄 Flujo de trabajo con `git clone` en vez de `git init`
-- **Problema:** la carpeta local `~/industrial-kpi-intelligence/` creada con `mkdir` no era un repo git. `git status` daba `fatal: not a git repository`.
-- **Solución adoptada:** en vez de `git init` + `git remote add` (que puede causar conflictos con el historial remoto), se hizo:
-  1. Backup de la carpeta actual: `mv industrial-kpi-intelligence industrial-kpi-intelligence-local`.
-  2. Clonar limpio: `git clone <repo>`.
-  3. Copiar los archivos nuevos al clon: `cp -R ~/.../app .` etc.
-  4. Commit + push normal.
-- **Lección:** `git clone` es más seguro que `git init` + `remote add` cuando ya existe historial en el remoto. Evita merges raros y conflictos de historial.
+- **Solución:** `git clone` + `cp -R` del trabajo nuevo. Evita merges raros.
 
 ### 4.29 🧹 Limpieza del `requirements.txt` post-`pip freeze`
-- **Problema:** `pip3 freeze > requirements.txt` capturó **74 paquetes** instalados en el Python global del usuario (matplotlib, jupyter, plotly, pytest, etc.). Solo 8 son del proyecto.
-- **Solución:** escribir manualmente las 8 dependencias reales:
-  ```
-  fastapi==0.141.1
-  uvicorn==0.53.0
-  sqlmodel==0.0.46
-  SQLAlchemy==2.0.54
-  pydantic==2.13.5
-  Jinja2==3.1.6
-  pandas==3.0.5
-  python-dateutil==2.9.0.post0
-  ```
-- **Lección:** `pip freeze` es peligroso en entornos sin venv. **Nunca** usar el output crudo como `requirements.txt` de un proyecto. Mejor: escribir las dependencias top-level + las transitivas críticas a mano.
+- **Lección:** `pip freeze` es peligroso en entornos sin venv. Escribir dependencias top-level + transitivas críticas a mano.
 
 ### 4.30 🔒 .gitignore ampliado
-- **Añadido:**
-  ```
-  # Base de datos (NO subir a GitHub)
-  *.db
-  *.sqlite
-  *.sqlite3
+- **Añadido:** `*.db`, `*.sqlite`, `*.sqlite3`, `.env`, `*.log`, `*.alerts`, `kpis.csv`, y (ciclo actual) `.coverage`, `.coverage.*`, `htmlcov/`, `.pytest_cache/`.
 
-  # Entorno
-  .env
-
-  # Logs y alertas
-  *.log
-  *.alerts
-
-  # Datos de prueba (CSV)
-  kpis.csv
-  ```
-- **Motivo:** `kpi_database.db` no debe subirse a GitHub. Contiene datos locales. `kpis.csv` es dato de prueba.
-- **Verificación post-commit:** `git status` **NO** muestra `kpi_database.db` como untracked. ✅ Confirmado en el commit `a162f15`.
-
-### 4.31 🌐 URLs del proyecto (post-migración)
+### 4.31 🌐 URLs del proyecto
 | Servicio | URL | Comando |
 | :--- | :--- | :--- |
 | Dashboard Dash (legacy) | `http://127.0.0.1:8050` | `python -m dashboard.dash_app` |
 | API FastAPI + Swagger UI | `http://127.0.0.1:8000/docs` | `uvicorn app.main:app --reload` |
+| Dashboard Jinja2 | `http://127.0.0.1:8000/` | (mismo servidor) |
 | OpenAPI JSON | `http://127.0.0.1:8000/openapi.json` | (mismo servidor) |
-| Dashboard Jinja2 (pendiente) | `http://127.0.0.1:8000/` | (mismo servidor) |
+
+### 4.32 🎯 Migración completa Dash → FastAPI (decisión estratégica)
+- **Decisión:** retirar progresivamente `dashboard/` y consolidar toda la presentación en `app/` (FastAPI + Jinja2 + HTMX + Plotly.js).
+- **Motivo:** producto vendible single-stack, código limpio, sin dependencia del framework Dash.
+- **Estrategia:** strangler tab por tab. Cada tab migrado reemplaza al equivalente Dash y se elimina el código legacy.
+- **Stack elegido:** Jinja2 (server-side render) + HTMX (interactividad sin SPA) + Plotly.js (mismos gráficos que Dash).
+- **Timeline:** ~5 semanas (fases 0-10).
+- **Riesgo aceptado:** deadline del MVP. Mitigación: fases atómicas, gates por fase.
+- **Gate bloqueante:** tests para `app/` (#22) ✅ ya cerrada.
+
+### 4.33 🔗 `httpx2` reemplaza `httpx` (Starlette 1.6.0)
+- **Problema:** Starlette 1.6.0 deprecó `httpx` en `TestClient` (`StarletteDeprecationWarning`).
+- **Solución:** instalar `httpx2>=2.13,<3`. Starlette lo detecta automáticamente.
+- **Lección:** leer los `DeprecationWarning` temprano; migrar antes de que sea bloqueante.
+
+### 4.34 🧪 SQLModel `table=True` NO valida en construcción
+- **Problema:** `KPI(nombre=None)` no levanta `ValidationError` (contrato real de SQLModel).
+- **Solución:** la validación de entrada es responsabilidad de `KPICreate` (Pydantic `BaseModel`).
+- **Consecuencia en tests:** los tests del modelo documentan el contrato real (`test_kpi_no_valida_en_construccion`), no uno imaginario.
+- **Lección:** los tests prueban el contrato real del código, no el deseado.
 
 ---
 
 ## 5️⃣ ESTADO DE TESTS Y CALIDAD
+
+### Tests legacy (460)
 
 | Archivo | Tests | Cobertura conceptual |
 | :--- | :---: | :--- |
@@ -298,7 +279,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_data_loader.py` | 17 | Carga + traducción EN→ES consolidada |
 | `test_dataset_metadata.py` | 21 | Frescura del dataset |
 | `test_diagnostics.py` | 13 | Reglas de diagnóstico |
-| `test_diagnostics_callbacks.py` | 14 | Resumen + export CSV + 3 tests de `construir_outputs_diagnostico` |
+| `test_diagnostics_callbacks.py` | 14 | Resumen + export CSV |
 | `test_empty_state.py` | 7 | Contrato del componente SSOT |
 | `test_export_helpers.py` | 16 | `nombre_csv` + `boton_export` + `crear_descarga_csv` |
 | `test_filter_callbacks.py` | 4 | `valores_default_filtros` + smoke reset + cascade equipo |
@@ -309,7 +290,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_kpis.py` | 32 | FPY, defectos, scrap, reproceso |
 | `test_oee.py` | 25 | OEE (A×P×Q) ISA-95 |
 | `test_oee_presenter.py` | 6 | Presentación OEE |
-| `test_operational_analysis_callbacks.py` | 42 | Drill-down + labels + export CSV + 7 tests de `construir_outputs_ranking/_detalle` |
+| `test_operational_analysis_callbacks.py` | 42 | Drill-down + labels + export CSV |
 | `test_plant_overview.py` | 6 | Vista de planta |
 | `test_plant_overview_components.py` | 5 | Componentes UI |
 | `test_quality_performance_callbacks.py` | 15 | FPY, Pareto + export CSV + empty state |
@@ -318,14 +299,26 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_severity_icons.py` | 9 | `prefijar_icono` + SSOT iconos |
 | `test_utils.py` | 7 | Tema oscuro + cache de parseo JSON |
 | `test_validation.py` | 22 | Validación de contratos |
-| **TOTAL** | **460** | ✅ **Todos verdes** |
+| **Subtotal legacy** | **460** | ✅ |
 
-> ⚠️ **Deuda nueva:** `app/`, `migrate_csv.py` **no tienen tests todavía**. Se ha de añadir:
-> - `tests/test_app_models.py` — validación del modelo `KPI`.
-> - `tests/test_app_schemas.py` — validación de `KPICreate` (datetime parse).
-> - `tests/test_app_endpoints.py` — tests de `GET /kpis/` y `POST /kpis/` con `TestClient` de FastAPI.
-> - `tests/test_migrate_csv.py` — test de migración de un CSV temporal.
-> Estimación: 1.5 h, +25 tests aprox.
+### Tests de `app/` (17) — nuevo
+
+| Archivo | Tests | Cobertura conceptual |
+| :--- | :---: | :--- |
+| `tests/app/test_models.py` | 3 | `KPI` SQLModel: creación, timestamp naive, contrato real (no valida en construcción) |
+| `tests/app/test_schemas.py` | 5 | `KPICreate`: parseo ISO, coacción numérica, rechazo inválido |
+| `tests/app/test_endpoints.py` | 9 | `GET /`, `GET /kpis/`, `POST /kpis/` con `TestClient` |
+| **Subtotal app/** | **17** | ✅ |
+
+### Fixtures críticas (conftest.py)
+
+- `session` → SQLite en memoria (`StaticPool`, `check_same_thread=False`). Aislada por test. **No toca `kpi_database.db`.**
+- `client` → `TestClient` con `app.dependency_overrides[get_session]`. Cero contaminación entre tests.
+
+### Total
+
+> **477 tests passed** (460 legacy + 17 app/). **0 regresiones. 0 warnings.**  
+> Tiempo: ~60 s suite completa + ~0.20 s tests de `app/` (SQLite en memoria, gratis).
 
 ---
 
@@ -340,15 +333,18 @@ Estás retomando un proyecto en curso. Antes de responder:
 | **17** | Dataset sintético homogéneo inter-línea | Validación | 🟢 Baja |
 | **19** | Callback de 2104 ms en zona Calidad | Performance | 🟡 Media |
 | **20** | Verificación UI de empty states no automatizable | Testing infra | 🟢 Baja |
-| **21 🆕** | **Falta dashboard Jinja2** (`app/templates/index.html` + endpoint `/`) | Feature | 🔴 **Alta (próximo paso)** |
-| **22 🆕** | **Sin tests para `app/`** (FastAPI + SQLModel + migrate_csv) | Testing | 🟡 Media |
-| **23 🆕** | **`kpi_database.db` se migra manualmente** (no automatizado en CI) | Automatización | 🟢 Baja |
-| **24 🆕** | **Doble stack de dashboards** (Dash legacy 8050 + Jinja2 nuevo 8000) | Mantenibilidad | 🟡 Media (transitoria) |
+| ~~**21**~~ | ~~Falta dashboard Jinja2~~ | ✅ **CERRADA** (`724f4ac`) | — |
+| ~~**22**~~ | ~~Sin tests para `app/`~~ | ✅ **CERRADA** (`0c59acc`) | — |
+| **23** | `kpi_database.db` se migra manualmente (no automatizado en CI) | Automatización | 🟢 Baja |
+| **24** | Doble stack de dashboards (Dash 8050 + FastAPI 8000) | Mantenibilidad | 🟡 Media (transitoria) |
+| **25 🆕** | Pandas 2.1.4 → 3.x (requirements actualizado a `>=2.1,<3`) | Reproducibilidad | 🟢 Baja |
+| **26 🆕** | CI no mide cobertura de `app/` (solo `--cov=src --cov=dashboard`) | Testing infra | 🟡 Media |
+| **27 🆕** | Fase IA pendiente (chat con KPIs, RAG, LLM) | **Feature** | 🔴 **Alta (próximo)** |
 
 ### 📌 Detalle de deudas activas
 
-**Deuda 11 — Eliminación de `schema_adapter.py`:** ⚠️ **Pendiente (era el próximo paso antes de la migración FastAPI)**
-- `grep -rn "schema_adapter" src/ dashboard/ tests/ --include="*.py"` → confirmar que nada lo importa.
+**Deuda 11 — Eliminación de `schema_adapter.py`:**
+- `grep -rn "schema_adapter" src/ dashboard/ tests/ app/ --include="*.py"` → confirmar que nada lo importa.
 - `git rm src/schema_adapter.py` → `pytest` + `ruff check .` → commit `chore(cleanup): remove legacy schema_adapter.py`.
 
 **Deuda 15 — Doble spinner residual:**
@@ -359,24 +355,25 @@ Estás retomando un proyecto en curso. Antes de responder:
 - Los 4 KPIs heredan severidad agregada del PPM total.
 - **Fix:** severidad individual por KPI (Fase 3c).
 
-**Deuda 19 — Callback de 2104 ms (nueva):**
+**Deuda 19 — Callback de 2104 ms:**
 - Detectado en Dash Dev Tools: nodo con timing de **2104 ms** en zona de Calidad.
-- **Fix propuesto:** identificar callback exacto, instrumentar, medir, aplicar optimización.
+- **Fix propuesto:** identificar callback exacto, instrumentar, medir, optimizar.
 
-**Deuda 21 🆕 — Dashboard Jinja2 pendiente:**
-- Crear `app/templates/index.html` + endpoint `GET /` en `app/main.py`.
-- `Jinja2Templates(directory="app/templates")`.
-- Tabla HTML con `{{ kpis }}` iterando.
-- **Estimación:** 30 min.
-
-**Deuda 22 🆕 — Sin tests para `app/`:**
-- `test_app_models.py`, `test_app_schemas.py`, `test_app_endpoints.py` (con `TestClient`), `test_migrate_csv.py`.
-- **Estimación:** 1.5 h, +25 tests.
-
-**Deuda 24 🆕 — Doble stack de dashboards:**
-- Dash legacy (puerto 8050) + FastAPI/Jinja2 (puerto 8000).
+**Deuda 24 — Doble stack de dashboards:**
+- Dash legacy (8050) + FastAPI/Jinja2 (8000).
 - **Transitoria.** Una vez el dashboard Jinja2 cubra todas las funcionalidades del Dash, se retira el Dash.
-- **Estrategia:** strangler a nivel de dashboard, tab por tab.
+- **Estrategia:** strangler a nivel de dashboard, tab por tab. Ver decisión 4.32.
+
+**Deuda 25 🆕 — Pandas 2 → 3:**
+- `requirements.txt` fija `pandas>=2.1,<3`. El venv tiene 2.1.4.
+- Migrar a pandas 3 es su propio ciclo (rama, validación, commit dedicado). No mezclar con otras features.
+
+**Deuda 26 🆕 — Cobertura de `app/` en CI:**
+- El workflow corre `pytest tests/ -v --cov=src --cov=dashboard`. No incluye `--cov=app`.
+- **Fix candidato:** agregar `--cov=app` al comando del workflow.
+
+**Deuda 27 🆕 — Fase IA:**
+- Endpoint `POST /chat/` con RAG + LLM (Groq). Ver sección 11.
 
 ---
 
@@ -384,17 +381,26 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **4.FastAPI.1** | **Dashboard Jinja2 (`app/templates/index.html` + endpoint `/`)** | 30 min | 🔴 **Alta — PRÓXIMO PASO** |
-| **4.FastAPI.2** | **Tests para `app/`** (`test_app_*.py`) | 1.5 h | 🟡 Media |
-| **4.FastAPI.3** | Commit + push del dashboard Jinja2 | 10 min | 🔴 Alta |
+| **IA.1** | **Chat con KPIs (RAG + LLM, Groq)** | 3-4 h | 🔴 **Alta — PRÓXIMO PASO** |
+| IA.2 | Diagnóstico asistido por LLM | 2 h | 🟡 Media |
+| IA.3 | Generación de reportes ejecutivos (LLM narra KPIs) | 2 h | 🟡 Media |
+| IA.4 | Detección de anomalías ML (Isolation Forest sobre I-MR) | 3 h | 🟡 Media |
+| Docker | Dockerfile + docker-compose (Postgres) | 3 h | 🟠 Media |
+| Deploy | Railway o Fly.io + dominio | 1 h | 🔴 Alta (portafolio) |
+| Seguridad | JWT + rate limit + CORS | 4 h | 🔴 Alta |
+| Automatización | APScheduler (ingesta CSV → SQLite cada N min) | 2 h | 🟡 Media |
+| Integración | Webhook `POST /webhooks/ingest` + API key | 2 h | 🟡 Media |
+| Caso real | 3-5 entrevistas con usuario de planta + video demo | 4 h | 🟡 Media |
+| Migración | Tab Diagnóstico (sin gráficos) | 4 h | 🟠 Media |
+| Migración | Tab Calidad (Pareto + KPIs) | 6 h | 🟠 Media |
+| Migración | Tab Capacidad (histograma + Pp/Ppk) | 8 h | 🟠 Media |
+| Migración | Tab Control (I-MR + Western Electric) | 8 h | 🟠 Media |
+| Migración | Tab Operacional (ranking + drill-down) | 8 h | 🟠 Media |
+| Migración | Eliminar `dashboard/` legacy + ajustar CI | 4 h | 🟠 Media |
 | σ legacy | Eliminar `schema_adapter.py` (deuda #11) | 1 h | 🔴 Alta |
 | 3b.3 legacy | Deuda #15: debounce cascade | 30 min | 🟡 Media |
 | 3c legacy | Deuda #16 (severidad KPIs) + Chip filtros activos | 1.5 h | 🟡 Media |
 | perf legacy | Deuda #19: callback 2104 ms Calidad | 1-2 h | 🟡 Media |
-| 5 legacy | Docker + Compose (Bloque 3B) | 2 h | 🟠 Media |
-| σ legacy | Migración completa EN→ES (Opción A') | 5-8 h | 🔴 Alta (diferida) |
-| σ legacy | Rename bilingüe incremental (ADR-0002) | Semanas 5-6 | 🟡 Media |
-| — | `ServersideOutput` (si el uso lo justifica) | 2-3 h | 🟢 Baja |
 
 ---
 
@@ -420,7 +426,6 @@ which python   # DEBE mostrar .../venv/bin/python
 | `git push --force-with-lease` si es necesario. | Nunca `git push --force`. |
 | Personal Access Token (PAT) con scope `repo` + `workflow`. | Nunca password en texto plano. |
 | `git pull origin main --rebase` tras Web Editor. | Nunca `git pull` sin `--rebase` si editaste fuera. |
-| `git reset --soft HEAD~1` para reescribir el último commit. | Nunca `git rebase -i` si no estás cómodo con Vim. |
 | `git status` ANTES y DESPUÉS del `git add`. | Asumir que el add agregó todo. |
 | 1 fix = 1 commit = 1 lista corta de archivos. | Commit con 6+ archivos mezclando propósitos. |
 | **`git clone` en vez de `git init`** cuando ya hay historial remoto. | `git init` + `remote add` + push (puede causar merge raro). |
@@ -431,14 +436,22 @@ which python   # DEBE mostrar .../venv/bin/python
 - **Conventional Commits:** `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`, `polish:`, `perf:`.
 - **Un fix = un commit.** No mezclar propósitos.
 - **Título en inglés**, cuerpo en español si aplica.
-- **Verificar el mensaje antes de commitear.**
-- **Antes de cambiar un string de UI:** `grep -rn "string_viejo" src/ dashboard/ tests/`. Actualizar tests junto con el código.
+- **Antes de cambiar un string de UI:** `grep -rn "string_viejo" src/ dashboard/ app/ tests/`.
 
 ### 🤖 CI/CD
 
 - **2/2 checks verdes antes de mergear.** Sin excepción.
-- Cualquier push dispara el workflow CI (~50 s).
+- Cualquier push dispara el workflow CI (~60-90 s).
 - **Si CI falla:** leer el log del step rojo antes de proponer fixes.
+- **Ningún push sin verificar el estado del run CI inmediatamente anterior.** Un "verde" en el TRASPASO es foto histórica, no estado vivo.
+- **Verificar con `gh run list`** (si está instalado) **o `curl` a la API de GitHub:**
+  ```bash
+  curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
+  import json, sys
+  r = json.load(sys.stdin)['workflow_runs'][0]
+  print(f\"Run #{r['run_number']} | {r['conclusion']} | {r['head_commit']['message'].splitlines()[0]}\")
+  "
+  ```
 
 ### 🎨 UX / CSS
 
@@ -449,15 +462,15 @@ which python   # DEBE mostrar .../venv/bin/python
 ### 💾 Código
 
 - **Idioma del código:** inglés. Docstrings y comentarios: español.
-- **Arquitectura legacy:** `src/` (lógica) / `dashboard/` (presentación) / `tests/`.
-- **Arquitectura nueva:** `app/` (FastAPI + SQLModel + templates).
+- **Arquitectura legacy:** `src/` (lógica) / `dashboard/` (presentación Dash).
+- **Arquitectura nueva:** `app/` (FastAPI + SQLModel + Jinja2 + templates).
 - **Nomenclatura:** capacidad `world_class` / `capable` / `marginal` / `not_capable`. Severidad `success` / `warning` / `danger` / `neutral`.
 
 ### 🛠️ Protocolo de cada fix
 
 1. 📖 Leer los archivos involucrados (`grep` + `cat`).
 2. 🔍 Diagnosticar causa raíz.
-3. 🔎 `grep -rn "string_viejo" src/ dashboard/ tests/`.
+3. 🔎 `grep -rn "string_viejo" src/ dashboard/ app/ tests/`.
 4. 💻 Código + tests juntos.
 5. 🧪 `pytest` + `ruff check .`.
 6. 👁️ Verificación visual con `⌘ + Shift + R`.
@@ -465,7 +478,7 @@ which python   # DEBE mostrar .../venv/bin/python
 8. 📥 `git add` con paths textuales.
 9. 🔍 `git status` post-add. Verificar que "Changes not staged" esté vacío.
 10. ✍️ Commit con mensaje conventional.
-11. 🚀 Push y verificar CI verde.
+11. 🚀 Push + **verificar CI verde con `curl` a la API**.
 
 ### 🚀 Scripts de fix quirúrgico
 
@@ -502,78 +515,73 @@ rm fix_xxx.py
 5. Abrir chat nuevo.
 6. Pegar el mensaje de transición (sección 12) + TRASPASO completo.
 
-### 🆕 Reglas nuevas (esta sesión)
+### 🆕 Reglas nuevas (ciclo #21 + #22)
 
-- **Antes de `pip freeze > requirements.txt`:** verificar que estás en un venv. Si no, escribir el requirements a mano.
-- **Al añadir un servicio nuevo (FastAPI):** usar puerto distinto al existente (8000 vs 8050) para coexistencia.
-- **Al migrar de una tecnología a otra:** empezar con capa aditiva (nuevo `app/` sin tocar `src/`). No romper el legacy.
+- **Ningún push sin verificar el estado del run CI inmediatamente anterior.** Un "verde" en el TRASPASO es foto histórica, no estado vivo. Verificar con `curl` a la API de GitHub ANTES de documentar o pushear.
+- **`requirements.txt` debe reproducir el venv real, no el ideal.** Validar con `pip install --dry-run -r requirements.txt` en venv limpio antes de commitear.
+- **Los tests prueban el contrato real del código, no el deseado.** Si SQLModel `table=True` no valida en construcción (limitación conocida), el test debe probar que NO valida (o no existir).
+- **FastAPI con `TestClient`:** usar `httpx2` (Starlette 1.6.0 deprecó `httpx`). Fixtures con SQLite en memoria (`StaticPool`) + `dependency_overrides` para aislar tests de la DB real.
+- **Antes de `pip freeze > requirements.txt`:** verificar que estás en un venv.
+- **Al añadir un servicio nuevo (FastAPI):** usar puerto distinto al existente (8000 vs 8050).
+- **Al migrar de una tecnología a otra:** empezar con capa aditiva (nuevo `app/` sin tocar `src/`).
 - **Antes de crear un nuevo directorio del proyecto:** verificar dónde está el proyecto original con `git remote -v` y `ls`. Nunca `mkdir` a ciegas en `$HOME`.
 
 ---
 
 ## 9️⃣ ⚠️ HISTORIAL DE ERRORES — NO REPETIR
 
-*(Se mantienen los errores previos. Nuevos de esta sesión:)*
-
 | ❌ Error | ✅ Correcto |
 | :--- | :--- |
+| **Escribir "CI verde" en el TRASPASO sin verificar Actions.** | Verificar con `gh run list` o `curl` a la API ANTES de documentar. |
+| **Asumir que `requirements.txt` refleja el venv real.** | Validar con `pip install --dry-run -r requirements.txt` en venv limpio. |
+| **Confundir "460 tests verdes locales" con "CI verde".** | Local usa venv ya poblado; CI arranca de cero en cada run. |
 | **`mkdir -p ~/industrial-kpi-intelligence/app/...`** sin preguntar dónde está el proyecto. | Preguntar primero: `git remote -v` + `ls ~/Projects/`. Trabajar en el proyecto existente. |
 | **Asumir que una carpeta nueva es el proyecto activo.** | Verificar con `git status` si es repo git y con `ls` si tiene los archivos originales. |
 | **`pip3 freeze > requirements.txt` en Python global.** | Escribir el `requirements.txt` a mano con las dependencias top-level + transitivas críticas. |
-| **`git init` + `git remote add`** cuando ya hay historial remoto. | `git clone` fresco + `cp -R` del trabajo nuevo. Evita merges de historial. |
+| **`git init` + `git remote add`** cuando ya hay historial remoto. | `git clone` fresco + `cp -R` del trabajo nuevo. |
 | **Asumir que `NaiveDatetime` es importable desde `sqlmodel`.** | **NO existe.** Usar `sa_column=Column(DateTime(timezone=False))`. |
-| **Confiar en `field_validator` en modelo SQLModel `table=True`.** | Pydantic no ejecuta validadores en modelos de tabla. Separar en `schemas.py` (`BaseModel`). |
+| **Confiar en `field_validator` en modelo SQLModel `table=True`.** | Pydantic no ejecuta validadores en modelos de tabla. Separar en `schemas.py`. |
+| **Asumir que `KPI(nombre=None)` levanta `ValidationError`.** | SQLModel `table=True` NO valida en construcción. La validación la hace `KPICreate`. |
 | **Enviar `"id": 0` en POST a FastAPI.** | El `id` es autoincremental. **Nunca** enviarlo en el body de un POST de creación. |
-| **Confundir el "example value" de Swagger UI con datos reales.** | El ejemplo se muestra por defecto. Para ver datos reales: clic en **"Try it out"** → **"Execute"**. |
-| **`git push` sin PAT** → `Invalid username or token`. | Usar el PAT con scope `repo` + `workflow` como contraseña. Nunca la contraseña de GitHub. |
+| **Confundir el "example value" de Swagger UI con datos reales.** | El ejemplo se muestra por defecto. Para ver datos reales: **"Try it out"** → **"Execute"**. |
+| **`git push` sin PAT** → `Invalid username or token`. | Usar el PAT con scope `repo` + `workflow` como contraseña. |
 | **`rm -rf` de carpetas duplicadas sin verificar.** | Backup primero (`mv` a `.bak`), verificar en el proyecto original, luego borrar. |
 
 ---
 
 ## 🔟 📁 ARCHIVOS CLAVE Y COMANDOS
 
-### 🗂️ Estructura del proyecto (post-migración)
+### 🗂️ Estructura del proyecto (post ciclo #21 + #22)
 
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md
-├── README.md                              # 460 tests + badges (Dash + FastAPI)
+├── README.md                              # 477 tests + badges (Dash + FastAPI)
 ├── VISION.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
-├── pyproject.toml
-├── requirements.txt                       # 8 deps (FastAPI stack)
+├── pyproject.toml                         # ruff + pytest (testpaths = ["tests", "tests/app"])
+├── requirements.txt                       # 17 deps (ambos stacks + tooling CI)
 ├── Procfile / render.yaml
-├── .gitignore                             # +*.db, *.sqlite, kpis.csv, .env
-├── .github/workflows/tests.yml            # Workflow "CI"
+├── .gitignore                             # +*.db, *.sqlite, kpis.csv, .env, .coverage, .pytest_cache/
+├── .github/workflows/tests.yml            # Workflow "CI" (lint + test)
 ├── assets/style.css
 │
 ├── app/                                   # 🆕 CAPA FASTAPI
 │   ├── __init__.py
-│   ├── main.py                            # FastAPI app + lifespan + GET/POST /kpis/
+│   ├── main.py                            # FastAPI app + lifespan + GET / + GET/POST /kpis/
 │   ├── models.py                          # SQLModel KPI (sa_column=DateTime(timezone=False))
-│   ├── schemas.py                         # Pydantic KPICreate
+│   ├── schemas.py                         # Pydantic KPICreate (BaseModel)
 │   ├── db.py                              # SQLite + create_db_and_tables + get_session
-│   └── templates/                         # 🚧 PENDIENTE: index.html (Jinja2)
+│   └── templates/
+│       └── index.html                     # ✅ Jinja2 (tabla KPIs con empty state)
 │
 ├── config/
 │   ├── generator_config.yaml
 │   ├── plant_config.yaml
 │   └── quality_config.yaml
 │
-├── dashboard/                             # Legacy Dash (puerto 8050)
-│   ├── app_layout.py
-│   ├── empty_state.py
-│   ├── export_helpers.py
-│   ├── severity_icons.py
-│   ├── filter_callbacks.py
-│   ├── utils.py
-│   ├── capability_callbacks.py
-│   ├── control_charts_callbacks.py
-│   ├── data_loader.py
-│   ├── diagnostics_callbacks.py
-│   ├── operational_analysis_callbacks.py
-│   ├── quality_performance_callbacks.py
+├── dashboard/                             # Legacy Dash (puerto 8050) — EN RETIRADA
 │   └── ...
 │
 ├── data/
@@ -584,7 +592,7 @@ industrial-kpi-intelligence/
 ├── imagenes/
 ├── scripts/
 │
-├── src/                                   # Lógica legacy
+├── src/                                   # Lógica legacy (intacta)
 │   ├── capability.py
 │   ├── capability_thresholds.py
 │   ├── control_charts.py
@@ -600,9 +608,15 @@ industrial-kpi-intelligence/
 ├── migrate_csv.py                         # 🆕 CSV → SQLite
 ├── kpi_database.db                        # 🆕 Local, NO en git (gitignored)
 │
-└── tests/                                 # 460 tests
+└── tests/
+    ├── app/                               # 🆕 17 tests del stack FastAPI
+    │   ├── __init__.py
+    │   ├── conftest.py                    # Fixtures: session + client (SQLite en memoria)
+    │   ├── test_models.py                 # 3 tests
+    │   ├── test_schemas.py                # 5 tests
+    │   └── test_endpoints.py              # 9 tests
     ├── test_empty_state.py
-    └── ...
+    └── ... (460 tests legacy)
 ```
 
 ### ⌨️ Comandos verificados
@@ -613,8 +627,9 @@ cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-int
 source venv/bin/activate
 which python                    # DEBE mostrar .../venv/bin/python
 
-# Gates legacy
-pytest                          # 460 passed
+# Gates
+pytest                          # 477 passed (~60 s)
+pytest tests/app/ -v            # 17 passed (~0.20 s)
 ruff check .                    # All checks passed!
 
 # Arrancar dashboard Dash (legacy)
@@ -638,6 +653,13 @@ with Session(engine) as session:
         print(f'{k.id} | {k.nombre} | {k.valor} {k.unidad}')
 "
 
+# Verificar estado del último run de CI
+curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
+import json, sys
+r = json.load(sys.stdin)['workflow_runs'][0]
+print(f\"Run #{r['run_number']} | {r['conclusion']} | {r['head_commit']['message'].splitlines()[0]}\")
+"
+
 # Commit conventional
 git add <archivos>
 git status
@@ -656,70 +678,72 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 Deuda #21 — Crear dashboard Jinja2 (Fase 4 FastAPI)
+### 📋 Fase IA.1 — Chat con KPIs (RAG + LLM)
 
-**Contexto:** la API FastAPI funciona (GET + POST verificados), pero aún no hay dashboard HTML. Falta el endpoint `GET /` y el template `app/templates/index.html`.
+**Objetivo:** endpoint `POST /chat/` que responde preguntas en lenguaje natural sobre los KPIs almacenados en SQLite.
 
-**Verificación previa (regla #4 — antes de tocar):**
+**Stack elegido:** Groq API (Llama 3.3 70B) — gratis, rápido (~500 ms), compatible con el SDK de OpenAI.
 
-```bash
-cd /Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence
-source venv/bin/activate
+**Motivación estratégica:** la oferta de Full Stack (VI Región) menciona IA 7 veces (25% del peso). Sin IA, el proyecto puntúa 6.5/10 para la oferta. Con IA funcionando: 8.5/10.
 
-# 1) ¿Existe la carpeta templates?
-ls -la app/templates/ 2>/dev/null || echo "No existe, hay que crearla"
+**Decisiones técnicas:**
 
-# 2) ¿Existe el endpoint / en main.py?
-grep -n "def dashboard\|TemplateResponse\|Jinja2Templates" app/main.py
-
-# 3) ¿Está Jinja2 instalado?
-python -c "import jinja2; print(jinja2.__version__)"
-```
+| # | Decisión | Elección |
+| :---: | :--- | :--- |
+| 1 | Proveedor LLM | **Groq** (Llama 3.3 70B). Gratis, rápido, migrable a OpenAI después. |
+| 2 | Arquitectura | Sin RAG complejo todavía (4-50 KPIs caben enteros en el contexto). YAGNI. |
+| 3 | Seguridad | API key en `.env` (gitignored). Nunca en el frontend. |
+| 4 | UX | Formulario HTMX (`hx-post="/chat/"`), sin recargar página. |
+| 5 | Testing | Mock del cliente LLM (`unittest.mock.AsyncMock`). Tests sin pegarle a Groq. |
 
 **Plan de ejecución:**
 
-1. **Crear carpeta:** `mkdir -p app/templates`
-2. **Crear template HTML:** `app/templates/index.html` con tabla `{{ kpis }}`.
-3. **Añadir imports en `app/main.py`:**
-   ```python
-   from fastapi import Request
-   from fastapi.responses import HTMLResponse
-   from fastapi.templating import Jinja2Templates
-
-   templates = Jinja2Templates(directory="app/templates")
-   ```
-4. **Añadir endpoint al final de `app/main.py`:**
-   ```python
-   @app.get("/", response_class=HTMLResponse)
-   def dashboard(request: Request, session: Session = Depends(get_session)):
-       kpis = session.exec(select(KPI)).all()
-       return templates.TemplateResponse("index.html", {"request": request, "kpis": kpis})
-   ```
-5. **Verificación visual:** `uvicorn app.main:app --reload` → abrir `http://127.0.0.1:8000/`.
-6. **Gates:** `pytest` + `ruff check .` (sin cambios esperados).
-7. **`git status`** → `app/templates/index.html` + `app/main.py` modificados.
-8. **Commit:**
+1. **Crear cuenta Groq + obtener API key:** `https://console.groq.com`. Guardarla en `.env`:
    ```bash
-   git commit -F - <<'EOF'
-   feat(fastapi): add Jinja2 dashboard for KPI visualization
-
-   Añade endpoint GET / que renderiza tabla HTML con todos los KPIs.
-   Completa la capa de presentación del stack FastAPI + SQLModel.
-   EOF
-   git push origin main
+   echo 'GROQ_API_KEY=gsk_...' > .env
    ```
-9. **Verificar CI 2/2 verde.**
+2. **Instalar deps:**
+   ```bash
+   pip install groq python-dotenv
+   ```
+   Agregar a `requirements.txt` en sección IA.
+3. **Crear `app/services/llm_chat.py`:** cliente Groq async + construcción de contexto desde la DB.
+4. **Crear `app/routers/chat.py`:** endpoint `POST /chat/` con body `{query: str}`.
+5. **Registrar router en `app/main.py`:** `app.include_router(chat_router)`.
+6. **Template `app/templates/partials/_chat.html`:** formulario HTMX + área de respuesta.
+7. **Integrar en `index.html`:** incluir `_chat.html`.
+8. **Crear `tests/app/test_chat.py`:** 4-5 tests con mock del LLM (validación input, mock respuesta, error controlado).
+9. **Verificación visual:** `uvicorn app.main:app --reload` → `http://127.0.0.1:8000/` → probar chat.
+10. **Commit + push + verificar CI verde con `curl`.**
 
-**⏱️ Estimación:** 30 min.
+**Estructura de archivos a crear:**
 
-### 📌 Después del dashboard Jinja2
+```text
+app/
+├── routers/                    # 🆕
+│   ├── __init__.py
+│   └── chat.py                 # POST /chat/
+├── services/                   # 🆕
+│   ├── __init__.py
+│   └── llm_chat.py             # Cliente Groq + construcción de contexto
+├── templates/
+│   ├── index.html              # modificar: incluir _chat.html
+│   └── partials/               # 🆕
+│       └── _chat.html
+└── main.py                     # modificar: include_router(chat_router)
 
-1. **Tests para `app/`** (deuda #22, 1.5 h, +25 tests).
-2. **Eliminar `schema_adapter.py`** (deuda #11 legacy, 1 h).
-3. **Deuda #15** — debounce cascade (30 min).
-4. **Fase 3c** — Chip de filtros activos + severidad individual en KPIs (1.5 h).
-5. **Deuda #19** — investigar callback 2104 ms de Calidad (1-2 h).
-6. **Docker + Compose** (2 h).
+tests/app/
+└── test_chat.py                # 🆕 4-5 tests con mock
+```
+
+**Estimación:** 3-4 h.
+
+**⏱️ Después de IA.1:**
+
+1. **IA.2** — Diagnóstico asistido por LLM (2 h).
+2. **Docker + Deploy Railway** (4 h).
+3. **Seguridad JWT + rate limit** (4 h).
+4. **Migración tab por tab Dash → FastAPI** (ver decisión 4.32).
 
 ---
 
@@ -729,41 +753,49 @@ python -c "import jinja2; print(jinja2.__version__)"
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
 
-Estado: Fase 3b.2 completa (5/5 tabs con empty state) + cascades restaurados + 460 tests verdes.
-Además, MIGRACIÓN A FASTAPI + SQLMODEL + SQLITE COMPLETADA (commit a162f15):
-- app/models.py, app/schemas.py, app/db.py, app/main.py
-- migrate_csv.py (CSV → SQLite)
-- requirements.txt limpiado (8 deps)
-- .gitignore ampliado (*.db, *.sqlite, kpis.csv)
-- GET /kpis/ y POST /kpis/ verificados en Swagger UI (200 y 201)
-Performance: ~2-3 s por cambio de filtro en el dashboard Dash legacy.
+Estado: ciclo #21 + #22 cerrado (commit 0c59acc). 477 tests verdes (460 legacy + 17 app/).
+CI 2/2 verde VERIFICADO (run #112). Working tree limpio.
 
-Próximo paso: Deuda #21 — crear dashboard Jinja2 (app/templates/index.html + endpoint /).
-Estimación 30 min. Ver sección 11 del TRASPASO.
+Cerrado en el último ciclo:
+- Dashboard Jinja2 (app/templates/index.html + endpoint GET /) — commit 724f4ac
+- 17 tests para app/ (TestClient + SQLite en memoria) — commit 0c59acc
+- requirements.txt restaurado para ambos stacks — commit 785b0c4
+- ruff fixes en app/ (per-file-ignores B008) — commit a561fff
+- httpx2 reemplaza httpx (Starlette 1.6.0) — sin warnings
+
+Decisión estratégica en curso: MIGRACIÓN COMPLETA Dash → FastAPI
+(ver decisión 4.32 del TRASPASO). Stack elegido: Jinja2 + HTMX + Plotly.js.
+Timeline: ~5 semanas, strangler tab por tab.
+
+Próximo paso: Fase IA.1 — chat con KPIs (RAG + LLM, Groq).
+Estimación 3-4 h. Ver sección 11 del TRASPASO.
+Motivación: la oferta de Full Stack (VI Región) menciona IA 7 veces (25% del peso).
 
 Deudas activas relevantes:
-- #21 dashboard Jinja2 (alta, próximo paso)
-- #22 sin tests para app/ (media)
+- #27 fase IA (alta, próximo paso)
 - #11 eliminar schema_adapter.py (alta, legacy)
 - #15 debounce cascade (media, legacy)
 - #16 severidad individual KPIs rendimiento (media, legacy)
 - #19 callback 2104 ms en Calidad (media, legacy)
+- #26 CI no mide cobertura de app/ (media)
+- #25 pandas 2→3 (baja, diferida)
 
-Reglas clave:
+Reglas clave (ver sección 8 completa):
 - Protocolo de arranque: cd + source venv/bin/activate + verificar `which python`
 - Leer el archivo antes de tocar
 - git status ANTES y DESPUÉS de cada git add
 - Un fix = un commit
 - Verificación visual con ⌘ + Shift + R obligatoria
 - pytest + ruff verdes antes de commitear
+- NINGÚN push sin verificar el run CI anterior con curl a la API
+- requirements.txt debe reproducir el venv real (validar con --dry-run)
 - NO usar TextEdit para markdown: usar GitHub Web Editor
 - Tras editar en Web Editor: git pull --rebase
-- Antes de crear un nuevo directorio del proyecto: verificar dónde está el proyecto original
 - NUNCA enviar "id": 0 en POST a FastAPI
 - NUNCA confundir el "example value" de Swagger UI con datos reales
-- Al separar modelo DB vs schema API: usar schemas.py con BaseModel puro
+- SQLModel table=True NO valida en construcción; usar schemas.py con BaseModel
 - Al añadir un servicio nuevo: puerto distinto (8000 FastAPI vs 8050 Dash)
-- Al migrar de tecnología: capa aditiva, no romper el legacy
+- FastAPI TestClient usa httpx2 (Starlette 1.6.0)
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -782,7 +814,7 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - Citá normas industriales cuando aplique (ISA-95, NIST, AIAG, ISO).
 - **Valorá la honestidad por sobre la complacencia.**
 - No quiere halagos, quiere producto de calidad.
-- Cuando te equivoques (ej. recomendar `NaiveDatetime` sin verificar, `mkdir` a ciegas en `$HOME`, asumir que el "example value" de Swagger es el output real), decilo claro y corregí.
+- Cuando te equivoques, decilo claro y corregí.
 
 ### 🏆 Hitos acumulados
 
@@ -791,33 +823,37 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - ✅ **Fase 3b.1** — loading states.
 - ✅ **Fase 3b.3** — performance: -70% del tiempo original.
 - ✅ **Fase 3b.2 completa** — empty states en 5/5 tabs + cascades.
-- ✅ **460 tests, 0 regresiones.**
-- ✅ **Migración a FastAPI + SQLModel + SQLite** (commit `a162f15`).
-- ✅ **Persistencia real con SQLite** + modelo `KPI` funcional.
-- ✅ **Doble stack coexistente:** Dash legacy (8050) + FastAPI (8000).
-- ✅ **Comprensión del patrón de seguridad `sa_column`** para sobreescribir defaults restrictivos de SQLModel.
+- ✅ **Migración a FastAPI + SQLModel + SQLite** (`a162f15`).
+- ✅ **Dashboard Jinja2 operativo** (`724f4ac`).
+- ✅ **17 tests para `app/`** (`0c59acc`) — deuda #22 cerrada.
+- ✅ **CI verde real verificado** (run #112) — no "verde de foto".
+- ✅ **477 tests, 0 regresiones, 0 warnings.**
+- ✅ **`requirements.txt` reproducible** (validado en venv limpio).
+- ✅ **Decisión estratégica de migración completa Dash → FastAPI** (4.32).
 
 ### 🔬 Lecciones metodológicas de este ciclo
 
-- **Capa aditiva primero, refactor después.** Cuando se migra de una tecnología a otra, empezar con una carpeta nueva (`app/`) que coexiste con la legacy. No romper el legacy. El patrón strangler aplica a nivel de arquitectura completa.
-- **Preguntar antes de crear.** Antes de `mkdir -p ~/proyecto/app`, preguntar dónde está el proyecto original con `git remote -v` y `ls`. Evita carpetas duplicadas en `$HOME`.
-- **Separar modelo DB ↔ schema API es no negociable en FastAPI.** `KPI` (tabla) ≠ `KPICreate` (schema). Sin esta separación, Pydantic no convierte strings a `datetime` en modelos de tabla.
-- **Swagger UI muestra ejemplos, no datos reales.** Para ver la respuesta del endpoint, siempre clic en "Try it out" → "Execute". Confundir uno con otro genera horas de depuración fantasma.
-- **`sa_column` es la vía de escape.** Cuando SQLModel impone un default demasiado estricto (timezone-aware datetime), `sa_column=Column(...)` permite volver a SQLAlchemy crudo sin romper el modelo.
-- **`pip freeze` no es `requirements.txt`.** Un `requirements.txt` limpio se escribe a mano con las dependencias top-level + transitivas críticas. `pip freeze` captura todo el entorno, no el proyecto.
-- **`git clone` > `git init` cuando ya hay historial remoto.** El segundo puede causar merges de historial raros. El primero es limpio y predecible.
-- **Los modelos de IA gratuitos en terminal a veces se desvían.** Cuando `dsf` (fixer) recibe un script, a veces lo reescribe entero en vez de corregirlo. Revisar siempre el output con `cat` + `git diff`.
+- **Un "verde" en el TRASPASO es foto histórica, no estado vivo.** Verificar CI con `curl` a la API antes de cada push. El caso `a162f15` (verde en doc, rojo en realidad) costó 2 h de diagnóstico.
+- **`requirements.txt` es contrato de reproducibilidad, no lista de deseos.** Validar con `pip install --dry-run` en venv limpio. Los pines "aspiracionales" (pandas 3.0.5 cuando el venv tiene 2.1.4) rompen CI.
+- **Los tests prueban el contrato real del código, no el deseado.** SQLModel `table=True` no valida en construcción. Los tests documentan ese contrato real, no lo imaginan.
+- **Un test rojo puede significar dos cosas:** el código tiene bug (fix código) o el test está mal escrito (fix test). Diagnosticar antes de tocar.
+- **`httpx2` reemplaza a `httpx` en Starlette 1.6.0.** Leer los DeprecationWarnings temprano.
+- **FastAPI TestClient:** SQLite en memoria (`StaticPool`) + `dependency_overrides` para aislar tests de la DB real.
+- **Un fix = un commit.** 5 commits en este ciclo, cada uno con propósito claro. Nada mezclado.
+- **La documentación es parte del trabajo, no un extra.** Actualizar TRASPASO al cerrar cada fase.
 
 ### 📊 Métricas del ciclo
 
-- **Commits:** 2 (1 web + 1 local).
-- **Archivos tocados:** 7 (5 nuevos, 2 modificados).
-- **Líneas:** +139 / -29.
-- **Tests:** 460 → 460 (sin cambios).
-- **Tiempo total:** ~3 h de sesión distribuida.
+- **Commits:** 5 (`54ac5ed`, `785b0c4`, `a561fff`, `724f4ac`, `0c59acc`).
+- **Archivos tocados:** 12 (5 nuevos en `tests/app/`, 2 nuevos en `app/`, 5 modificados).
+- **Líneas:** +310/-2 (solo tests) + Jinja2 dashboard + requirements + pyproject.
+- **Tests:** 460 → **477** (+17).
+- **Deudas cerradas:** #21, #22.
+- **Deudas nuevas:** #25 (pandas 2→3), #26 (coverage de `app/`), #27 (fase IA).
+- **Tiempo total:** ~4 h de sesión distribuida.
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Migración FastAPI + SQLModel + SQLite completada (commit `a162f15`).  
-> 🚀 **Próximo paso:** Deuda #21 — crear dashboard Jinja2 (`app/templates/index.html` + endpoint `GET /`).
+> 🗓️ **Última actualización:** Ciclo #21 + #22 cerrado (commit `0c59acc`). 477 tests verdes. CI 2/2 verde verificado (run #112).  
+> 🚀 **Próximo paso:** Fase IA.1 — chat con KPIs (RAG + LLM, Groq). Ver sección 11.
