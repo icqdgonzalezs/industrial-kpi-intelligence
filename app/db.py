@@ -1,8 +1,7 @@
 # app/db.py
-from typing import Generator
+from collections.abc import Generator
 
-from fastapi import Depends
-from sqlmodel import SQLModel, Session, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 DATABASE_URL = "sqlite:///./kpi_database.db"
 engine = create_engine(DATABASE_URL)

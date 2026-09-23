@@ -1,8 +1,9 @@
 # migrate_csv.py
 import pandas as pd
 from sqlmodel import Session
-from app.models import KPI
+
 from app.db import create_db_and_tables, engine
+from app.models import KPI
 
 # 1. Crear las tablas (sin argumentos, como está definido en app/db.py)
 create_db_and_tables()

@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
 
 
 class KPI(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     nombre: str
     valor: float
     unidad: str
