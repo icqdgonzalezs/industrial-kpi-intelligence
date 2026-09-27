@@ -11,6 +11,8 @@ uvicorn==0.53.0
 sqlmodel==0.0.46
 SQLAlchemy==2.0.54
 Jinja2==3.1.6
++python-multipart>=0.0.20,<1
+
 
 # --- Stack Dash legacy (dashboard/ + src/) ---
 dash==4.4.1
