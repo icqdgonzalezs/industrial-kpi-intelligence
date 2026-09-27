@@ -1,0 +1,37 @@
+{# Formulario de chat con HTMX. Se incluye desde index.html.
+   Envía POST a /chat/ y reemplaza el div #chat-result con la respuesta. #}
+<section class="chat-section">
+  <h2 class="chat-title">
+    <span class="chat-icon">🤖</span> Asistente de planta
+  </h2>
+  <p class="chat-subtitle">
+    Preguntá en lenguaje natural sobre los KPIs actuales.
+  </p>
+
+  <form
+    class="chat-form"
+    hx-post="/chat/"
+    hx-target="#chat-result"
+    hx-swap="innerHTML"
+    hx-indicator="#chat-spinner"
+    hx-on::after-request="if(event.detail.successful) this.reset()"
+  >
+    <input
+      type="text"
+      name="query"
+      class="chat-input"
+      placeholder="Ej: ¿Cómo está la calidad general de la planta?"
+      minlength="1"
+      maxlength="500"
+      required
+      autocomplete="off"
+    />
+    <button type="submit" class="chat-submit">Preguntar</button>
+  </form>
+
+  <div id="chat-spinner" class="chat-spinner htmx-indicator">
+    Consultando al asistente…
+  </div>
+
+  <div id="chat-result" class="chat-result"></div>
+</section>

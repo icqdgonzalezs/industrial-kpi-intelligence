@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Industrial KPI Intelligence</title>
+  <script src="/static/js/htmx.min.js"></script>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; color: #1a1a1a; }
     h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
@@ -14,6 +15,52 @@
     tbody tr:hover { background: #fafafa; }
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .empty { color: #666; font-style: italic; margin-top: 1rem; }
+
+    /* --- Chat --- */
+    .chat-section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e5e5; }
+    .chat-title { font-size: 1.25rem; margin-bottom: 0.25rem; }
+    .chat-icon { margin-right: 0.25rem; }
+    .chat-subtitle { color: #666; font-size: 0.875rem; margin-bottom: 1rem; }
+    .chat-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .chat-input {
+      flex: 1; padding: 0.625rem 0.75rem; font-size: 0.95rem;
+      border: 1px solid #d1d5db; border-radius: 6px;
+    }
+    .chat-input:focus { outline: 2px solid #2563eb; outline-offset: -1px; }
+    .chat-submit {
+      padding: 0.625rem 1.25rem; font-size: 0.95rem; font-weight: 500;
+      background: #2563eb; color: white; border: none;
+      border-radius: 6px; cursor: pointer;
+    }
+    .chat-submit:hover { background: #1d4ed8; }
+    .chat-spinner {
+      color: #666; font-size: 0.875rem; font-style: italic;
+      margin-bottom: 1rem;
+    }
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: block; }
+    .htmx-request.htmx-indicator { display: block; }
+
+    .chat-answer {
+      background: #f9fafb; border-left: 4px solid #2563eb;
+      padding: 1rem 1.25rem; border-radius: 4px;
+    }
+    .chat-answer-header {
+      display: flex; justify-content: space-between;
+      align-items: baseline; margin-bottom: 0.75rem;
+    }
+    .chat-metrics { color: #666; font-size: 0.75rem; }
+    .chat-answer-body { line-height: 1.6; white-space: pre-wrap; }
+    .chat-answer-query {
+      color: #666; font-size: 0.8rem;
+      margin-top: 1rem; padding-top: 0.75rem;
+      border-top: 1px solid #e5e5e5;
+    }
+    .chat-error {
+      background: #fef2f2; border-left: 4px solid #dc2626;
+      padding: 1rem 1.25rem; border-radius: 4px;
+    }
+    .chat-error-query { color: #666; font-size: 0.8rem; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -48,5 +95,7 @@
   {% else %}
     <p class="empty">No hay KPIs registrados todavía.</p>
   {% endif %}
+
+  {% include "partials/_chat.html" %}
 </body>
 </html>

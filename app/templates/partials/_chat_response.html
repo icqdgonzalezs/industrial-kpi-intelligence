@@ -1,0 +1,24 @@
+{# Respuesta parcial del chat. Reemplaza el contenido de #chat-result.
+   `ok` decide si mostramos la respuesta o el error. #}
+{% if ok %}
+  <div class="chat-answer">
+    <div class="chat-answer-header">
+      <strong>Respuesta</strong>
+      <span class="chat-metrics">
+        {{ tokens }} tokens · {{ elapsed_ms }} ms
+      </span>
+    </div>
+    <div class="chat-answer-body">
+      {{ respuesta }}
+    </div>
+    <div class="chat-answer-query">
+      Pregunta: <em>{{ query }}</em>
+    </div>
+  </div>
+{% else %}
+  <div class="chat-error">
+    <strong>⚠️ Error</strong>
+    <p>{{ error }}</p>
+    <p class="chat-error-query">Pregunta: <em>{{ query }}</em></p>
+  </div>
+{% endif %}

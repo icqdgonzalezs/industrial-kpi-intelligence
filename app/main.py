@@ -2,12 +2,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, get_session
 from app.models import KPI
+from app.routers.chat import router as chat_router
 from app.schemas import KPICreate
+from app.templates_config import templates
 
 
 @asynccontextmanager
@@ -17,7 +19,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(chat_router)
 
 
 @app.get("/", response_class=HTMLResponse)
