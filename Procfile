@@ -1,1 +1,1 @@
-web: gunicorn dashboard.dash_app:server
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
