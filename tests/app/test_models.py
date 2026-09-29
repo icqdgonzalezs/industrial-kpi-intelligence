@@ -64,3 +64,26 @@ def test_kpi_no_valida_en_construccion():
         linea_produccion="L1",
     )
     assert kpi2.valor == "no-es-numero"
+
+
+def test_normalizar_url_postgres():
+    """postgresql:// se normaliza a postgresql+psycopg:// (driver v3)."""
+    from app.db import _normalizar_url_db
+
+    resultado = _normalizar_url_db("postgresql://user:pass@host:5432/db")
+    assert resultado == "postgresql+psycopg://user:pass@host:5432/db"
+
+
+def test_normalizar_url_ya_normalizada():
+    """Si ya tiene +psycopg, no se modifica."""
+    from app.db import _normalizar_url_db
+
+    url = "postgresql+psycopg://user:pass@host:5432/db"
+    assert _normalizar_url_db(url) == url
+
+
+def test_normalizar_url_sqlite_no_se_toca():
+    """SQLite queda intacto."""
+    from app.db import _normalizar_url_db
+
+    assert _normalizar_url_db("sqlite:///./local.db") == "sqlite:///./local.db"

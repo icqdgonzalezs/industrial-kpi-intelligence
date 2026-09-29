@@ -13,7 +13,25 @@ from collections.abc import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kpi_database.db")
+
+def _normalizar_url_db(url: str) -> str:
+    """Normaliza la URL de la DB para SQLAlchemy.
+
+    Railway y otros PaaS generan URLs "postgresql://..." pero SQLAlchemy
+    por defecto busca el driver psycopg2 (legacy). Como usamos psycopg v3,
+    forzamos el driver con "postgresql+psycopg://".
+
+    Sin esta normalización, la app falla con:
+        ModuleNotFoundError: No module named 'psycopg2'
+    """
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
+
+DATABASE_URL = _normalizar_url_db(
+    os.getenv("DATABASE_URL", "sqlite:///./kpi_database.db")
+)
 
 # pool_pre_ping: verifica que la conexión esté viva antes de usarla.
 # Necesario para Postgres en producción, que cierra conexiones inactivas.
