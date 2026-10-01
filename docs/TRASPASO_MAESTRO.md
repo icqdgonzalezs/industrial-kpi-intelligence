@@ -2,8 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Ciclo IA.1 cerrado (chat con KPIs + Groq LLM + HTMX). Commit `ed11c36` pusheado. **487 tests verdes, CI 2/2 verde verificado (run #117).**  
-> 🚀 **Próximo paso:** Deploy Railway (Docker + Postgres + variables de entorno). Ver sección 11.
+> 🗓️ **Última actualización:** Ciclo Deploy (Railway) + Bloque 1.A (Auth JWT backend) cerrados. Commit `f00ea1e` pusheado. **490 tests verdes, CI 2/2 verde verificado (run #123).**  
+> 🚀 **Próximo paso:** Bloque 1.B — Protección de endpoints + Login UI + seed admin. Ver sección 11.
 
 ---
 
@@ -25,8 +25,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 10 | 🚫 **No repetir contexto que ya está acá.** El usuario ya lo sabe; solo aportar valor nuevo. |
 | 11 | 🔍 **Ningún push sin verificar el run CI anterior.** El "verde" del TRASPASO es foto histórica, no estado vivo. |
 | 12 | 🚫 **Nunca pegar `+` de un diff en un archivo real.** El prefijo `+` significa "línea agregada", no es parte del contenido. |
+| 13 | 🚫 **Nunca usar `passlib`.** Reemplazado por `bcrypt` directo (passlib 1.7.4 incompatible con bcrypt 5.x). |
+| 14 | 🚫 **Nunca usar `python-jose[cryptography]` en este Mac.** Mojave Intel no tiene wheel de `cryptography` ≥50. Usar `PyJWT`. |
 
-> 🚀 **Próximo paso concreto del proyecto:** Deploy Railway — Dockerfile + docker-compose + migrar SQLite → Postgres. Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** Bloque 1.B — Proteger `POST /kpis/` + `POST /chat/` con `Depends(get_current_user)`, template login, seed admin, tests formales. Ver sección 11.
 
 ---
 
@@ -37,17 +39,20 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 🏭 **Producto** | Industrial KPI Intelligence — dashboard industrial para PYMES manufactureras LatAm/España |
 | 🌐 **Ecosistema** | Primer producto de 6 SaaS (Industrial Operations Intelligence) |
 | 🛠️ **Stack legacy (dashboard)** | Python 3.11.9 · Plotly Dash 4.4.1 · Plotly · pandas · numpy |
-| 🛠️ **Stack nuevo (API REST)** | FastAPI 0.141.1 · SQLModel 0.0.46 · SQLAlchemy 2.0.54 · Pydantic 2.13.5 · SQLite · Jinja2 3.1.6 · Uvicorn 0.53.0 · python-multipart 0.0.32 |
+| 🛠️ **Stack nuevo (API REST)** | FastAPI 0.141.1 · SQLModel 0.0.46 · SQLAlchemy 2.0.54 · Pydantic 2.13.5 · SQLite/Postgres · Jinja2 3.1.6 · Uvicorn 0.53.0 · python-multipart 0.0.32 · psycopg[binary] 3.3.6 |
 | 🛠️ **Stack IA (operativo)** | Groq SDK 1.7.0 · Modelo `openai/gpt-oss-120b` · python-dotenv 1.2.3 · HTMX 2.0.4 |
+| 🔐 **Stack Seguridad** | PyJWT 2.15.1 · bcrypt 5.0.0 · slowapi 0.1.10 · email-validator 2.3.0 |
+| ☁️ **Stack Deploy** | Railway (PaaS) · Nixpacks (build automático) · Postgres addon · US West |
 | 🧪 **Testing** | pytest 9.1.1 · pytest-cov 7.1.0 · ruff 0.16.6 · httpx2 2.13.1 · GitHub Actions CI/CD |
-| 📏 **Estándares aplicables** | ISA-95 · TPM (OEE) · NIST 6.1.3 / ISO 22514 (Pp/Ppk) · AIAG SPC · OWASP · ISA-101 (HMI) · WCAG 2.1 · OpenAPI 3.1 |
+| 📏 **Estándares aplicables** | ISA-95 · TPM (OEE) · NIST 6.1.3 / ISO 22514 (Pp/Ppk) · AIAG SPC · OWASP · ISA-101 (HMI) · WCAG 2.1 · OpenAPI 3.1 · RFC 7518 (JWT) |
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
-| 📅 **Semana** | 3 de 8 |
-| ✅ **Tests actuales** | **487 passed** (460 legacy + 17 app/ + 10 chat) |
-| 🟢 **CI** | 2/2 verde **verificado** (run #117, commit `ed11c36`) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `ed11c36`. |
-| 📊 **Producto 1 (MVP)** | ~95% (dashboard Dash + API FastAPI con IA operativa). Deploy público pendiente. |
+| 📅 **Semana** | 4 de 8 |
+| ✅ **Tests actuales** | **490 passed** (460 legacy + 30 app/) |
+| 🟢 **CI** | 2/2 verde **verificado** (run #123, commit `f00ea1e`) |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `f00ea1e`. |
+| 🌐 **URL pública (Railway)** | `https://web-production-bb6a7.up.railway.app/` |
+| 📊 **Producto 1 (MVP)** | ~97% (dashboard Dash + API FastAPI + IA + auth backend + deploy público). Falta protección de endpoints + login UI. |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -80,63 +85,70 @@ Estás retomando un proyecto en curso. Antes de responder:
 - ✅ **Doc** (`c2ab9ed` + `f3eb79c` + `5be2e6b`): README, workflow renombrado a CI, VISION.md, ARCHITECTURE.md
 - ✅ **Repo hygiene** (`e58151b`): docs movidos a `docs/`, basura eliminada, `.gitignore` completado
 - ✅ **Fase 3a** (`35d12c4` a `c9a2efb`): Export CSV — 5/5 tabs
-- ✅ **Fix bug Pareto** (`e0d50f2`)
-- ✅ **Fix "Restaurar filtros"** (`2fe8e89`)
-- ✅ **Chore dev** (`8ca225d`): `dev_tools_ui=True`
-- ✅ **Perf cache JSON** (`6efd967`): `lru_cache`
-- ✅ **Opción D** (`ba0e962`): consolidar `schema_adapter.py` dentro de `data_loader.py`
 - ✅ **Fase 3b.1** (`c91ae39`): loading states
 - ✅ **Perf pre-binning** (`ce2c03f`): histograma Capacidad
 - ✅ **Perf WebGL Control** (`e7e5d49`): `go.Scattergl`
 - ✅ **Componente empty_state** (`6a0547e`)
-- ✅ **Piloto Calidad** (`529d83f`)
-- ✅ **Fix doble spinner Capacidad** (`b9514ed`)
-- ✅ **Fase 3b.2 Control + cascades** (`d5542e2` + `22988f4`)
-- ✅ **.Rapp.history gitignored** (`47e3bd9`)
-- ✅ **Fase 3b.2 Capacidad** (`722297f`)
-- ✅ **Fix test Capacidad** (`4516129`)
-- ✅ **Fase 3b.2 Diagnóstico** (`d23af82`)
-- ✅ **Fase 3b.2 Operacional** (`9c780d8`)
+- ✅ **Fase 3b.2 completa** (5 tabs con empty state + cascades)
+- ✅ **Opción D** (`ba0e962`): consolidar `schema_adapter.py` dentro de `data_loader.py`
 
 **Capa API REST (migración CSV → FastAPI):**
 
-- ✅ **Doc README** (`85dd7fe` — Web Editor): badges separados (Dash legacy + FastAPI nuevo).
 - ✅ **Migración CSV → FastAPI + SQLModel + SQLite** (`a162f15`): 7 archivos, +139/-29.
   - ✅ `app/models.py` — Modelo `KPI` con `sa_column=Column(DateTime(timezone=False))`.
-  - ✅ `app/schemas.py` — Schema `KPICreate` (BaseModel puro, separación DB ↔ API).
+  - ✅ `app/schemas.py` — Schema `KPICreate` (BaseModel puro).
   - ✅ `app/db.py` — SQLite + `create_db_and_tables()` + `get_session()`.
   - ✅ `app/main.py` — FastAPI con `lifespan`, `GET /kpis/` y `POST /kpis/`.
   - ✅ `migrate_csv.py` — Script de migración CSV → SQLite.
-  - ✅ `requirements.txt` — limpieza inicial.
-  - ✅ `.gitignore` — ampliado.
 
 **Ciclo #21 + #22 (dashboard Jinja2 + tests app/):**
 
-- ✅ **`54ac5ed`** — `chore(gitignore): ignore testing artifacts` (`.coverage`, `htmlcov/`, `.pytest_cache/`).
-- ✅ **`785b0c4`** — `fix(ci): restore requirements.txt for both stacks` (job `test` del CI).
-- ✅ **`a561fff`** — `fix(lint): resolve ruff findings in FastAPI layer` (job `lint` + per-file-ignores B008).
-- ✅ **`724f4ac`** — `feat(fastapi): add Jinja2 dashboard for KPI visualization` (**deuda #21 cerrada**). `app/templates/index.html` + endpoint `GET /`.
+- ✅ **`54ac5ed`** — `chore(gitignore): ignore testing artifacts`.
+- ✅ **`785b0c4`** — `fix(ci): restore requirements.txt for both stacks`.
+- ✅ **`a561fff`** — `fix(lint): resolve ruff findings in FastAPI layer`.
+- ✅ **`724f4ac`** — `feat(fastapi): add Jinja2 dashboard for KPI visualization` (**deuda #21 cerrada**).
 - ✅ **`0c59acc`** — `test(app): add unit + integration tests for FastAPI layer` (**deuda #22 cerrada**). 17 tests con `TestClient` + SQLite en memoria.
 
 **Ciclo IA.1 (chat con KPIs — Groq + HTMX):**
 
 - ✅ **`03f74a7`** — `feat(ai): add Groq LLM service for KPI chat`. Cliente Groq async singleton + constructor de contexto + system prompt industrial.
 - ✅ **`ed806ea`** — `feat(ai): add chat UI with HTMX for KPI queries` (**deuda #27 cerrada**). Router `POST /chat/` + templates `_chat.html` / `_chat_response.html` + HTMX 2.0.4 + CSS.
-- ✅ **`ab72a9e`** — `fix(deps): add python-multipart for FastAPI Form parsing` (falló CI por prefijo `+` literal — histórico).
+- ✅ **`ab72a9e`** — `fix(deps): add python-multipart for FastAPI Form parsing` (histórico).
 - ✅ **`ed11c36`** — `fix(deps): remove literal '+' from python-multipart line`. CI #117 verde.
+
+**Ciclo Deploy Railway (nuevo — este ciclo):**
+
+- ✅ **`86845ac`** — `feat(deploy): prepare FastAPI app for Railway deployment`. 3 archivos: `Procfile` (uvicorn en vez de gunicorn Dash), `app/db.py` (DATABASE_URL desde env + `pool_pre_ping=True`), `requirements.txt` (+psycopg[binary]). CI #121 verde.
+- ✅ **`c68d139`** — `fix(db): force psycopg v3 driver in Postgres URL`. Agrega `_normalizar_url_db()` (convierte `postgresql://` → `postgresql+psycopg://`) + 3 tests. CI #122 verde.
+- ✅ **Deploy Railway exitoso**: proyecto `easygoing-caring`, servicio `web` `Online`, Postgres addon vinculado, URL pública `https://web-production-bb6a7.up.railway.app/`.
+- ✅ **Variables en Railway**: `DATABASE_URL` (auto por addon), `GROQ_API_KEY` (manual).
+- ✅ **4 endpoints verificados en producción**: `GET /` 200, `GET /docs` 200, `GET /kpis/` 200, `POST /chat/` 200 + respuesta del LLM.
+
+**Ciclo Auth 1.A (JWT backend — nuevo — este ciclo):**
+
+- ✅ **`f00ea1e`** — `feat(auth): add JWT authentication with bcrypt password hashing`. 6 archivos, +68/-3. CI #123 verde.
+  - ✅ `app/auth.py` (196 líneas): PyJWT + bcrypt directo + `get_current_user`.
+  - ✅ `app/routers/auth.py` (100 líneas): `POST /auth/login` + `GET /auth/me`.
+  - ✅ `app/models.py`: modelo `User` (email único + hashed_password + is_active + created_at).
+  - ✅ `app/schemas.py`: `UserLogin`, `UserCreate`, `UserPublic`, `Token`.
+  - ✅ `app/main.py`: registrar `auth_router`.
+  - ✅ `requirements.txt`: PyJWT, bcrypt, slowapi, email-validator (sin passlib, sin python-jose).
+- ✅ **7 tests end-to-end con `TestClient`**: login OK (200), password incorrecta (401), email inexistente (401), `/auth/me` con token (200), sin token (401), token inválido (401), password <8 chars → 422.
+- ✅ **490 tests passed** (460 legacy + 30 app/).
 
 ### 🟡 En curso
 
-- *Nada.* Working tree limpio. CI #117 verde verificado.
+- *Nada.* Working tree limpio. CI #123 verde verificado.
 
-### ⏳ Pendiente inmediato (Deploy)
+### ⏳ Pendiente inmediato (Bloque 1.B — Auth completo)
 
-- ⏳ **Fase Deploy** — Dockerfile + docker-compose + migrar SQLite → Postgres + Railway.
-- ⏳ **Deuda #11** — eliminar `schema_adapter.py` legacy.
-- ⏳ **Deuda #15** — debounce cascade.
-- ⏳ **Deuda #16** — severidad individual en KPIs de rendimiento.
-- ⏳ **Deuda #19** — optimizar callback de 2104 ms en Calidad.
-- ⏳ **Migración completa Dash → FastAPI** (ver decisión 4.32).
+- ⏳ **Proteger `POST /kpis/` + `POST /chat/`** con `Depends(get_current_user)`.
+- ⏳ **Template `login.html`** + cookie HttpOnly + redirect si no autenticado.
+- ⏳ **Script `scripts/seed_admin.py`** para crear admin en Railway.
+- ⏳ **`tests/app/test_auth.py` formales** (12-15 tests en CI).
+- ⏳ **`SECRET_KEY` como env var en Railway** (generar con `openssl rand -hex 32`).
+- ⏳ **Verificar login en URL pública**.
+- ⏳ **Rate limit en `/chat/`** con `slowapi` (instalado, sin aplicar — deuda #30).
 
 ---
 
@@ -144,7 +156,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
-| `ed11c36` | **fix(deps): remove literal '+' from python-multipart line** | 487 |
+| `f00ea1e` | **feat(auth): add JWT authentication with bcrypt password hashing** (6 files, +68/-3) | 490 |
+| `c68d139` | **fix(db): force psycopg v3 driver in Postgres URL** (2 files) | 490 |
+| `86845ac` | **feat(deploy): prepare FastAPI app for Railway deployment** (3 files) | 487 |
+| `ed11c36` | Fix(deps): remove literal '+' from python-multipart line | 487 |
 | `ab72a9e` | Fix(deps): add python-multipart for FastAPI Form parsing | 487 |
 | `ed806ea` | **feat(ai): add chat UI with HTMX for KPI queries** (9 files, +321/-2) | 487 |
 | `03f74a7` | **feat(ai): add Groq LLM service for KPI chat** | 477 |
@@ -205,8 +220,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → ... → 450 → 453 → 460 → 477 → **487** (460 legacy + 17 app/ + 10 chat).  
-> ✅ **CI verde real verificado** (runs #112, #114, #117). Los runs rojos #107, #108, #109, #115, #116 quedan como histórico.
+> 📈 **Evolución de tests:** 263 → ... → 450 → 453 → 460 → 477 → 487 → **490** (460 legacy + 30 app/).  
+> ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123). Los runs rojos #107, #108, #109, #115, #116 quedan como histórico.
 
 ---
 
@@ -248,19 +263,20 @@ Estás retomando un proyecto en curso. Antes de responder:
 | Servicio | URL | Comando |
 | :--- | :--- | :--- |
 | Dashboard Dash (legacy) | `http://127.0.0.1:8050` | `python -m dashboard.dash_app` |
-| API FastAPI + Swagger UI | `http://127.0.0.1:8000/docs` | `uvicorn app.main:app --reload` |
-| Dashboard Jinja2 + chat IA | `http://127.0.0.1:8000/` | (mismo servidor) |
-| Chat endpoint | `POST http://127.0.0.1:8000/chat/` | (mismo servidor) |
-| OpenAPI JSON | `http://127.0.0.1:8000/openapi.json` | (mismo servidor) |
+| API FastAPI local + Swagger UI | `http://127.0.0.1:8000/docs` | `uvicorn app.main:app --reload` |
+| Dashboard Jinja2 + chat IA local | `http://127.0.0.1:8000/` | (mismo servidor) |
+| **Producción (Railway)** | **`https://web-production-bb6a7.up.railway.app/`** | (auto-deploy desde main) |
+| Swagger producción | `https://web-production-bb6a7.up.railway.app/docs` | (mismo servidor) |
+| OpenAPI JSON | `https://web-production-bb6a7.up.railway.app/openapi.json` | (mismo servidor) |
 
 ### 4.32 🎯 Migración completa Dash → FastAPI (decisión estratégica)
 - **Decisión:** retirar progresivamente `dashboard/` y consolidar toda la presentación en `app/` (FastAPI + Jinja2 + HTMX + Plotly.js).
 - **Motivo:** producto vendible single-stack, código limpio, sin dependencia del framework Dash.
-- **Estrategia:** strangler tab por tab. Cada tab migrado reemplaza al equivalente Dash y se elimina el código legacy.
+- **Estrategia:** strangler tab por tab. Cada tab migrado reemplaza al equivalente Dash.
 - **Stack elegido:** Jinja2 (server-side render) + HTMX (interactividad sin SPA) + Plotly.js (mismos gráficos que Dash).
 - **Timeline:** ~5 semanas (fases 0-10).
-- **Riesgo aceptado:** deadline del MVP. Mitigación: fases atómicas, gates por fase.
-- **Gate bloqueante:** tests para `app/` (#22) ✅ ya cerrada.
+- **Gate bloqueante:** tests para `app/` (#22) ✅ cerrada.
+- **Progreso:** Chat IA integrado ✅, auth backend ✅. Falta: login UI, migración de tabs, retiro de `dashboard/`.
 
 ### 4.33 🔗 `httpx2` reemplaza `httpx` (Starlette 1.6.0)
 - **Problema:** Starlette 1.6.0 deprecó `httpx` en `TestClient` (`StarletteDeprecationWarning`).
@@ -270,15 +286,13 @@ Estás retomando un proyecto en curso. Antes de responder:
 ### 4.34 🧪 SQLModel `table=True` NO valida en construcción
 - **Problema:** `KPI(nombre=None)` no levanta `ValidationError` (contrato real de SQLModel).
 - **Solución:** la validación de entrada es responsabilidad de `KPICreate` (Pydantic `BaseModel`).
-- **Consecuencia en tests:** los tests del modelo documentan el contrato real (`test_kpi_no_valida_en_construccion`), no uno imaginario.
 - **Lección:** los tests prueban el contrato real del código, no el deseado.
 
 ### 4.35 🤖 Groq + `openai/gpt-oss-120b` para el chat IA
 - **Decisión:** usar **Groq** como proveedor LLM (gratis, rápido, OpenAI-compatible) con modelo **`openai/gpt-oss-120b`** (producción).
-- **Motivo:** Groq tiene tier gratuito generoso (30 RPM, 14.4k RPD), latencia ~1.5s para ~700 tokens, SDK idéntico al de OpenAI (migración trivial).
+- **Motivo:** Groq tiene tier gratuito generoso (30 RPM, 14.4k RPD), latencia ~1s para ~700 tokens, SDK idéntico al de OpenAI.
 - **Histórico:** los modelos `llama-3.3-70b-versatile` y `llama-3.1-8b-instant` fueron **deprecados el 2026-08-16**. El reemplazo oficial es `openai/gpt-oss-120b`.
-- **Arquitectura:** sin RAG vectorial todavía. Los 4-50 KPIs caben enteros en el contexto del prompt. YAGNI.
-- **Lección:** los IDs de modelos LLM son efímeros. Diseñar el ID como configurable (idealmente desde `.env` con fallback).
+- **Lección:** los IDs de modelos LLM son efímeros. Diseñar el ID como configurable (`os.getenv("GROQ_MODEL", ...)`).
 
 ### 4.36 🧩 Arquitectura en 4 capas del chat IA
 - **Decisión:** separar el chat en 4 capas claras.
@@ -286,21 +300,59 @@ Estás retomando un proyecto en curso. Antes de responder:
   - **Router** (`app/routers/chat.py`): orquesta DB + service + template.
   - **Contrato** (`Form(min_length=1, max_length=500)`): validación en el borde.
   - **Presentación** (`partials/_chat.html` + `_chat_response.html`): HTML + HTMX.
-- **Motivo:** testeable en cada capa sin acoplar. Cambiar de proveedor LLM toca 1 archivo.
-- **Lección:** los servicios deben ser agnósticos del transporte. Los routers orquestan, no calculan.
+- **Lección:** los servicios deben ser agnósticos del transporte.
 
 ### 4.37 📦 `python-multipart` es obligatorio para `Form(...)`
-- **Problema:** FastAPI valida la presencia de `python-multipart` **en import-time** del módulo (cuando el decorador `@router.post` evalúa `Form(...)`), no en runtime.
+- **Problema:** FastAPI valida `python-multipart` en import-time del módulo (decorador `@router.post` evalúa `Form(...)`).
 - **Error típico:** `RuntimeError: Form data requires "python-multipart" to be installed.`
-- **Solución:** declarar `python-multipart>=0.0.20,<1` en `requirements.txt`.
-- **Lección:** cualquier endpoint con `Form`, `File`, `UploadFile` u `OAuth2PasswordRequestForm` requiere `python-multipart`. **Nunca confiar en dependencias transitivas.**
+- **Lección:** endpoints con `Form`, `File`, `UploadFile` o `OAuth2PasswordRequestForm` requieren `python-multipart` explícito en `requirements.txt`.
 
 ### 4.38 🎨 HTMX como reemplazo de callbacks Dash
-- **Decisión:** usar **HTMX 2.0.4** (51 KB, single-file) en vez de React/Vue para la interactividad del dashboard.
-- **Motivo:** server-side render (Jinja2) + HTML declarativo. Cero estado JS, cero build step, cero npm.
-- **Cómo funciona:** `hx-post="/chat/"` en el `<form>` → HTMX hace el POST → server devuelve HTML parcial → HTMX lo inyecta con `hx-target` + `hx-swap`.
-- **Reemplaza:** callbacks de Dash (Python + estado en JS) con requests HTTP puros.
-- **Lección:** para dashboards internos, HTMX + Jinja2 es 10x más simple que una SPA. La complejidad se justifica solo si se necesita estado rico en cliente.
+- **Decisión:** **HTMX 2.0.4** (51 KB, single-file) en vez de React/Vue.
+- **Motivo:** server-side render + HTML declarativo. Cero estado JS, cero build step, cero npm.
+- **Lección:** para dashboards internos, HTMX + Jinja2 es 10x más simple que una SPA.
+
+### 4.39 ☁️ Railway como PaaS (sin Docker local)
+- **Problema:** Mac con macOS Mojave 10.14 no soporta Docker Desktop moderno. Sin Docker local no se puede buildear la imagen.
+- **Solución:** usar Railway (PaaS) que detecta el stack por `requirements.txt` + `Procfile` y buildea en su infraestructura con Nixpacks.
+- **Ventajas:** cero instalación local, cero RAM consumida, auto-deploy desde GitHub, Postgres addon con un click.
+- **Trade-off:** no se aprende Docker en esta ruta. Aprendizaje diferido a cuando se tenga Mac moderno o Linux.
+- **Lección:** la herramienta correcta depende del contexto. No forzar Docker cuando el hardware no lo soporta.
+
+### 4.40 🐘 Normalización de URL Postgres (`postgresql://` → `postgresql+psycopg://`)
+- **Problema:** Railway y otros PaaS generan URLs `postgresql://...`. SQLAlchemy las interpreta como driver `psycopg2` (legacy). El proyecto usa `psycopg` v3.
+- **Error en producción:** `ModuleNotFoundError: No module named 'psycopg2'` + crash al arrancar.
+- **Solución:** `_normalizar_url_db()` en `app/db.py` que convierte `postgresql://` → `postgresql+psycopg://` antes de `create_engine`. Idempotente: si ya tiene `+psycopg`, no toca. Si es `sqlite://`, no toca.
+- **Test:** 3 tests unitarios en `test_models.py` (`test_normalizar_url_postgres`, `test_normalizar_url_ya_normalizada`, `test_normalizar_url_sqlite_no_se_toca`).
+- **Lección:** SQLAlchemy no adivina el driver. La URL debe especificarlo explícitamente cuando hay múltiples opciones.
+
+### 4.41 🔑 bcrypt directo (sin passlib)
+- **Problema:** `passlib 1.7.4` (de 2020) es incompatible con `bcrypt 5.x` (2024). Falla con `AttributeError: module 'bcrypt' has no attribute '__about__'` + `ValueError: password cannot be longer than 72 bytes`.
+- **Solución:** usar `bcrypt` directo (`bcrypt.gensalt()` + `bcrypt.hashpw()` + `bcrypt.checkpw()`). Sin abstracción de passlib.
+- **Ventajas:** 1 dependencia en vez de 2, mantenimiento activo, compatible con Python 3.11+.
+- **Lección:** passlib está en su ocaso. La comunidad migró a bcrypt directo o argon2-cffi.
+
+### 4.42 🔐 PyJWT en vez de python-jose (Mojave sin wheels de cryptography)
+- **Problema:** `python-jose[cryptography]` requiere `cryptography>=50` que no tiene wheel para macOS Mojave Intel. Compilar desde fuente falla por falta de Rust/OpenSSL.
+- **Solución:** usar **PyJWT** (Python puro para HS256). No requiere `cryptography`.
+- **Cambio API:** `from jose import jwt` → `import jwt`, `JWTError` → `InvalidTokenError`. Casi idéntico.
+- **Lección:** antes de agregar una dep, verificar que tenga wheel precompilado para tu plataforma. Para Mojave Intel, preferir librerías Python puras.
+
+### 4.43 ⏱️ Timing-safe login (previene user enumeration)
+- **Problema:** si el login devuelve distinto tiempo cuando el email existe vs no existe (~250ms por bcrypt vs ~0ms), un atacante puede medir la latencia para enumerar emails.
+- **Solución:** ejecutar `verify_password()` **siempre**, incluso si el user no existe. Se usa un `_DUMMY_HASH` (hash bcrypt válido de password desconocido) para forzar la ejecución de bcrypt.
+- **Consecuencia:** tiempo de respuesta constante (~250ms) para ambos casos.
+- **Lección:** la seguridad no es solo "no filtrar strings". Los tiempos también filtran información.
+
+### 4.44 🔒 SECRET_KEY de dev con >32 bytes (RFC 7518)
+- **Problema:** PyJWT emite `InsecureKeyLengthWarning` cuando el HMAC key es <32 bytes para SHA256.
+- **Solución:** fallback de dev = `"dev-insecure-secret-change-me-and-over-32-bytes-please"` (54 bytes).
+- **Lección:** el fallback de dev debe simular las condiciones de producción. Si en prod usarás 32+ bytes, el fallback también.
+
+### 4.45 🎫 HS256 explícito (evita alg=none attack)
+- **Decisión:** `decode_access_token()` usa `algorithms=[ALGORITHM]` con `ALGORITHM = "HS256"` fijo.
+- **Motivo:** sin esto, PyJWT acepta cualquier algoritmo del header, incluyendo `alg=none` → bypass de firma.
+- **Lección:** nunca dejar que el cliente dicte el algoritmo. Siempre fijo, siempre explícito.
 
 ---
 
@@ -343,27 +395,15 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_validation.py` | 22 | Validación de contratos |
 | **Subtotal legacy** | **460** | ✅ |
 
-### Tests de `app/` (17) — ciclo #22
+### Tests de `app/` (30)
 
 | Archivo | Tests | Cobertura conceptual |
 | :--- | :---: | :--- |
-| `tests/app/test_models.py` | 3 | `KPI` SQLModel: creación, timestamp naive, contrato real (no valida en construcción) |
+| `tests/app/test_models.py` | 6 | `KPI` SQLModel (creación, timestamp naive, contrato real) + 3 de `_normalizar_url_db` (postgres, ya normalizado, sqlite) |
 | `tests/app/test_schemas.py` | 5 | `KPICreate`: parseo ISO, coacción numérica, rechazo inválido |
 | `tests/app/test_endpoints.py` | 9 | `GET /`, `GET /kpis/`, `POST /kpis/` con `TestClient` |
-| **Subtotal app/** | **17** | ✅ |
-
-### Tests del chat IA (10) — ciclo IA.1
-
-| Archivo | Tests | Cobertura conceptual |
-| :--- | :---: | :--- |
-| `tests/app/test_chat.py` | 10 | POST `/chat/` con mock del LLM |
-| **Subtotal chat** | **10** | ✅ |
-
-**Detalle de los 10 tests del chat:**
-- 4 happy path (200 + HTML + respuesta mock + métricas + query preservada).
-- 3 validación (query vacío → 422, query > 500 chars → 422, sin query → 422).
-- 2 manejo de errores (TimeoutError → mensaje de timeout, Exception → mensaje genérico).
-- 1 dashboard incluye chat (`Asistente de planta` + `hx-post="/chat/"` + `htmx.min.js` en HTML).
+| `tests/app/test_chat.py` | 10 | `POST /chat/` con mock del LLM |
+| **Subtotal app/** | **30** | ✅ |
 
 ### Fixtures críticas (conftest.py)
 
@@ -373,8 +413,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### Total
 
-> **487 tests passed** (460 legacy + 17 app/ + 10 chat). **0 regresiones. 0 warnings.**  
-> Tiempo: ~60 s suite completa. Tests de `app/` corren en ~0.20 s (SQLite en memoria, gratis).
+> **490 tests passed** (460 legacy + 30 app/). **0 regresiones. 0 warnings críticos.**  
+> Tiempo: ~60 s suite completa. Tests de `app/` corren en ~0.40 s.
 
 ---
 
@@ -393,21 +433,23 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**22**~~ | ~~Sin tests para `app/`~~ | ✅ **CERRADA** (`0c59acc`) | — |
 | **23** | `kpi_database.db` se migra manualmente (no automatizado en CI) | Automatización | 🟢 Baja |
 | **24** | Doble stack de dashboards (Dash 8050 + FastAPI 8000) | Mantenibilidad | 🟡 Media (transitoria) |
-| **25** | Pandas 2.1.4 → 3.x (requirements actualizado a `>=2.1,<3`) | Reproducibilidad | 🟢 Baja |
-| **26** | CI no mide cobertura de `app/` (solo `--cov=src --cov=dashboard`) | Testing infra | 🟡 Media |
+| **25** | Pandas 2.1.4 → 3.x | Reproducibilidad | 🟢 Baja |
+| **26** | CI no mide cobertura de `app/` | Testing infra | 🟡 Media |
 | ~~**27**~~ | ~~Fase IA pendiente~~ | ✅ **CERRADA** (`ed806ea`) | — |
-| **28 🆕** | Sin Dockerfile ni docker-compose | Deploy | 🔴 **Alta (próximo)** |
-| **29 🆕** | SQLite en producción (debería ser Postgres) | Escalabilidad | 🔴 **Alta (con deploy)** |
-| **30 🆕** | Sin rate limiting en `/chat/` (Groq tier gratis: 30 RPM) | Seguridad/Costos | 🟡 Media |
-| **31 🆕** | `GROQ_MODEL` hardcodeado (debería leerse de `.env` con fallback) | Mantenibilidad | 🟢 Baja |
-| **32 🆕** | Sin autenticación (chat accesible sin login) | Seguridad | 🔴 Alta (con deploy público) |
+| ~~**28**~~ | ~~Sin Dockerfile ni docker-compose~~ | ✅ **CERRADA** (Railway sin Docker, decisión 4.39) | — |
+| ~~**29**~~ | ~~SQLite en producción~~ | ✅ **CERRADA** (Postgres addon en Railway) | — |
+| **30 🆕** | Rate limit en `/chat/` no aplicado (slowapi instalado) | Seguridad/Costos | 🔴 **Alta (próximo)** |
+| **31 🆕** | `GROQ_MODEL` hardcodeado (debería leerse de `.env`) | Mantenibilidad | 🟢 Baja |
+| **32 🆕** | `POST /kpis/` y `POST /chat/` sin proteger (auth backend existe, no aplicado) | Seguridad | 🔴 **Alta (próximo)** |
 | **33 🆕** | IA.2, IA.3, IA.4 (diagnóstico/reportes/anomalías con LLM) | Features | 🟡 Media |
+| **34 🆕** | Sin template login (auth solo accesible por API/Swagger) | UX | 🔴 **Alta (próximo)** |
+| **35 🆕** | Sin seed admin (no hay forma de crear primer usuario en prod) | Operaciones | 🔴 **Alta (próximo)** |
+| **36 🆕** | Sin tests formales de auth (solo 7 verif. manuales con TestClient) | Testing infra | 🟡 Media |
+| **37 🆕** | `SECRET_KEY` no seteada en Railway (usa fallback de dev en prod) | Seguridad | 🔴 **Alta (próximo)** |
 
 ### 📌 Detalle de deudas activas
 
-**Deuda 11 — Eliminación de `schema_adapter.py`:**
-- `grep -rn "schema_adapter" src/ dashboard/ tests/ app/ --include="*.py"` → confirmar que nada lo importa.
-- `git rm src/schema_adapter.py` → `pytest` + `ruff check .` → commit `chore(cleanup): remove legacy schema_adapter.py`.
+**Deuda 11 — Eliminación de `schema_adapter.py`:** `grep -rn "schema_adapter" src/ dashboard/ tests/ app/ --include="*.py"` → confirmar que nada lo importa → `git rm` → tests + ruff → commit `chore(cleanup)`.
 
 **Deuda 15 — Doble spinner residual:** Cascade equipo + reset → 2 fires del store. Fix candidato: `debounce` 200ms o cascade condicional.
 
@@ -415,23 +457,25 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 **Deuda 19 — Callback de 2104 ms:** Detectado en Dash Dev Tools. Fix: identificar callback exacto, instrumentar, medir, optimizar.
 
-**Deuda 24 — Doble stack de dashboards:** Transitoria. Una vez el dashboard Jinja2 cubra todas las funcionalidades del Dash, se retira el Dash (ver decisión 4.32).
+**Deuda 24 — Doble stack de dashboards:** Transitoria. Una vez el dashboard Jinja2 cubra todas las funcionalidades del Dash, se retira el Dash.
 
 **Deuda 25 — Pandas 2 → 3:** `requirements.txt` fija `pandas>=2.1,<3`. Migrar a pandas 3 es su propio ciclo.
 
-**Deuda 26 — Cobertura de `app/` en CI:** El workflow corre `pytest tests/ -v --cov=src --cov=dashboard`. Fix candidato: agregar `--cov=app` al comando del workflow.
+**Deuda 26 — Cobertura de `app/` en CI:** El workflow corre `pytest tests/ -v --cov=src --cov=dashboard`. Fix candidato: agregar `--cov=app`.
 
-**Deuda 28 🆕 — Dockerfile + docker-compose:** Necesario para deploy. Ver sección 11.
-
-**Deuda 29 🆕 — Migrar SQLite → Postgres:** Railway provee Postgres como addon. Cambiar `DATABASE_URL` a variable de entorno.
-
-**Deuda 30 🆕 — Rate limiting en `/chat/`:** Groq tier gratis tiene 30 RPM. Si varios usuarios consultan, se agota. Fix: `slowapi` o límite por IP en el router.
+**Deuda 30 🆕 — Rate limiting en `/chat/`:** slowapi 0.1.10 está instalado. Falta: `SlowAPIMiddleware` en `main.py` + `@limiter.limit("30/minute")` en el router de chat. Groq tier gratis tiene 30 RPM.
 
 **Deuda 31 🆕 — `GROQ_MODEL` configurable:** Mover de constante a `os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")`. Facilita migrar modelos sin tocar código.
 
-**Deuda 32 🆕 — Autenticación:** Sin JWT, cualquiera con la URL puede usar el chat y consumir la API key de Groq. Bloqueante para deploy público real.
+**Deuda 32 🆕 — Endpoints sin proteger:** `POST /kpis/` y `POST /chat/` son públicos. Cualquiera con la URL puede consumir la API key de Groq. Fix: `Depends(get_current_user)` en ambos.
 
-**Deuda 33 🆕 — IA.2/IA.3/IA.4:** Diagnóstico asistido, reportes ejecutivos, detección de anomalías ML. Fases naturales después del deploy.
+**Deuda 34 🆕 — Template login:** Solo hay endpoints API (`POST /auth/login`, `GET /auth/me`). Falta HTML con form HTMX + cookie HttpOnly + redirect si no autenticado.
+
+**Deuda 35 🆕 — Seed admin:** No hay forma de crear el primer usuario en producción. Fix: `scripts/seed_admin.py` que lea `ADMIN_EMAIL` + `ADMIN_PASSWORD` de env y cree el user.
+
+**Deuda 36 🆕 — Tests formales de auth:** Los 7 checks fueron manuales con `TestClient`. Falta `tests/app/test_auth.py` (12-15 tests) que corra en CI.
+
+**Deuda 37 🆕 — `SECRET_KEY` en Railway:** No seteada. Usa el fallback de dev. Fix: `openssl rand -hex 32` → agregar como variable de entorno en Railway → redeploy.
 
 ---
 
@@ -439,19 +483,18 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **Deploy.1** | **Dockerfile multi-stage** | 1 h | 🔴 **Alta — PRÓXIMO PASO** |
-| **Deploy.2** | **docker-compose.yml (app + Postgres)** | 1 h | 🔴 Alta |
-| **Deploy.3** | **Migrar SQLite → Postgres** (`DATABASE_URL` env) | 1 h | 🔴 Alta |
-| **Deploy.4** | **Cuenta Railway + deploy** | 1 h | 🔴 Alta |
-| **Deploy.5** | **Configurar `GROQ_API_KEY` como variable de entorno** | 15 min | 🔴 Alta |
-| **Deploy.6** | **Verificar URL pública con chat IA funcionando** | 30 min | 🔴 Alta |
-| **Seg.1** | **JWT auth básica** (antes de mostrar la URL) | 2 h | 🔴 Alta |
-| Seg.2 | Rate limit en `/chat/` (slowapi) | 1 h | 🟡 Media |
+| **Auth.1.B** | **Proteger endpoints POST (kpis, chat)** | 10 min | 🔴 **Alta — PRÓXIMO PASO** |
+| **Auth.1.B** | **Template login.html + cookie HttpOnly** | 30 min | 🔴 Alta |
+| **Auth.1.B** | **`scripts/seed_admin.py`** | 15 min | 🔴 Alta |
+| **Auth.1.B** | **`tests/app/test_auth.py` formales** | 45 min | 🔴 Alta |
+| **Auth.1.B** | **`SECRET_KEY` en Railway** | 5 min | 🔴 Alta |
+| **Auth.1.B** | **Verificar login en URL pública** | 10 min | 🔴 Alta |
+| Seg.2 | Rate limit en `/chat/` con slowapi | 30 min | 🔴 Alta |
 | Seg.3 | CORS configurado | 30 min | 🟡 Media |
-| IA.2 | Diagnóstico asistido por LLM (explica hallazgos de `src/diagnostics.py`) | 2 h | 🟡 Media |
-| IA.3 | Generación de reportes ejecutivos (LLM narra KPIs + Pareto) | 2 h | 🟡 Media |
-| IA.4 | Detección de anomalías ML (Isolation Forest sobre I-MR) | 3 h | 🟡 Media |
-| Auto | APScheduler (ingesta CSV → SQLite cada N min) | 2 h | 🟡 Media |
+| IA.2 | Diagnóstico asistido por LLM | 2 h | 🟡 Media |
+| IA.3 | Reportes ejecutivos narrados | 2 h | 🟡 Media |
+| IA.4 | Detección de anomalías ML | 3 h | 🟡 Media |
+| Auto | APScheduler (ingesta CSV programada) | 2 h | 🟡 Media |
 | Integración | Webhook `POST /webhooks/ingest` + API key | 2 h | 🟡 Media |
 | Caso real | 3-5 entrevistas con usuario de planta + video demo | 4 h | 🟡 Media |
 | Migración | Tab Diagnóstico (sin gráficos) | 4 h | 🟠 Media |
@@ -460,10 +503,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 | Migración | Tab Control (I-MR + Western Electric) | 8 h | 🟠 Media |
 | Migración | Tab Operacional (ranking + drill-down) | 8 h | 🟠 Media |
 | Migración | Eliminar `dashboard/` legacy + ajustar CI | 4 h | 🟠 Media |
-| σ legacy | Eliminar `schema_adapter.py` (deuda #11) | 1 h | 🔴 Alta |
-| 3b.3 legacy | Deuda #15: debounce cascade | 30 min | 🟡 Media |
-| 3c legacy | Deuda #16 (severidad KPIs) + Chip filtros activos | 1.5 h | 🟡 Media |
-| perf legacy | Deuda #19: callback 2104 ms Calidad | 1-2 h | 🟡 Media |
+| Deuda | Eliminar `schema_adapter.py` (#11) | 1 h | 🔴 Alta |
+| Deuda | Debounce cascade (#15) | 30 min | 🟡 Media |
+| Deuda | Severidad KPIs rendimiento (#16) | 1.5 h | 🟡 Media |
+| Deuda | Callback 2104 ms Calidad (#19) | 1-2 h | 🟡 Media |
+| Deuda | `GROQ_MODEL` configurable (#31) | 15 min | 🟢 Baja |
 
 ---
 
@@ -491,7 +535,7 @@ which python   # DEBE mostrar .../venv/bin/python
 | `git pull origin main --rebase` tras Web Editor. | Nunca `git pull` sin `--rebase` si editaste fuera. |
 | `git status` ANTES y DESPUÉS del `git add`. | Asumir que el add agregó todo. |
 | 1 fix = 1 commit = 1 lista corta de archivos. | Commit con 6+ archivos mezclando propósitos. |
-| **`git clone` en vez de `git init`** cuando ya hay historial remoto. | `git init` + `remote add` + push (puede causar merge raro). |
+| **`git clone` en vez de `git init`** cuando ya hay historial remoto. | `git init` + `remote add` + push. |
 | **Quitar el `+` inicial** al pegar un diff en editor. | Pegar el `+` literal (rompe archivos de config). |
 
 ### ✍️ Commits
@@ -506,7 +550,7 @@ which python   # DEBE mostrar .../venv/bin/python
 - **2/2 checks verdes antes de mergear.** Sin excepción.
 - Cualquier push dispara el workflow CI (~60-90 s).
 - **Si CI falla:** leer el log del step rojo ANTES de proponer fixes.
-- **Ningún push sin verificar el estado del run CI inmediatamente anterior.** Un "verde" en el TRASPASO es foto histórica, no estado vivo.
+- **Ningún push sin verificar el estado del run CI inmediatamente anterior.**
 - **Verificar con `curl` a la API de GitHub:**
   ```bash
   curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
@@ -527,9 +571,10 @@ which python   # DEBE mostrar .../venv/bin/python
 - **Idioma del código:** inglés. Docstrings y comentarios: español.
 - **Arquitectura legacy:** `src/` (lógica) / `dashboard/` (presentación Dash).
 - **Arquitectura nueva:** `app/` (FastAPI + SQLModel + Jinja2 + HTMX).
-  - `app/routers/`: orquestación HTTP (reciben request, devuelven response).
-  - `app/services/`: lógica pura, sin HTTP (hablan con APIs externas, construyen datos).
+  - `app/routers/`: orquestación HTTP.
+  - `app/services/`: lógica pura, sin HTTP.
   - `app/templates/`: Jinja2 (render server-side).
+  - `app/auth.py`: JWT + bcrypt + `get_current_user`.
 - **Nomenclatura:** capacidad `world_class` / `capable` / `marginal` / `not_capable`. Severidad `success` / `warning` / `danger` / `neutral`.
 
 ### 🛠️ Protocolo de cada fix
@@ -581,13 +626,18 @@ rm fix_xxx.py
 5. Abrir chat nuevo.
 6. Pegar el mensaje de transición (sección 12) + TRASPASO completo.
 
-### 🆕 Reglas nuevas (ciclo IA.1)
+### 🆕 Reglas nuevas (ciclo IA.1 + Deploy + Auth)
 
-- **Nunca pegar el `+` inicial de un diff en un archivo de config.** El `+` significa "línea agregada", no es parte del contenido. Si se pega literal, pip falla con `Invalid requirement`.
-- **`python-multipart` es obligatorio para `Form(...)`, `File(...)`, `UploadFile(...)` en FastAPI.** FastAPI lo valida en import-time del módulo, no en runtime. Declarar en `requirements.txt`.
-- **Los IDs de modelos LLM son efímeros.** Groq deprecó `llama-3.3-70b-versatile` el 2026-08-16. Diseñar el ID como configurable (`os.getenv("GROQ_MODEL", ...)`).
-- **Nunca exponer secrets con `cat .env`.** Verificar con `grep -c "GROQ_API_KEY" .env` (cuenta líneas) o `python -c "from dotenv import load_dotenv; ..."` (verifica existencia, no valor).
-- **Regla heredada ciclo #21 + #22:** todo lo anterior se mantiene.
+- **Nunca pegar el `+` inicial de un diff en un archivo de config.** El `+` significa "línea agregada", no es parte del contenido.
+- **`python-multipart` es obligatorio para `Form(...)`, `File(...)`, `UploadFile(...)` en FastAPI.** FastAPI lo valida en import-time.
+- **Los IDs de modelos LLM son efímeros.** Groq deprecó `llama-3.3-70b-versatile` el 2026-08-16. Usar `openai/gpt-oss-120b`. Configurable desde env.
+- **Nunca exponer secrets con `cat .env`.** Verificar con `grep -c` o `python -c`.
+- **`passlib` está obsoleto.** Usar `bcrypt` directo.
+- **`python-jose[cryptography]` no tiene wheels para Mojave Intel.** Usar `PyJWT`.
+- **SQLAlchemy no adivina el driver Postgres.** URL explícita: `postgresql+psycopg://`.
+- **Timing-safe check en login.** bcrypt corre siempre, incluso si el user no existe.
+- **`algorithms=["HS256"]` explícito en PyJWT.** Nunca dejar que el cliente dicte el algoritmo.
+- **SECRET_KEY de dev >32 bytes** (RFC 7518).
 
 ---
 
@@ -595,112 +645,108 @@ rm fix_xxx.py
 
 | ❌ Error | ✅ Correcto |
 | :--- | :--- |
-| **Pegar `+python-multipart>=0.0.20,<1` en `requirements.txt`.** | Quitar el `+` inicial. Ese prefijo indica "línea agregada" en un diff, no es parte del contenido. |
-| **Asumir que `python-multipart` está instalado porque algo lo arrastra.** | Declararlo explícitamente en `requirements.txt`. FastAPI lo valida en import-time. |
-| **Usar `llama-3.3-70b-versatile` (deprecado 2026-08-16).** | Usar `openai/gpt-oss-120b` (producción en Groq). |
-| **`cat .env` para verificar la key.** | `python -c "from dotenv import load_dotenv; import os; ..."` (verifica existencia, no valor). |
-| **Pegar la API key completa en el chat.** | Pegarla enmascarada (`gsk_abc12...xyz`). Si se expone, rotarla inmediatamente en el panel del proveedor. |
-| **Escribir "CI verde" en el TRASPASO sin verificar Actions.** | Verificar con `curl` a la API ANTES de documentar. |
-| **Asumir que `requirements.txt` refleja el venv real.** | Validar con `pip install --dry-run -r requirements.txt` en venv limpio. |
-| **Confundir "460 tests verdes locales" con "CI verde".** | Local usa venv ya poblado; CI arranca de cero en cada run. |
-| **`mkdir -p ~/industrial-kpi-intelligence/app/...`** sin preguntar dónde está el proyecto. | Preguntar primero: `git remote -v` + `ls ~/Projects/`. Trabajar en el proyecto existente. |
-| **Asumir que una carpeta nueva es el proyecto activo.** | Verificar con `git status` si es repo git y con `ls` si tiene los archivos originales. |
-| **`pip3 freeze > requirements.txt` en Python global.** | Escribir el `requirements.txt` a mano con las dependencias top-level + transitivas críticas. |
-| **`git init` + `git remote add`** cuando ya hay historial remoto. | `git clone` fresco + `cp -R` del trabajo nuevo. |
+| **Pegar `+python-multipart>=0.0.20,<1` en `requirements.txt`.** | Quitar el `+` inicial. |
+| **Asumir que `python-multipart` está instalado porque algo lo arrastra.** | Declararlo explícito en `requirements.txt`. |
+| **Usar `llama-3.3-70b-versatile` (deprecado 2026-08-16).** | Usar `openai/gpt-oss-120b`. |
+| **`cat .env` para verificar la key.** | `python -c "from dotenv import load_dotenv; import os; ..."`. |
+| **Pegar la API key completa en el chat.** | Enmascararla. Si se expone, rotarla. |
+| **Escribir "CI verde" sin verificar Actions.** | `curl` a la API ANTES. |
+| **Asumir que `requirements.txt` refleja el venv real.** | `pip install --dry-run` en venv limpio. |
+| **Confundir "tests verdes locales" con "CI verde".** | Local usa venv ya poblado; CI arranca de cero. |
+| **Usar `python-jose[cryptography]` en Mojave Intel.** | **Falló.** Usar `PyJWT` (Python puro). |
+| **Usar `passlib` con bcrypt 5.x.** | **Falló.** Usar `bcrypt` directo. |
+| **Usar `datetime.now(timezone.utc)` (ruff UP017).** | Usar `datetime.now(UTC)`. |
+| **Dejar `algorithms=None` en PyJWT.** | `algorithms=[ALGORITHM]` con `ALGORITHM="HS256"` fijo. |
+| **URL Postgres sin driver explícito.** | `postgresql+psycopg://...` (SQLAlchemy no adivina). |
+| **Mismo tiempo de respuesta para email existe/no existe.** | bcrypt siempre corre (dummy hash). |
+| **SECRET_KEY de dev <32 bytes.** | >32 bytes (RFC 7518). PyJWT lo advierte. |
+| **`mkdir -p ~/industrial-kpi-intelligence/app/...`** sin preguntar dónde está el proyecto. | `git remote -v` + `ls ~/Projects/`. |
+| **Asumir que una carpeta nueva es el proyecto activo.** | `git status` para verificar. |
+| **`pip3 freeze > requirements.txt` en Python global.** | Escribir a mano. |
+| **`git init` + `git remote add`** cuando ya hay historial. | `git clone` + `cp -R`. |
 | **Asumir que `NaiveDatetime` es importable desde `sqlmodel`.** | **NO existe.** Usar `sa_column=Column(DateTime(timezone=False))`. |
-| **Confiar en `field_validator` en modelo SQLModel `table=True`.** | Pydantic no ejecuta validadores en modelos de tabla. Separar en `schemas.py`. |
-| **Asumir que `KPI(nombre=None)` levanta `ValidationError`.** | SQLModel `table=True` NO valida en construcción. La validación la hace `KPICreate`. |
-| **Enviar `"id": 0` en POST a FastAPI.** | El `id` es autoincremental. **Nunca** enviarlo en el body de un POST de creación. |
-| **Confundir el "example value" de Swagger UI con datos reales.** | El ejemplo se muestra por defecto. Para ver datos reales: **"Try it out"** → **"Execute"**. |
-| **`git push` sin PAT** → `Invalid username or token`. | Usar el PAT con scope `repo` + `workflow` como contraseña. |
-| **`rm -rf` de carpetas duplicadas sin verificar.** | Backup primero (`mv` a `.bak`), verificar en el proyecto original, luego borrar. |
+| **Asumir que `KPI(nombre=None)` levanta `ValidationError`.** | SQLModel `table=True` NO valida. |
+| **Enviar `"id": 0` en POST a FastAPI.** | El `id` es autoincremental. |
+| **Confundir "example value" de Swagger con datos reales.** | "Try it out" → "Execute". |
+| **`git push` sin PAT.** | PAT con scope `repo` + `workflow`. |
+| **`rm -rf` de carpetas duplicadas sin verificar.** | Backup primero (`mv` a `.bak`). |
+| **`sed -i ''` con `\n` en macOS.** | No funciona. Usar `perl -i -pe` o heredoc. |
 
 ---
 
 ## 🔟 📁 ARCHIVOS CLAVE Y COMANDOS
 
-### 🗂️ Estructura del proyecto (post ciclo IA.1)
+### 🗂️ Estructura del proyecto (post Auth 1.A)
 
 ```text
 industrial-kpi-intelligence/
 ├── ARCHITECTURE.md
-├── README.md                              # 487 tests + badges (Dash + FastAPI + IA)
+├── README.md                              # 490 tests + badges
 ├── VISION.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
-├── pyproject.toml                         # ruff + pytest (testpaths = ["tests", "tests/app"])
-├── requirements.txt                       # 21 deps (FastAPI + Dash + IA + tooling CI)
-├── Procfile / render.yaml
-├── .env                                   # GROQ_API_KEY (gitignored, NUNCA subir)
-├── .gitignore                             # +*.db, *.sqlite, kpis.csv, .env, .coverage, .pytest_cache/
-├── .github/workflows/tests.yml            # Workflow "CI" (lint + test)
+├── pyproject.toml                         # ruff + pytest
+├── requirements.txt                       # ~25 deps (FastAPI + Dash + IA + Auth + tooling)
+├── Procfile                               # uvicorn app.main:app --host 0.0.0.0 --port $PORT
+├── render.yaml                            # (histórico, no aplica a Railway)
+├── .env                                   # GROQ_API_KEY (gitignored)
+├── .gitignore
+├── .github/workflows/tests.yml            # Workflow "CI"
 ├── assets/style.css
 │
-├── app/                                   # 🆕 CAPA FASTAPI (en crecimiento)
+├── app/                                   # CAPA FASTAPI
 │   ├── __init__.py
-│   ├── main.py                            # FastAPI app + lifespan + GET / + GET/POST /kpis/ + include_router(chat)
-│   ├── models.py                          # SQLModel KPI (sa_column=DateTime(timezone=False))
-│   ├── schemas.py                         # Pydantic KPICreate (BaseModel)
-│   ├── db.py                              # SQLite + create_db_and_tables + get_session
-│   ├── templates_config.py                # 🆕 Jinja2Templates compartido (main + routers)
-│   ├── routers/                           # 🆕
+│   ├── main.py                            # FastAPI app + lifespan + mount /static + include_router(auth, chat) + GET / + GET/POST /kpis/
+│   ├── models.py                          # SQLModel KPI + User
+│   ├── schemas.py                         # Pydantic KPICreate + UserLogin + UserCreate + UserPublic + Token
+│   ├── db.py                              # DATABASE_URL desde env + _normalizar_url_db + create_db_and_tables + get_session
+│   ├── auth.py                            # 🆕 JWT (PyJWT) + bcrypt directo + get_current_user
+│   ├── templates_config.py                # Jinja2Templates compartido
+│   ├── routers/
 │   │   ├── __init__.py
+│   │   ├── auth.py                        # 🆕 POST /auth/login + GET /auth/me
 │   │   └── chat.py                        # POST /chat/ (HTML parcial)
-│   ├── services/                          # 🆕
+│   ├── services/
 │   │   ├── __init__.py
-│   │   └── llm_chat.py                    # Groq AsyncGroq + construir_contexto + consultar_llm
+│   │   └── llm_chat.py                    # Groq + construir_contexto + consultar_llm
 │   └── templates/
-│       ├── index.html                     # Dashboard + formulario chat incluido
-│       └── partials/                      # 🆕
-│           ├── _chat.html                 # Formulario HTMX
-│           └── _chat_response.html        # HTML parcial de respuesta/error
+│       ├── index.html                     # Dashboard + chat
+│       └── partials/
+│           ├── _chat.html
+│           └── _chat_response.html
 │
-├── static/                                # 🆕
+├── static/
 │   └── js/
-│       └── htmx.min.js                    # HTMX 2.0.4 (51 KB)
+│       └── htmx.min.js                    # HTMX 2.0.4
 │
 ├── config/
-│   ├── generator_config.yaml
-│   ├── plant_config.yaml
-│   └── quality_config.yaml
-│
-├── dashboard/                             # Legacy Dash (puerto 8050) — EN RETIRADA
-│   └── ...
-│
+├── dashboard/                             # Legacy Dash (EN RETIRADA)
 ├── data/
 ├── docs/
 │   ├── adr/
-│   ├── TRASPASO_MAESTRO.md                # Este archivo
-│   └── ...
+│   └── TRASPASO_MAESTRO.md
 ├── imagenes/
-├── scripts/
+├── scripts/                               # (pendiente: seed_admin.py)
 │
-├── src/                                   # Lógica legacy (intacta)
+├── src/                                   # Lógica legacy
 │   ├── capability.py
-│   ├── capability_thresholds.py
 │   ├── control_charts.py
-│   ├── data_generator.py
-│   ├── dataset_metadata.py
-│   ├── diagnostics.py
-│   ├── kpi_thresholds.py
 │   ├── kpis.py
 │   ├── oee.py
-│   ├── schema_adapter.py                  # PENDIENTE eliminar (deuda #11)
-│   └── validation.py
+│   ├── diagnostics.py
+│   └── schema_adapter.py                  # PENDIENTE eliminar (deuda #11)
 │
-├── migrate_csv.py                         # CSV → SQLite
-├── kpi_database.db                        # Local, NO en git (gitignored)
+├── migrate_csv.py
+├── kpi_database.db                        # Local, gitignored
 │
 └── tests/
-    ├── app/                               # 27 tests del stack FastAPI
-    │   ├── __init__.py
-    │   ├── conftest.py                    # Fixtures: session + client (SQLite en memoria)
-    │   ├── test_models.py                 # 3 tests
+    ├── app/                               # 30 tests del stack FastAPI
+    │   ├── conftest.py
+    │   ├── test_models.py                 # 6 tests (KPI + normalizar URL)
     │   ├── test_schemas.py                # 5 tests
     │   ├── test_endpoints.py              # 9 tests
-    │   └── test_chat.py                   # 10 tests (chat con mock)
-    ├── test_empty_state.py
-    └── ... (460 tests legacy)
+    │   └── test_chat.py                   # 10 tests
+    └── ... (460 legacy)
 ```
 
 ### ⌨️ Comandos verificados
@@ -712,48 +758,26 @@ source venv/bin/activate
 which python                    # DEBE mostrar .../venv/bin/python
 
 # Gates
-pytest                          # 487 passed (~60 s)
-pytest tests/app/ -v            # 27 passed (~0.5 s)
+pytest                          # 490 passed (~60 s)
+pytest tests/app/ -v            # 30 passed (~0.4 s)
 ruff check .                    # All checks passed!
 
-# Arrancar API FastAPI + dashboard + chat
+# Arrancar API FastAPI + dashboard + chat local
 uvicorn app.main:app --reload   # http://127.0.0.1:8000/
-lsof -ti:8000 | xargs kill -9   # matar si quedó zombie
+lsof -ti:8000 | xargs kill -9
 
 # Arrancar dashboard Dash (legacy)
 python -m dashboard.dash_app    # http://127.0.0.1:8050
 lsof -ti:8050 | xargs kill -9
 
-# Migrar CSV → SQLite
-python3 migrate_csv.py          # Crea kpi_database.db
+# Verificar URL pública
+curl -s -o /dev/null -w "GET /      → %{http_code}\n" https://web-production-bb6a7.up.railway.app/
+curl -s -o /dev/null -w "GET /docs  → %{http_code}\n" https://web-production-bb6a7.up.railway.app/docs
 
-# Verificar datos en SQLite
-python3 -c "
-from sqlmodel import Session, select
-from app.db import engine
-from app.models import KPI
-with Session(engine) as session:
-    for k in session.exec(select(KPI)).all():
-        print(f'{k.id} | {k.nombre} | {k.valor} {k.unidad}')
-"
-
-# Test manual del chat (sin arrancar server)
-python -c "
-import asyncio
-from datetime import datetime
-from app.models import KPI
-from app.services.llm_chat import consultar_llm
-
-kpis = [
-    KPI(id=1, nombre='OEE', valor=85.5, unidad='%',
-        timestamp=datetime(2026, 9, 23, 8, 0), linea_produccion='L1'),
-]
-async def main():
-    r = await consultar_llm('¿Cómo está el OEE?', kpis)
-    print(r['respuesta'])
-    print(f\"{r['elapsed_ms']} ms\")
-asyncio.run(main())
-"
+# Test login en producción (después de seed admin)
+curl -s -X POST "https://web-production-bb6a7.up.railway.app/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "..."}'
 
 # Verificar estado del último run de CI
 curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
@@ -780,108 +804,138 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 Fase Deploy.1 — Dockerfile + docker-compose
+### 📋 Bloque 1.B — Protección de endpoints + Login UI + Seed admin
 
-**Contexto:** el chat IA funciona en `localhost:8000`. Falta deployarlo a una URL pública para portafolio y demo. La oferta de Full Stack (VI Región) exige portafolio visible: *"nos interesa ver lo que eres capaz de construir"*.
+**Contexto:** auth backend funciona end-to-end (login devuelve JWT, `/auth/me` valida). 490 tests verdes. CI #123 verde. HEAD: `f00ea1e`. Pero **`POST /kpis/` y `POST /chat/` siguen siendo públicos** — cualquiera con la URL puede consumir tu API key de Groq.
 
-**Objetivo:** `https://<nombre>.up.railway.app/` con el dashboard + chat IA funcionando en producción, con Postgres como DB y `GROQ_API_KEY` como variable de entorno.
+**Objetivo:** cerrar el bloque de auth con endpoints protegidos, login UI, y seed del primer admin en producción.
 
 **Plan de ejecución:**
 
-1. **Crear `Dockerfile`** (multi-stage, Python 3.11-slim, ~20 líneas):
-   ```dockerfile
-   # Stage 1: builder
-   FROM python:3.11-slim AS builder
-   WORKDIR /app
-   COPY requirements.txt .
-   RUN pip install --no-cache-dir --user -r requirements.txt
+#### 1.B.1 — Proteger endpoints POST (10 min)
 
-   # Stage 2: runtime
-   FROM python:3.11-slim
-   WORKDIR /app
-   COPY --from=builder /root/.local /root/.local
-   COPY . .
-   ENV PATH=/root/.local/bin:$PATH
-   EXPOSE 8000
-   CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-   ```
+**Modificar `app/routers/chat.py`** — agregar `current_user` dependency:
 
-2. **Crear `.dockerignore`** (excluir `.venv/`, `.git/`, `__pycache__/`, `*.db`, `.env`, etc.).
+```python
+from app.auth import get_current_user
+from app.models import User
 
-3. **Crear `docker-compose.yml`** para desarrollo local con Postgres:
-   ```yaml
-   services:
-     db:
-       image: postgres:16-alpine
-       environment:
-         POSTGRES_DB: kpi
-         POSTGRES_USER: kpi
-         POSTGRES_PASSWORD: dev
-       ports:
-         - "5432:5432"
-     app:
-       build: .
-       ports:
-         - "8000:8000"
-       environment:
-         DATABASE_URL: postgresql://kpi:dev@db:5432/kpi
-         GROQ_API_KEY: ${GROQ_API_KEY}
-       depends_on:
-         - db
-   ```
-
-4. **Migrar `app/db.py` a variable de entorno:**
-   ```python
-   DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kpi_database.db")
-   engine = create_engine(DATABASE_URL)
-   ```
-   Con fallback a SQLite para desarrollo local.
-
-5. **Crear `railway.toml`** (configuración de deployment):
-   ```toml
-   [build]
-   builder = "dockerfile"
-   dockerfilePath = "Dockerfile"
-
-   [deploy]
-   startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
-   healthcheckPath = "/docs"
-   ```
-
-6. **Crear cuenta Railway** (`railway.app`) → conectar con GitHub → crear proyecto → linkear repo.
-
-7. **Agregar Postgres addon** desde el dashboard de Railway. Obtener `DATABASE_URL` automáticamente.
-
-8. **Configurar variables de entorno en Railway:**
-   - `GROQ_API_KEY` → la key real.
-   - `GROQ_MODEL` → `openai/gpt-oss-120b` (o default).
-   - `DATABASE_URL` → auto-generada por el addon.
-
-9. **Deploy:** push a `main` → Railway buildea automáticamente.
-
-10. **Verificar URL pública:** abrir `https://<proyecto>.up.railway.app/` + probar el chat.
-
-**Estructura de archivos a crear:**
-
-```text
-industrial-kpi-intelligence/
-├── Dockerfile                     # 🆕 multi-stage build
-├── .dockerignore                  # 🆕 excluir .venv, .git, *.db, .env
-├── docker-compose.yml             # 🆕 dev local con Postgres
-├── railway.toml                   # 🆕 config deploy
-└── app/db.py                      # modificar: DATABASE_URL desde env
+@router.post("/", response_class=HTMLResponse)
+async def chat(
+    request: Request,
+    query: Annotated[str, Form(min_length=1, max_length=500)],
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],  # ← NEW
+) -> HTMLResponse:
+    ...
 ```
 
-**Estimación:** 3-4 h.
+**Modificar `app/main.py`** — mismo patrón para `POST /kpis/`:
 
-**⚠️ Bloqueante previo:** agregar JWT auth básica (deuda #32). Sin auth, la URL pública expone el consumo de Groq a cualquiera. Ver "Seg.1" en el roadmap.
+```python
+from app.auth import get_current_user
+from app.models import KPI, User
 
-**⏱️ Después de Deploy:**
+@app.post("/kpis/", response_model=KPI, status_code=201)
+def create_kpi(
+    kpi_data: KPICreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),  # ← NEW
+) -> KPI:
+    ...
+```
 
-1. **Seguridad** — JWT + rate limit + CORS (4 h).
+**Nota:** `GET /` y `GET /kpis/` quedan **públicos** por ahora. La decisión de proteger también los GET se toma en 1.B.5 (después del template login).
+
+#### 1.B.2 — Template login.html (30 min)
+
+**Crear `app/templates/login.html`:** formulario con `hx-post="/auth/login"`, redirect a `/` en éxito.
+
+**Modificar `app/routers/auth.py`:** el endpoint `POST /auth/login` debe setear la cookie `HttpOnly` además de devolver el JSON. Con HTMX, el server hace `HX-Redirect: /` en el header para que el cliente navegue.
+
+**Modificar `GET /` en `main.py`:** agregar `Depends(get_current_user)` y redirect a `/login` si el usuario no está autenticado (HTTPException 307 o response custom).
+
+#### 1.B.3 — Script seed_admin.py (15 min)
+
+**Crear `scripts/seed_admin.py`:** lee `ADMIN_EMAIL` + `ADMIN_PASSWORD` de variables de entorno y crea el User si no existe.
+
+```python
+# scripts/seed_admin.py
+import os
+from sqlmodel import Session, select
+from app.db import engine, create_db_and_tables
+from app.models import User
+from app.auth import hash_password
+
+def main() -> None:
+    create_db_and_tables()
+    email = os.getenv("ADMIN_EMAIL")
+    password = os.getenv("ADMIN_PASSWORD")
+    if not email or not password:
+        raise SystemExit("ADMIN_EMAIL y ADMIN_PASSWORD requeridos")
+    with Session(engine) as s:
+        existing = s.exec(select(User).where(User.email == email)).first()
+        if existing:
+            print(f"User {email} ya existe, skip")
+            return
+        s.add(User(email=email, hashed_password=hash_password(password)))
+        s.commit()
+        print(f"✅ User {email} creado")
+
+if __name__ == "__main__":
+    main()
+```
+
+**Ejecutar en Railway** (via Console del dashboard o `railway run`).
+
+#### 1.B.4 — tests/app/test_auth.py (45 min)
+
+**12-15 tests formales en CI:**
+
+- 5 de login: OK, password incorrecta, email inexistente, password <8 chars (422), email inválido (422).
+- 4 de `/auth/me`: con token válido, sin token, token inválido, token expirado.
+- 3 de endpoints protegidos: `POST /kpis/` sin token (401), `POST /chat/` sin token (401), con token válido (200).
+- 3 de normalización URL DB: postgres → postgresql+psycopg, ya normalizado, sqlite.
+
+#### 1.B.5 — SECRET_KEY en Railway (5 min)
+
+```bash
+# Generar
+openssl rand -hex 32
+```
+
+**En Railway → Variables → `+ New Variable`:** `SECRET_KEY` = resultado del comando. Redeploy.
+
+#### 1.B.6 — Verificar login en producción (10 min)
+
+```bash
+# 1. Seed del admin en Railway (via Console)
+python scripts/seed_admin.py
+
+# 2. Test login desde curl
+curl -s -X POST "https://web-production-bb6a7.up.railway.app/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@...", "password": "..."}' | python3 -m json.tool
+
+# 3. Verificar POST /chat/ sin token → 401
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  "https://web-production-bb6a7.up.railway.app/chat/" \
+  --data-urlencode "query=test"
+
+# 4. Verificación visual: abrir URL, login, chat IA
+```
+
+#### 1.B.7 — Commit + push + CI + TRASPASO (15 min)
+
+Un solo commit que agrupe: `feat(auth): protect endpoints and add login UI`.
+
+**Estimación total:** ~1.5 h.
+
+**⏱️ Después de Bloque 1.B:**
+
+1. **Seg.2** — Rate limit en `/chat/` con slowapi (30 min).
 2. **IA.2** — Diagnóstico asistido por LLM (2 h).
-3. **IA.3** — Reportes ejecutivos narrados (2 h).
-4. **Migración tab por tab Dash → FastAPI** (ver decisión 4.32).
+3. **Migración tab por tab Dash → FastAPI** (decisión 4.32).
 
 ---
 
@@ -889,57 +943,65 @@ industrial-kpi-intelligence/
 
 ```text
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
-Soy David, Ing. Civil Químico + dev autodidacta, semana 3/8 del Producto 01.
+Soy David, Ing. Civil Químico + dev autodidacta, semana 4/8.
 
-Estado: ciclo IA.1 cerrado (commit ed11c36). 487 tests verdes (460 legacy + 17 app/ + 10 chat).
-CI 2/2 verde VERIFICADO (run #117). Working tree limpio.
+Estado: Ciclo Deploy (Railway) + Bloque 1.A (Auth JWT backend) cerrados.
+HEAD f00ea1e. CI #123 verde. 490 tests passed (460 legacy + 30 app/).
+URL pública: https://web-production-bb6a7.up.railway.app/
 
-Cerrado en el último ciclo (IA.1 — Chat con KPIs):
-- Groq LLM service (app/services/llm_chat.py) — commit 03f74a7
-- Chat UI con HTMX (app/routers/chat.py + templates partials) — commit ed806ea
-- python-multipart agregado (fix import-time de FastAPI Form) — commit ab72a9e
-- Fix del '+' literal en requirements.txt — commit ed11c36
+Cerrado en la última sesión:
+- Deploy Railway (PaaS sin Docker por Mojave): commit 86845ac
+- Fix psycopg v3 driver (postgresql+psycopg://): commit c68d139
+- Auth backend JWT (PyJWT + bcrypt directo): commit f00ea1e
+  - app/auth.py (196 líneas)
+  - app/routers/auth.py (100 líneas)
+  - Modelo User + schemas UserLogin/UserPublic/Token
+  - 7 checks end-to-end con TestClient
 
-Modelo IA: openai/gpt-oss-120b vía Groq (gratis, ~1.5s por consulta, ~700 tokens).
-Los modelos llama-3.3-70b-versatile y llama-3.1-8b-instant fueron deprecados 2026-08-16.
+3 incompatibilidades resueltas:
+1. cryptography sin wheels en Mojave → migrado a PyJWT
+2. passlib obsoleto con bcrypt 5.x → migrado a bcrypt directo
+3. InsecureKeyLengthWarning → fallback dev >32 bytes
 
-Próximo paso: Fase Deploy.1 — Dockerfile + docker-compose + Railway.
-Estimación 3-4 h. Ver sección 11 del TRASPASO.
-Motivación: la oferta de Full Stack (VI Región) pide portafolio visible con URL.
-
-Decisión estratégica en curso: MIGRACIÓN COMPLETA Dash → FastAPI
-(ver decisión 4.32 del TRASPASO). Stack elegido: Jinja2 + HTMX + Plotly.js.
+Próximo paso: Bloque 1.B — Proteger endpoints POST + Template login
++ seed_admin.py + tests formales + SECRET_KEY en Railway.
+Estimación 1.5 h. Ver sección 11 del TRASPASO.
 
 Deudas activas relevantes:
-- #28 Dockerfile + docker-compose (alta, próximo paso)
-- #29 SQLite → Postgres (alta, con deploy)
-- #32 JWT auth (alta, bloqueante para URL pública)
-- #30 rate limit en /chat/ (media)
-- #31 GROQ_MODEL configurable (baja)
+- #32 proteger POST /kpis/ + POST /chat/ (alta, próximo)
+- #34 template login (alta, próximo)
+- #35 seed admin (alta, próximo)
+- #36 tests formales auth (media, próximo)
+- #37 SECRET_KEY en Railway (alta, próximo)
+- #30 rate limit /chat/ (alta, slowapi instalado)
 - #11 eliminar schema_adapter.py (alta, legacy)
 - #15 debounce cascade (media, legacy)
-- #16 severidad individual KPIs rendimiento (media, legacy)
-- #19 callback 2104 ms en Calidad (media, legacy)
-- #26 CI no mide cobertura de app/ (media)
+- #16 severidad individual KPIs (media, legacy)
+- #19 callback 2104 ms (media, legacy)
+- #26 CI no mide cobertura app/ (media)
 - #25 pandas 2→3 (baja, diferida)
+- #31 GROQ_MODEL configurable (baja)
 
 Reglas clave (ver sección 8 completa):
-- Protocolo de arranque: cd + source venv/bin/activate + verificar `which python`
+- Protocolo de arranque: cd + source venv/bin/activate + which python
 - Leer el archivo antes de tocar
 - git status ANTES y DESPUÉS de cada git add
 - Un fix = un commit
-- Verificación visual con ⌘ + Shift + R obligatoria
+- Verificación visual ⌘ + Shift + R obligatoria
 - pytest + ruff verdes antes de commitear
 - NINGÚN push sin verificar el run CI anterior con curl a la API
-- requirements.txt debe reproducir el venv real (validar con --dry-run)
-- Nunca pegar el '+' inicial de un diff en archivos de config
-- python-multipart es obligatorio para Form/File/UploadFile en FastAPI
+- requirements.txt debe reproducir el venv real (--dry-run)
+- Nunca pegar el '+' inicial de un diff en config
+- python-multipart obligatorio para Form/File en FastAPI
 - Los IDs de modelos LLM son efímeros (Groq deprecó llama-3.3-70b en 2026-08-16)
-- NUNCA exponer secrets con `cat .env` (usar `python -c` que verifica existencia)
-- NO usar TextEdit para markdown: usar GitHub Web Editor
-- Tras editar en Web Editor: git pull --rebase
-- NUNCA enviar "id": 0 en POST a FastAPI
-- SQLModel table=True NO valida en construcción; usar schemas.py con BaseModel
+- NUNCA exponer secrets con cat .env
+- PyJWT, NO python-jose (cryptography sin wheels en Mojave Intel)
+- bcrypt directo, NO passlib (obsoleto con bcrypt 5.x)
+- SQLAlchemy no adivina driver Postgres: postgresql+psycopg://
+- Timing-safe login: bcrypt corre siempre, incluso si user no existe
+- algorithms=["HS256"] explícito (evita alg=none attack)
+- SECRET_KEY dev >32 bytes (RFC 7518)
+- SQLModel table=True NO valida en construcción; usar schemas.py
 - Al añadir un servicio nuevo: puerto distinto (8000 FastAPI vs 8050 Dash)
 - FastAPI TestClient usa httpx2 (Starlette 1.6.0)
 
@@ -965,66 +1027,62 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 ### 🏆 Hitos acumulados
 
 - ✅ **Fase 3a completa** (5/5 tabs con export CSV).
-- ✅ **Opción D** — consolidación del adapter.
-- ✅ **Fase 3b.1** — loading states.
-- ✅ **Fase 3b.3** — performance: -70% del tiempo original.
-- ✅ **Fase 3b.2 completa** — empty states en 5/5 tabs + cascades.
+- ✅ **Fase 3b.1, 3b.2, 3b.3 completas**.
 - ✅ **Migración a FastAPI + SQLModel + SQLite** (`a162f15`).
 - ✅ **Dashboard Jinja2 operativo** (`724f4ac`).
-- ✅ **17 tests para `app/`** (`0c59acc`) — deuda #22 cerrada.
-- ✅ **CI verde real verificado** (run #112).
-- ✅ **477 tests, 0 regresiones, 0 warnings.**
-- ✅ **`requirements.txt` reproducible** (validado en venv limpio).
+- ✅ **17 tests para `app/`** (`0c59acc`).
+- ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123).
 - ✅ **Decisión estratégica de migración completa Dash → FastAPI** (4.32).
-- ✅ **Chat IA con Groq operativo en dashboard** (`ed806ea`) — deuda #27 cerrada.
-- ✅ **487 tests, CI verde verificado** (run #117).
-- ✅ **Arquitectura 4 capas para IA** (service + router + contrato + presentación).
-- ✅ **HTMX integrado** (interactividad sin SPA, sin build step).
+- ✅ **Chat IA con Groq operativo** (`ed806ea`).
+- ✅ **HTMX integrado** (interactividad sin SPA).
+- ✅ **Deploy exitoso en Railway** con Postgres (URL pública operativa).
+- ✅ **Auth JWT backend operativo** (`f00ea1e`).
+- ✅ **490 tests, 0 regresiones.**
 
-### 🔬 Lecciones metodológicas de este ciclo
+### 🔬 Lecciones metodológicas de este ciclo (Deploy + Auth)
 
-- **Los diffs tienen sintaxis propia.** El `+` inicial no es parte del contenido. Al pegar un diff en un editor, quitarlo siempre.
-- **FastAPI valida `Form(...)` en import-time.** Sin `python-multipart`, el módulo no se importa. Falla en colección de tests, no en ejecución.
-- **Los IDs de modelos LLM son efímeros.** Groq deprecó Llama 3.3 el 2026-08-16. Diseñar el ID como configurable desde el primer día.
-- **Los secrets NUNCA se imprimen.** `cat .env` expone el valor. Usar `grep -c` o un script de Python que verifique existencia, no contenido.
-- **HTMX reemplaza callbacks Dash con 51 KB.** Para dashboards internos, es 10x más simple que una SPA.
-- **Arquitectura en capas para IA.** Service (habla con Groq) + Router (orquesta HTTP) + Contrato (Form) + Presentación (Jinja2). Cambiar de proveedor LLM toca 1 archivo.
-- **Un test rojo puede significar dos cosas:** el código tiene bug (fix código) o el test está mal escrito (fix test). Diagnosticar antes de tocar.
-- **TestClient con `httpx2`** (Starlette 1.6.0 deprecó `httpx`).
-- **Mock del LLM en tests:** `monkeypatch.setattr("app.routers.chat.consultar_llm", fake)`. Tests deterministas, sin coste de API.
-- **Un fix = un commit.** 4 commits en este ciclo IA.1, cada uno con propósito claro.
+- **La herramienta correcta depende del contexto.** Docker no es viable en Mojave; Railway sí. No forzar la herramienta popular si el hardware no la soporta.
+- **Los PaaS resuelven el "works on my machine".** Nixpacks detecta Python + `Procfile`, instala deps y buildea en su infra sin tocar tu Mac.
+- **SQLAlchemy no adivina el driver Postgres.** URL explícita: `postgresql+psycopg://`. Lección que costó un crash en producción.
+- **`passlib` está en su ocaso.** `bcrypt` directo es la ruta moderna.
+- **`python-jose[cryptography]` no funciona en Mojave.** `PyJWT` es la alternativa Python-pura para HS256.
+- **Timing-safe login no es paranoia.** Los tiempos de respuesta filtran información. `_DUMMY_HASH` normaliza.
+- **Los tests prueban contrato real, no deseado.** `UserLogin(password="short")` → 422, no 401. Pydantic valida en el borde.
+- **Un "verde" en el TRASPASO es foto histórica.** Verificar CI con `curl` antes de cada push.
+- **Deploy público sin auth = API key expuesta.** El orden correcto: auth backend → proteger endpoints → exponer público.
 
-### 📊 Métricas del ciclo IA.1
+### 📊 Métricas del ciclo Deploy + Auth
 
-- **Commits:** 4 (`03f74a7`, `ed806ea`, `ab72a9e`, `ed11c36`).
-- **Archivos nuevos:** 11 (`services/llm_chat.py`, `routers/chat.py`, `templates_config.py`, 2 templates partials, `htmx.min.js`, `test_chat.py`, `__init__.py`s).
-- **Líneas:** +321/-2 (chat UI) + 131 (llm_chat) + 10 (templates_config).
-- **Tests:** 477 → **487** (+10 chat).
-- **Deudas cerradas:** #27.
-- **Deudas nuevas:** #28 (Docker), #29 (Postgres), #30 (rate limit), #31 (modelo configurable), #32 (JWT), #33 (IA.2-4).
-- **Tiempo total:** ~6 h distribuidas.
+- **Commits:** 3 (`86845ac`, `c68d139`, `f00ea1e`).
+- **Archivos nuevos:** 2 (`app/auth.py`, `app/routers/auth.py`).
+- **Archivos modificados:** 4 (`app/main.py`, `app/models.py`, `app/schemas.py`, `requirements.txt`).
+- **Líneas:** +68/-3 (auth) + 10 (deploy prepare) + 42 (fix psycopg).
+- **Tests:** 487 → **490** (+3 de `_normalizar_url_db`).
+- **Deudas cerradas:** #28 (Docker), #29 (Postgres).
+- **Deudas nuevas:** #30 (rate limit no aplicado), #32 (endpoints sin proteger), #34 (template login), #35 (seed admin), #36 (tests formales), #37 (SECRET_KEY en Railway).
+- **Tiempo total:** ~8 h distribuidas.
 
 ### 📈 Scorecard de la oferta (Full Stack VI Región)
 
 | Categoría | Peso | Estado proyecto | Aporta |
 |:---|:---:|:---:|:---:|
-| Backend / APIs / DB | 20% | 8.5 | 1.70 |
+| Backend / APIs / DB | 20% | 9.0 | 1.80 |
 | Frontend / Dashboards | 15% | 8.5 | 1.28 |
 | Dominio industrial | 15% | 10 | 1.50 |
 | Tests / Calidad / Git | 10% | 9.5 | 0.95 |
-| **IA / Automatización IA** | **25%** | **6.5** | **1.63** |
-| Cloud / Deployment | 10% | 2 | 0.20 |
-| Seguridad | 5% | 3 | 0.15 |
-| **TOTAL** | 100% | — | **7.40** |
+| **IA / Automatización IA** | **25%** | **7.5** | **1.88** |
+| **Cloud / Deployment** | **10%** | **7.0** | **0.70** |
+| Seguridad | 5% | 6.0 | 0.30 |
+| **TOTAL** | 100% | — | **8.41** |
 
-**Subió de 6.5 (inicio del ciclo) a 7.4.** El bloque IA pasó de 0 a 6.5.
+**Subió de 7.4 → ~8.4.** El bloque Cloud pasó de 2 a 7 (Railway + Postgres + URL pública). El bloque Seguridad pasó de 3 a 6 (JWT backend, bcrypt, timing-safe, user enum prevention).
 
-**Siguiente salto:** Deploy Railway (+0.6 en Cloud) + JWT auth (+0.2 en Seguridad) → **~8.2**.
+**Siguiente salto:** protección de endpoints + login UI + rate limit → **~8.8**.
 
-**Techo alcanzable en 2 semanas:** 9.0 (con IA.2-4 + caso real + video demo).
+**Techo alcanzable en 2 semanas:** 9.2 (con IA.2-4 + caso real + video demo).
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Ciclo IA.1 cerrado (commit `ed11c36`). 487 tests verdes. CI 2/2 verde verificado (run #117).  
-> 🚀 **Próximo paso:** Fase Deploy.1 — Dockerfile + docker-compose + Railway. Ver sección 11.
+> 🗓️ **Última actualización:** Ciclo Deploy + Auth 1.A cerrados (commit `f00ea1e`). 490 tests verdes. CI 2/2 verde verificado (run #123).  
+> 🚀 **Próximo paso:** Bloque 1.B — Protección de endpoints + Login UI + seed admin. Ver sección 11.
