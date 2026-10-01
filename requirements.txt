@@ -14,7 +14,10 @@ Jinja2==3.1.6
 python-multipart>=0.0.20,<1
 psycopg[binary]>=3.2,<4
 
-
+# --- Seguridad (auth + rate limit) ---
+PyJWT>=2.10,<3
+bcrypt>=4.0,<6
+slowapi>=0.1,<1
 
 # --- Stack Dash legacy (dashboard/ + src/) ---
 dash==4.4.1
@@ -36,3 +39,4 @@ httpx2>=2.13,<3
 
 # --- Core (común) ---
 pydantic==2.13.5
+email-validator>=2.0,<3

@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, get_session
 from app.models import KPI
+from app.routers.auth import router as auth_router
 from app.routers.chat import router as chat_router
 from app.schemas import KPICreate
 from app.templates_config import templates
@@ -20,6 +21,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(auth_router)
 app.include_router(chat_router)
 
 
