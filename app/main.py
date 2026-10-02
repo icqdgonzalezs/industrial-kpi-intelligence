@@ -5,8 +5,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 
+from app.auth import get_current_user
 from app.db import create_db_and_tables, get_session
-from app.models import KPI
+from app.models import KPI, User
 from app.routers.auth import router as auth_router
 from app.routers.chat import router as chat_router
 from app.schemas import KPICreate
@@ -41,7 +42,11 @@ def get_kpis(session: Session = Depends(get_session)) -> list[KPI]:
 
 
 @app.post("/kpis/", response_model=KPI, status_code=201)
-def create_kpi(kpi_data: KPICreate, session: Session = Depends(get_session)) -> KPI:
+def create_kpi(
+    kpi_data: KPICreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> KPI:
     # Convertimos el schema Pydantic al modelo SQLModel (tabla)
     kpi = KPI(**kpi_data.model_dump())
     session.add(kpi)

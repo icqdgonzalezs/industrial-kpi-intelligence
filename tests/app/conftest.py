@@ -7,8 +7,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
+from app.auth import create_access_token, hash_password
 from app.db import get_session
 from app.main import app
+from app.models import User
 
 
 @pytest.fixture(name="session")
@@ -33,3 +35,21 @@ def client_fixture(session: Session) -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_session] = get_session_override
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="auth_headers")
+def auth_headers_fixture(session: Session) -> dict[str, str]:
+    """Crea un usuario en la DB de test y devuelve headers con JWT.
+
+    No usa el endpoint /auth/login (evita dependencia circular con
+    `client`). Genera el token directo con `create_access_token`.
+    """
+    user = User(
+        email="test@example.com",
+        hashed_password=hash_password("testpassword123"),
+    )
+    session.add(user)
+    session.commit()
+
+    token = create_access_token(subject=user.email)
+    return {"Authorization": f"Bearer {token}"}

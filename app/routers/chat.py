@@ -3,6 +3,7 @@
 
 Responsabilidad:
     - Recibir la consulta del usuario vía HTMX (form-urlencoded).
+    - Verificar autenticación (JWT).
     - Cargar los KPIs desde SQLite.
     - Delegar al service `consultar_llm`.
     - Renderizar un HTML parcial con la respuesta.
@@ -15,8 +16,9 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select
 
+from app.auth import get_current_user
 from app.db import get_session
-from app.models import KPI
+from app.models import KPI, User
 from app.services.llm_chat import consultar_llm
 from app.templates_config import templates
 
@@ -28,8 +30,11 @@ async def chat(
     request: Request,
     query: Annotated[str, Form(min_length=1, max_length=500)],
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> HTMLResponse:
     """Endpoint del chat: recibe query, consulta al LLM, devuelve HTML parcial.
+
+    Protegido con JWT (Depends(get_current_user)). Sin token válido → 401.
 
     HTMX envía el form como `application/x-www-form-urlencoded`, por eso
     usamos `Form(...)` en vez de un BaseModel Pydantic.
