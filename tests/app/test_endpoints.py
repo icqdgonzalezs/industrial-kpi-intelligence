@@ -148,22 +148,33 @@ def test_post_kpi_rechaza_timestamp_invalido(
     assert response.status_code == 422
 
 
-# ---------- GET / (dashboard, público) ----------
+# ---------- GET / (dashboard, requiere auth) ----------
 
-def test_dashboard_sin_datos(client: TestClient):
-    """DB vacía → HTML con empty state."""
-    response = client.get("/")
+def test_dashboard_sin_auth_redirige_a_login(client: TestClient):
+    """Sin token ni cookie → 302 redirect a /login."""
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "/login"
+
+
+def test_dashboard_con_auth_sin_datos(
+    client: TestClient, auth_headers: dict[str, str]
+):
+    """DB vacía + auth → HTML con empty state."""
+    response = client.get("/", headers=auth_headers)
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "No hay KPIs registrados todavía" in response.text
 
 
-def test_dashboard_con_datos(client: TestClient, session: Session):
-    """DB con datos → tabla HTML renderizada."""
+def test_dashboard_con_auth_y_datos(
+    client: TestClient, session: Session, auth_headers: dict[str, str]
+):
+    """DB con datos + auth → tabla HTML renderizada."""
     _seed_kpi(session, "OEE", 85.5, "L1")
     _seed_kpi(session, "MTTR", 45.2, "L2")
 
-    response = client.get("/")
+    response = client.get("/", headers=auth_headers)
     assert response.status_code == 200
     assert "Industrial KPI Intelligence" in response.text
     assert "OEE" in response.text
@@ -171,8 +182,10 @@ def test_dashboard_con_datos(client: TestClient, session: Session):
     assert "<table>" in response.text
 
 
-def test_dashboard_formatea_valor_2_decimales(client: TestClient, session: Session):
+def test_dashboard_formatea_valor_2_decimales(
+    client: TestClient, session: Session, auth_headers: dict[str, str]
+):
     """valor 85.5 → se muestra como 85.50."""
     _seed_kpi(session, "OEE", 85.5)
-    response = client.get("/")
+    response = client.get("/", headers=auth_headers)
     assert "85.50" in response.text

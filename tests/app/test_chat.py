@@ -174,9 +174,11 @@ def test_chat_maneja_error_generico(
 
 # ---------- Dashboard incluye chat ----------
 
-def test_dashboard_incluye_seccion_chat(client: TestClient) -> None:
+def test_dashboard_incluye_seccion_chat(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     """El dashboard raíz incluye el formulario HTMX del chat."""
-    response = client.get("/")
+    response = client.get("/", headers=auth_headers)
     assert response.status_code == 200
     assert "Asistente de planta" in response.text
     assert 'hx-post="/chat/"' in response.text

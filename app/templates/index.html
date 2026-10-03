@@ -16,6 +16,30 @@
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .empty { color: #666; font-style: italic; margin-top: 1rem; }
 
+    /* --- Navbar --- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 0.875rem;
+    }
+    .navbar-brand { font-weight: 600; color: #1a1a1a; }
+    .navbar-user { display: flex; align-items: center; gap: 1rem; color: #666; }
+    .navbar-logout {
+      background: transparent;
+      border: 1px solid #d1d5db;
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #374151;
+      transition: all 0.15s;
+    }
+    .navbar-logout:hover { background: #f3f4f6; border-color: #9ca3af; }
+
     /* --- Chat --- */
     .chat-section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e5e5; }
     .chat-title { font-size: 1.25rem; margin-bottom: 0.25rem; }
@@ -64,6 +88,18 @@
   </style>
 </head>
 <body>
+  <nav class="navbar">
+    <span class="navbar-brand">🏭 Industrial KPI Intelligence</span>
+    <div class="navbar-user">
+      <span>{{ user.email if user else '' }}</span>
+      <button
+        class="navbar-logout"
+        hx-post="/auth/logout"
+        hx-swap="none"
+        onclick="setTimeout(() => window.location.href = '/login', 200)"
+      >Cerrar sesión</button>
+    </div>
+  </nav>
   <h1>Industrial KPI Intelligence</h1>
   <p class="subtitle">API REST · FastAPI + SQLModel + SQLite</p>
 

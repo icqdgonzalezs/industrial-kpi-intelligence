@@ -14,6 +14,9 @@ Decisiones de seguridad:
     - Payload mínimo: solo `sub` (email) + `exp`. Nunca datos sensibles.
     - Password truncado a 72 bytes ANTES de bcrypt (límite del algoritmo).
       El schema de entrada valida el máximo, pero truncamos por defensa.
+    - `get_current_user` acepta token desde el header Authorization (API)
+      O desde la cookie `access_token` (dashboard HTML). El header tiene
+      prioridad; la cookie es fallback para el navegador.
 """
 from __future__ import annotations
 
@@ -24,7 +27,7 @@ from typing import Annotated, Any
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from sqlmodel import Session, select
@@ -41,6 +44,9 @@ ALGORITHM = "HS256"
 
 # Vida del access token (en minutos).
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 horas
+
+# Nombre de la cookie que guarda el JWT en el navegador.
+COOKIE_NAME = "access_token"
 
 # Límite de bcrypt: no procesa passwords >72 bytes.
 # Truncamos defensivamente en hash y verify para consistencia.
@@ -146,7 +152,9 @@ def decode_access_token(token: str) -> dict[str, Any]:
 # OAuth2 scheme (para Swagger UI "Authorize")
 # ============================================================
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# auto_error=False: si no hay header Authorization, devuelve None en vez
+# de lanzar 401. Permite que get_current_user intente con la cookie.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 # ============================================================
@@ -161,22 +169,36 @@ _CREDENTIALS_EXCEPTION = HTTPException(
 
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[Session, Depends(get_session)],
+    token_header: Annotated[str | None, Depends(oauth2_scheme)] = None,
+    token_cookie: Annotated[str | None, Cookie(alias=COOKIE_NAME)] = None,
 ) -> User:
     """Dependency que inyecta el usuario autenticado en endpoints protegidos.
 
+    Acepta el JWT desde 2 fuentes (en orden de prioridad):
+        1. Header `Authorization: Bearer <token>` → API REST, curl, Swagger.
+        2. Cookie `access_token` (HttpOnly) → dashboard HTML en navegador.
+
+    El header tiene prioridad sobre la cookie. Si ambos están presentes,
+    se usa el header. Si ninguno está, se devuelve 401.
+
     Flujo:
-        1. Extrae el JWT del header Authorization: Bearer <token>.
-        2. Verifica firma y expiración.
-        3. Busca el usuario en la DB por email.
-        4. Verifica que esté activo.
-        5. Devuelve el modelo User.
+        1. Elegir el token (header o cookie).
+        2. Verificar firma y expiración.
+        3. Buscar el usuario en la DB por email.
+        4. Verificar que esté activo.
+        5. Devolver el modelo User.
 
     Raises:
-        HTTPException 401: si el token es inválido, expirado, el usuario
-        no existe, o está desactivado.
+        HTTPException 401: si no hay token, es inválido, expirado, el
+        usuario no existe, o está desactivado.
     """
+    # Prioridad: header > cookie.
+    token = token_header or token_cookie
+
+    if not token:
+        raise _CREDENTIALS_EXCEPTION
+
     try:
         payload = decode_access_token(token)
         email = payload.get("sub")
@@ -193,4 +215,38 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Usuario desactivado",
         )
+    return user
+
+
+def get_current_user_optional(
+    session: Annotated[Session, Depends(get_session)],
+    token_header: Annotated[str | None, Depends(oauth2_scheme)] = None,
+    token_cookie: Annotated[str | None, Cookie(alias=COOKIE_NAME)] = None,
+) -> User | None:
+    """Como get_current_user pero devuelve None en vez de lanzar 401.
+
+    Útil para endpoints HTML que quieren redirigir a /login en vez de
+    devolver un 401 JSON crudo.
+
+    Prioridad: header > cookie. Devuelve None si:
+        - No hay token.
+        - El token es inválido o expirado.
+        - El usuario no existe.
+        - El usuario está desactivado.
+    """
+    token = token_header or token_cookie
+    if not token:
+        return None
+
+    try:
+        payload = decode_access_token(token)
+        email = payload.get("sub")
+        if not email or not isinstance(email, str):
+            return None
+    except InvalidTokenError:
+        return None
+
+    user = session.exec(select(User).where(User.email == email)).first()
+    if user is None or not user.is_active:
+        return None
     return user
