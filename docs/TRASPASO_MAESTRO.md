@@ -2,8 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Bloque 1.B.1 + 1.B.2 (Auth endpoints + Login UI) cerrados. Commit `4314764` pusheado. **495 tests verdes, CI 2/2 verde verificado (run #126).**  
-> 🚀 **Próximo paso:** Bloque 1.B.3-6 — Cerrar auth en producción (seed admin + SECRET_KEY + tests + rate limit). Ver sección 11.
+> 🗓️ **Última actualización:** Bloque 1.B completo (Auth 1.B.1 a 1.B.7) cerrado en producción. Commit `4ba0cd9` pusheado. **495 tests verdes, CI verde verificado (run #128).** Auth verificado end-to-end en URL pública: login 200 + cookie `HttpOnly; Secure; SameSite=lax`.  
+> 🚀 **Próximo paso:** Bloque 1.B.4 + 1.B.6 — tests formales de auth (`tests/app/test_auth.py`) + rate limit `/chat/`. Después: schema-first `tenant_id`. Ver sección 11.
 
 ---
 
@@ -27,8 +27,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 12 | 🚫 **Nunca pegar `+` de un diff en un archivo real.** El prefijo `+` significa "línea agregada", no es parte del contenido. |
 | 13 | 🚫 **Nunca usar `passlib`.** Reemplazado por `bcrypt` directo (passlib 1.7.4 incompatible con bcrypt 5.x). |
 | 14 | 🚫 **Nunca usar `python-jose[cryptography]` en este Mac.** Mojave Intel no tiene wheel de `cryptography` ≥50. Usar `PyJWT`. |
+| 15 | 🚫 **Nunca pegar bloques >50 líneas en la Terminal.** Corrompe caracteres. Usar `pbpaste` o TextEdit. |
+| 16 | 🚫 **Nunca tipear secretos con `input()`.** Usar `getpass.getpass()` (no ecoa). |
+| 17 | 🚫 **Nunca reutilizar un valor como password y como SECRET_KEY.** Valores distintos por propósito. |
 
-> 🚀 **Próximo paso concreto del proyecto:** Bloque 1.B.3 — `scripts/seed_admin.py` (crear admin en Railway). Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** Bloque 1.B.4 — `tests/app/test_auth.py` (12-15 tests formales en CI). Ver sección 11.
 
 ---
 
@@ -49,10 +52,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 4 de 8 |
 | ✅ **Tests actuales** | **495 passed** (460 legacy + 35 app/) |
-| 🟢 **CI** | 2/2 verde **verificado** (run #126, commit `4314764`) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `4314764`. |
+| 🟢 **CI** | Verde **verificado** (run #128, commit `4ba0cd9`) |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `4ba0cd9`. |
 | 🌐 **URL pública (Railway)** | `https://web-production-bb6a7.up.railway.app/` |
-| 📊 **Producto 1 (MVP)** | ~97% (dashboard Dash + API FastAPI + IA + Auth UI + Deploy Railway). Falta seed admin + SECRET_KEY real + rate limit. |
+| 📊 **Producto 1 (MVP)** | ~98% (dashboard Dash + API FastAPI + IA + Auth completo en prod + Deploy Railway). Falta rate limit + tests formales. |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -135,12 +138,12 @@ Estás retomando un proyecto en curso. Antes de responder:
   - ✅ `requirements.txt`: PyJWT, bcrypt, slowapi, email-validator (sin passlib, sin python-jose).
 - ✅ **7 tests end-to-end con `TestClient`**: login OK (200), password incorrecta (401), email inexistente (401), `/auth/me` con token (200), sin token (401), token inválido (401), password <8 chars → 422.
 
-**Ciclo Auth 1.B.1 (endpoints POST protegidos — este ciclo):**
+**Ciclo Auth 1.B.1 (endpoints POST protegidos):**
 
 - ✅ **`f6ac313`** — `feat(auth): protect POST endpoints with JWT dependency`. `POST /kpis/` y `POST /chat/` ahora requieren `Depends(get_current_user)`. 401 sin token válido.
 - ✅ **CI verde** (run #125).
 
-**Ciclo Auth 1.B.2 (Login UI + cookie HttpOnly — este ciclo):**
+**Ciclo Auth 1.B.2 (Login UI + cookie HttpOnly):**
 
 - ✅ **`4314764`** — `feat(auth): add login UI with HttpOnly cookie + dual auth`.
   - ✅ `app/templates/login.html`: form con `hx-post="/auth/login"` + `hx-ext="json-enc"`.
@@ -151,17 +154,30 @@ Estás retomando un proyecto en curso. Antes de responder:
   - ✅ Detección de `HX-Request` para responder HTML (partial) o JSON (API) según cliente.
 - ✅ **CI verde** (run #126). **495 tests passed** (460 legacy + 35 app/).
 
+**Ciclo Auth 1.B.3-7 (cierre auth en producción):**
+
+- ✅ **`4ba0cd9`** — `feat(auth): add seed_admin script for first production user`. Script `scripts/seed_admin.py` lee `ADMIN_EMAIL` + `ADMIN_PASSWORD` de env vars y crea el primer user admin. **Deuda #35 cerrada.**
+- ✅ **`SECRET_KEY` seteada en Railway** (panel Variables) → fallback de dev desactivado. Verificación: token firmado con el fallback devuelve **401** en `/auth/me`. **Deuda #37 cerrada.**
+- ✅ **`COOKIE_SECURE=true` seteado en Railway** → cookie de sesión viaja con flag `Secure`. **Deuda #38 cerrada.**
+- ✅ **Login end-to-end en URL pública verificado:**
+  - `GET /` sin cookie → **302** a `/login` ✅
+  - `POST /chat/` sin auth → **401** ✅
+  - `POST /auth/login` OK → **200** + `Set-Cookie: access_token=...; HttpOnly; Max-Age=86400; Path=/; SameSite=lax; Secure` ✅
+  - `POST /auth/login` password <8 → **422** (Pydantic) ✅
+  - `POST /auth/login` password mal ≥8 → **401** ✅
+  - Token forjado con fallback dev → **401** ✅
+- ✅ **Admin sembrado en Postgres prod**: `dcgscolchagua@gmail.com` (id=1). Password guardada en MacPass.
+- ✅ **CI verde** (run #128).
+
 ### 🟡 En curso
 
-- *Nada.* Working tree limpio. CI #126 verde verificado.
+- *Nada.* Working tree limpio. CI #128 verde verificado.
 
-### ⏳ Pendiente inmediato (Bloque 1.B — cerrar auth en producción)
+### ⏳ Pendiente inmediato (endurecimiento + multi-tenant readiness)
 
-- ⏳ **1.B.3** — `scripts/seed_admin.py` para crear primer user admin en Railway.
-- ⏳ **1.B.5** — `SECRET_KEY` + `COOKIE_SECURE=true` en Railway.
-- ⏳ **1.B.7** — Verificar login end-to-end en URL pública.
 - ⏳ **1.B.4** — `tests/app/test_auth.py` formales (12-15 tests en CI).
 - ⏳ **1.B.6** — Rate limit en `/chat/` con `slowapi` (instalado, sin aplicar — deuda #30).
+- ⏳ **Schema-first multi-tenant** — `tenant_id` en `User` + `KPI` (default `"default"`), ALTER en Postgres prod.
 
 ---
 
@@ -169,6 +185,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
+| `4ba0cd9` | **feat(auth): add seed_admin script for first production user** | 495 |
+| `25b3652` | Docs(handoff): update TRASPASO with Auth 1.B.2 closed | 495 |
 | `4314764` | **feat(auth): add login UI with HttpOnly cookie + dual auth** | 495 |
 | `f6ac313` | **feat(auth): protect POST endpoints with JWT dependency** | 494 |
 | `f00ea1e` | **feat(auth): add JWT authentication with bcrypt password hashing** (6 files, +68/-3) | 490 |
@@ -235,8 +253,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → ... → 450 → 453 → 460 → 477 → 487 → 490 → 494 → **495** (460 legacy + 35 app/).  
-> ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126). Los runs rojos #107, #108, #109, #115, #116 quedan como histórico.
+> 📈 **Evolución de tests:** 263 → ... → 490 → 494 → **495** (460 legacy + 35 app/).  
+> ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126, #128).
 
 ---
 
@@ -393,6 +411,31 @@ Estás retomando un proyecto en curso. Antes de responder:
 - **Consecuencia:** `GET /` deja de ser público. Se documenta en el TRASPASO que el "entrypoint" del navegador es `/login`.
 - **Lección:** proteger endpoints POST no alcanza si el entrypoint HTML queda abierto. El navegador debe arrancar en login.
 
+### 4.50 🍪 Cookie `Secure` condicional por env var (cierre auth prod)
+- **Decisión:** `POST /auth/login` agrega el flag `Secure` a la cookie solo cuando `COOKIE_SECURE=true` (env var). En dev HTTP el flag no se agrega; en prod HTTPS sí.
+- **Motivo:** `Secure` fuerza que el navegador solo envíe la cookie por HTTPS. Si se activa en dev (HTTP local), la cookie nunca se envía y el login local queda roto.
+- **Implementación:** `settings.COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"`.
+- **Verificación:** `Set-Cookie: access_token=...; HttpOnly; Max-Age=86400; Path=/; SameSite=lax; Secure` en producción.
+- **Lección:** los flags de seguridad de cookies deben ser configurables por entorno. Nunca hardcodear `Secure=True` porque rompe el dev local.
+
+### 4.51 🔑 Seed admin idempotente con env vars (deuda #35)
+- **Decisión:** `scripts/seed_admin.py` lee `ADMIN_EMAIL` + `ADMIN_PASSWORD` de env vars y crea el user solo si no existe.
+- **Motivo:** no hay forma de crear el primer user en un deploy limpio sin acceso al shell. Ejecutar el script en Railway Console resuelve el bootstrap.
+- **Idempotencia:** si el user ya existe → skip con mensaje. Correrlo dos veces no rompe nada.
+- **Lección:** el bootstrap de un sistema con auth requiere un seed idempotente. El script es la herramienta, las env vars son el input.
+
+### 4.52 🔐 Railway aplica env vars vía redeploy, no en caliente
+- **Problema:** tras agregar `SECRET_KEY` en Railway UI, la consola web seguía reportando `SECRET_KEY set: False`.
+- **Causa:** la consola estaba adjunta al deployment viejo (`037c4a2e`), que arrancó **antes** de que existieran las vars. El deployment nuevo se construía en paralelo (`Online · Building`).
+- **Solución:** esperar a que el deployment nuevo esté `Online` sin `Building`. Recargar la consola. Confirmar que el hash del deployment es el nuevo.
+- **Lección:** Railway no aplica env vars en caliente. Entre el click en "Deploy" y el nuevo `Online`, el contenedor viejo sigue sirviendo tráfico y la consola apunta al viejo.
+
+### 4.53 🧪 Rotación de password con write-verify
+- **Decisión:** toda operación que escribe un secreto en DB sigue el patrón **write-verify**: `hash → verify in-process → commit → verify post-commit`.
+- **Motivo:** un `input()` sin eco (`getpass -s`) no deja evidencia del valor ingresado. Sin verificación post-commit, no hay forma de saber si la password quedó bien escrita.
+- **Implementación:** el script de rotación corre `assert verify_password(pw, hash_password(pw))` **antes** del commit y `assert verify_password(pw, u.hashed_password)` **después**, releído de la DB.
+- **Lección:** una operación sobre credenciales no está completa hasta que se verifica contra la fuente de verdad. Sin verificación, el "OK" es fe.
+
 ---
 
 ## 5️⃣ ESTADO DE TESTS Y CALIDAD
@@ -484,10 +527,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**32**~~ | ~~`POST /kpis/` y `POST /chat/` sin proteger~~ | ✅ **CERRADA** (`f6ac313`) | — |
 | **33 🆕** | IA.2, IA.3, IA.4 (diagnóstico/reportes/anomalías con LLM) | Features | 🟡 Media |
 | ~~**34**~~ | ~~Sin template login~~ | ✅ **CERRADA** (`4314764`) | — |
-| **35 🆕** | Sin seed admin (no hay forma de crear primer usuario en prod) | Operaciones | 🔴 **Alta (próximo)** |
+| ~~**35**~~ | ~~Sin seed admin (no hay forma de crear primer usuario en prod)~~ | ✅ **CERRADA** (`4ba0cd9`) | — |
 | **36 🆕** | Sin tests formales de auth (cobertura parcial dentro de endpoints) | Testing infra | 🟡 Media |
-| **37 🆕** | `SECRET_KEY` no seteada en Railway (usa fallback de dev en prod) | Seguridad | 🔴 **Alta (próximo)** |
-| **38 🆕** | `COOKIE_SECURE=true` no seteado en Railway | Seguridad | 🔴 **Alta (próximo)** |
+| ~~**37**~~ | ~~`SECRET_KEY` no seteada en Railway (usa fallback de dev en prod)~~ | ✅ **CERRADA** (Railway Variables) | — |
+| ~~**38**~~ | ~~`COOKIE_SECURE=true` no seteado en Railway~~ | ✅ **CERRADA** (Railway Variables) | — |
 
 ### 📌 Detalle de deudas activas
 
@@ -509,13 +552,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 **Deuda 31 🆕 — `GROQ_MODEL` configurable:** Mover de constante a `os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")`. Facilita migrar modelos sin tocar código.
 
-**Deuda 35 🆕 — Seed admin:** No hay forma de crear el primer usuario en producción. Fix: `scripts/seed_admin.py` que lea `ADMIN_EMAIL` + `ADMIN_PASSWORD` de env y cree el user.
-
 **Deuda 36 🆕 — Tests formales de auth:** Cubrimos 401 en POST y redirect 302 en `GET /` dentro de tests existentes, pero falta un `tests/app/test_auth.py` (12-15 tests) que cubra login OK/fallo, `/auth/me`, `/auth/logout`, tokens expirados. Correrlo en CI.
-
-**Deuda 37 🆕 — `SECRET_KEY` en Railway:** No seteada. Usa el fallback de dev. Fix: `openssl rand -hex 32` → agregar como variable de entorno en Railway → redeploy.
-
-**Deuda 38 🆕 — `COOKIE_SECURE=true` en Railway:** Sin esta var, la cookie se envía en HTTP. En prod (HTTPS) debe ir `Secure`. Fix: agregar var → redeploy.
 
 ---
 
@@ -523,11 +560,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **Auth.1.B.3** | **`scripts/seed_admin.py` (crear admin en Railway)** | 15 min | 🔴 **Alta — PRÓXIMO PASO** |
-| **Auth.1.B.5** | **SECRET_KEY + COOKIE_SECURE=true en Railway** | 5 min | 🔴 Alta |
-| **Auth.1.B.7** | **Verificar login en URL pública** | 20 min | 🔴 Alta |
-| **Auth.1.B.4** | **`tests/app/test_auth.py` formales (12-15 tests)** | 45 min | 🟡 Media |
-| **Auth.1.B.6** | **Rate limit `/chat/` con slowapi (deuda #30)** | 30 min | 🟡 Media |
+| **1.B.4** | **`tests/app/test_auth.py` formales (12-15 tests)** | 45 min | 🟡 Media — **PRÓXIMO** |
+| **1.B.6** | **Rate limit `/chat/` con slowapi (deuda #30)** | 30 min | 🟡 Media — **PRÓXIMO** |
+| **Schema** | **`tenant_id` en `User` + `KPI` (multi-tenant readiness)** | 30 min | 🔴 Alta — **PRÓXIMO** |
 | Seg.3 | CORS configurado | 30 min | 🟡 Media |
 | IA.2 | Diagnóstico asistido por LLM | 2 h | 🟡 Media |
 | IA.3 | Reportes ejecutivos narrados | 2 h | 🟡 Media |
@@ -590,13 +625,14 @@ which python   # DEBE mostrar .../venv/bin/python
 - **Si CI falla:** leer el log del step rojo ANTES de proponer fixes.
 - **Ningún push sin verificar el estado del run CI inmediatamente anterior.**
 - **Verificar con `curl` a la API de GitHub:**
-  ```bash
-  curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
-  import json, sys
-  r = json.load(sys.stdin)['workflow_runs'][0]
-  print(f\"Run #{r['run_number']} | {r['conclusion']} | {r['head_commit']['message'].splitlines()[0]}\")
-  "
-  ```
+
+```bash
+curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
+import json, sys
+r = json.load(sys.stdin)['workflow_runs'][0]
+print(f\"Run #{r['run_number']} | {r['conclusion']} | {r['head_commit']['message'].splitlines()[0]}\")
+"
+```
 
 ### 🎨 UX / CSS
 
@@ -652,11 +688,13 @@ rm fix_xxx.py
 ### 🔄 Protocolo de cambio de chat
 
 **Cuándo cambiar:**
+
 - Después de cerrar cada fase de mediana duración (con commit + CI verde).
 - Después de ~40-50 mensajes densos en la misma sesión.
 - Inmediatamente si aparecen 2+ síntomas de degradación.
 
 **Cómo cambiar (protocolo):**
+
 1. Cerrar el ciclo en curso (commit + push + CI verde).
 2. Actualizar `TRASPASO_MAESTRO` con los últimos commits + sección 11.
 3. Commit + push del `TRASPASO`.
@@ -680,6 +718,13 @@ rm fix_xxx.py
 - **HTMX necesita `hx-ext="json-enc"`** cuando el endpoint espera JSON (Pydantic body). Sin esto, HTMX manda `application/x-www-form-urlencoded`.
 - **`HX-Redirect` para navegación server-driven.** Un 200 con HTML NO navega el browser.
 - **`GET /` protegido con redirect 302 a `/login`.** Sin esto, anónimos ven el dashboard roto.
+- **Nunca pegar bloques >50 líneas en la Terminal.** Corrompe caracteres. Usar `pbpaste` o TextEdit.
+- **Nunca tipear secretos con `input()`.** Usar `getpass.getpass()` (no ecoa).
+- **Nunca reutilizar el mismo valor como password y como SECRET_KEY.** Valores distintos por propósito.
+- **Railway aplica env vars vía redeploy, no en caliente.** Esperar `Online` sin `Building`.
+- **Cookie `Secure` condicional por env var.** Nunca hardcodear.
+- **Write-verify en operaciones sobre credenciales.** `hash → verify → commit → verify`.
+- **Seed admin idempotente.** Correrlo dos veces no rompe.
 
 ---
 
@@ -716,55 +761,61 @@ rm fix_xxx.py
 | **`git push` sin PAT.** | PAT con scope `repo` + `workflow`. |
 | **`rm -rf` de carpetas duplicadas sin verificar.** | Backup primero (`mv` a `.bak`). |
 | **`sed -i ''` con `\n` en macOS.** | No funciona. Usar `perl -i -pe` o heredoc. |
+| **🆕 Pegar bloques >50 líneas en la Terminal con `Cmd+V`.** | Usar `pbpaste > archivo` o TextEdit. La Terminal corrompe bytes. |
+| **🆕 Usar `input()` para password en consola no interactiva.** | `getpass.getpass()` no ecoa. `input()` sí. |
+| **🆕 Pegar password/SECRET_KEY en el chat.** | Rotar inmediatamente. Nunca pegarla. |
+| **🆕 Reutilizar el mismo valor como password y SECRET_KEY.** | Valores distintos por propósito. |
+| **🆕 Correr `curl` desde dentro del contenedor Railway.** | `curl` desde tu Mac. El contenedor es minimal. |
+| **🆕 Setear env vars de Railway desde la consola del contenedor.** | Railway UI → Variables → Deploy. |
+| **🆕 Verificar `SECRET_KEY set` en la consola del deployment viejo.** | Confirmar hash del deployment nuevo + `Online` sin `Building`. |
+| **🆕 Rotar password a ciegas sin verificar el round-trip.** | `assert verify_password(pw, hash_password(pw))` antes y después del commit. |
+| **🆕 Confundir 401 con 422 en login.** 401 = credenciales malas. 422 = payload inválido (Pydantic). | Leer el código. Cada código HTTP apunta a una capa distinta. |
+| **🆕 Tipear la password en `read -s` sin prompt visible.** | `read -rs -p "prompt: " VAR`. |
+| **🆕 Copiar de MacPass y pegar en `read -s`: agregar `\r` (33 chars en vez de 32).** | Limpiar con `tr -d '[:space:]'` antes de usar. |
+| **🆕 Pegar un JWT completo en el chat.** | Redactar como `<TOKEN>`. Aunque expire, mientras vive permite actuar como el user. |
+| **🆕 Heredoc (`cat > file << EOF`) con >100 líneas desde el chat.** | TextEdit o `pbpaste`. El heredoc corrompe caracteres. |
 
 ---
 
 ## 🔟 📁 ARCHIVOS CLAVE Y COMANDOS
 
-### 🗂️ Estructura del proyecto (post Auth 1.B.2)
+### 🗂️ Estructura del proyecto (post Auth 1.B.3-7)
 
 ```text
 industrial-kpi-intelligence/
-├── ARCHITECTURE.md
 ├── README.md                              # 495 tests + badges
 ├── VISION.md
+├── ARCHITECTURE.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
-├── pyproject.toml                         # ruff + pytest
-├── requirements.txt                       # ~25 deps (FastAPI + Dash + IA + Auth + tooling)
+├── pyproject.toml
+├── requirements.txt
 ├── Procfile                               # uvicorn app.main:app --host 0.0.0.0 --port $PORT
-├── render.yaml                            # (histórico, no aplica a Railway)
 ├── .env                                   # GROQ_API_KEY (gitignored)
 ├── .gitignore
 ├── .github/workflows/tests.yml            # Workflow "CI"
 ├── assets/style.css
 │
 ├── app/                                   # CAPA FASTAPI
-│   ├── __init__.py
-│   ├── main.py                            # FastAPI app + lifespan + mount /static + include_router(auth, chat) + GET / (302 si no auth) + GET/POST /kpis/
+│   ├── main.py                            # FastAPI + lifespan + mount /static + routers + GET / (302 si no auth)
 │   ├── models.py                          # SQLModel KPI + User
 │   ├── schemas.py                         # Pydantic KPICreate + UserLogin + UserCreate + UserPublic + Token
-│   ├── db.py                              # DATABASE_URL desde env + _normalizar_url_db + create_db_and_tables + get_session
-│   ├── auth.py                            # JWT (PyJWT) + bcrypt + get_current_user + get_current_user_optional
-│   ├── templates_config.py                # Jinja2Templates compartido
+│   ├── db.py                              # DATABASE_URL + _normalizar_url_db + create_db_and_tables + get_session
+│   ├── auth.py                            # JWT (PyJWT) + bcrypt + get_current_user(+_optional)
+│   ├── templates_config.py
 │   ├── routers/
-│   │   ├── __init__.py
 │   │   ├── auth.py                        # POST /auth/login (cookie HttpOnly + HX-Redirect) + POST /auth/logout + GET /auth/me
 │   │   └── chat.py                        # POST /chat/ (HTML parcial, protegido)
 │   ├── services/
-│   │   ├── __init__.py
 │   │   └── llm_chat.py                    # Groq + construir_contexto + consultar_llm
 │   └── templates/
-│       ├── index.html                     # Dashboard + navbar con logout + chat
-│       ├── login.html                     # 🆕 form HTMX con hx-ext="json-enc"
+│       ├── index.html
+│       ├── login.html                     # form HTMX con hx-ext="json-enc"
 │       └── partials/
 │           ├── _chat.html
 │           └── _chat_response.html
 │
-├── static/
-│   └── js/
-│       └── htmx.min.js                    # HTMX 2.0.4
-│
+├── static/js/htmx.min.js                  # HTMX 2.0.4
 ├── config/
 ├── dashboard/                             # Legacy Dash (EN RETIRADA)
 ├── data/
@@ -772,8 +823,8 @@ industrial-kpi-intelligence/
 │   ├── adr/
 │   └── TRASPASO_MAESTRO.md
 ├── imagenes/
-├── scripts/                               # (pendiente: seed_admin.py)
-│
+├── scripts/
+│   └── seed_admin.py                      # 🆕 Crea primer admin desde env vars
 ├── src/                                   # Lógica legacy
 │   ├── capability.py
 │   ├── control_charts.py
@@ -781,18 +832,17 @@ industrial-kpi-intelligence/
 │   ├── oee.py
 │   ├── diagnostics.py
 │   └── schema_adapter.py                  # PENDIENTE eliminar (deuda #11)
-│
 ├── migrate_csv.py
 ├── kpi_database.db                        # Local, gitignored
 │
 └── tests/
-    ├── app/                               # 35 tests del stack FastAPI
+    ├── app/
     │   ├── conftest.py                    # + fixture auth_headers
-    │   ├── test_models.py                 # 6 tests (KPI + normalizar URL)
-    │   ├── test_schemas.py                # 5 tests
-    │   ├── test_endpoints.py              # 9 tests (+ 401 sin token)
-    │   ├── test_chat.py                   # 10 tests
-    │   └── test_auth.py                   # PENDIENTE 1.B.4 (12-15 tests formales)
+    │   ├── test_models.py                 # 6
+    │   ├── test_schemas.py                # 5
+    │   ├── test_endpoints.py              # 9
+    │   ├── test_chat.py                   # 10
+    │   └── test_auth.py                   # PENDIENTE 1.B.4 (12-15 tests)
     └── ... (460 legacy)
 ```
 
@@ -822,10 +872,12 @@ curl -s -o /dev/null -w "GET /      → %{http_code}\n" https://web-production-b
 curl -s -o /dev/null -w "GET /login → %{http_code}\n" https://web-production-bb6a7.up.railway.app/login
 curl -s -o /dev/null -w "GET /docs  → %{http_code}\n" https://web-production-bb6a7.up.railway.app/docs
 
-# Test login en producción (después de seed admin)
-curl -s -X POST "https://web-production-bb6a7.up.railway.app/auth/login" \
+# Test login en producción (con la password real, nunca pegada en el chat)
+read -rs -p "pw: " PW && PW=$(printf '%s' "$PW" | tr -d '[:space:]') && \
+  curl -si -X POST "https://web-production-bb6a7.up.railway.app/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@example.com", "password": "..."}'
+  -d "{\"email\":\"dcgscolchagua@gmail.com\",\"password\":\"$PW\"}" \
+  | grep -iE "^(HTTP|set-cookie)"; unset PW
 
 # Verificar estado del último run de CI
 curl -s "https://api.github.com/repos/icqdgonzalezs/industrial-kpi-intelligence/actions/runs?per_page=1" | python3 -c "
@@ -852,142 +904,80 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 Bloque 1.B.3-6 — Cerrar auth en producción
+### 📋 Bloque 1.B.4 + 1.B.6 + schema-first tenant_id
 
-**Contexto:** Bloques 1.B.1 y 1.B.2 cerrados. Auth completo backend + UI.
-- 1.B.1 (commit `f6ac313`): `POST /kpis/` y `POST /chat/` protegidos con JWT.
-- 1.B.2 (commit `4314764`): login UI con cookie HttpOnly, dual auth (header + cookie), navbar con logout, `GET /` con redirect 302 a `/login`.
-- 495 tests verdes. CI #126 verde. HEAD: `4314764`.
+**Contexto:** Bloque 1.B completo en producción. Auth verificado end-to-end.
 
-**Estado del deploy:** URL pública operativa en Railway con Postgres, pero
-usa el fallback de dev para `SECRET_KEY` y no tiene `COOKIE_SECURE=true`.
-Además no hay user admin creado en la DB de producción.
+- 1.B.1 (`f6ac313`): POST protegidos con JWT.
+- 1.B.2 (`4314764`): Login UI + cookie HttpOnly + dual auth + logout.
+- 1.B.3 (`4ba0cd9`): `scripts/seed_admin.py`.
+- 1.B.5 (manual): `SECRET_KEY` + `COOKIE_SECURE=true` en Railway.
+- 1.B.7 (manual): login end-to-end verificado en URL pública.
+- 495 tests verdes. CI #128 verde. HEAD: `4ba0cd9`.
 
-**Pendientes de Bloque 1.B:**
+**Estado del deploy:** URL pública operativa en Railway con Postgres. Auth completo con cookie `HttpOnly; Secure; SameSite=lax`, SECRET_KEY real (no fallback), admin `dcgscolchagua@gmail.com` en Postgres prod. Password en MacPass.
+
+**Pendientes:**
 
 | # | Sub-fase | Duración | Prioridad |
 |:---:|:---|:---:|:---:|
-| **1.B.3** | `scripts/seed_admin.py` (crear admin en Railway) | 15 min | 🔴 Alta |
-| **1.B.5** | SECRET_KEY + COOKIE_SECURE=true en Railway | 5 min | 🔴 Alta |
-| **1.B.7** | Verificar login en URL pública | 20 min | 🔴 Alta |
-| **1.B.4** | `tests/app/test_auth.py` formales (12-15 tests) | 45 min | 🟡 Media |
+| **1.B.4** | `tests/app/test_auth.py` formales (12-15 tests en CI) | 45 min | 🟡 Media |
 | **1.B.6** | Rate limit `/chat/` con slowapi | 30 min | 🟡 Media |
+| **Schema** | `tenant_id` en `User` + `KPI` + ALTER Postgres | 30 min | 🔴 Alta |
 
-**Orden recomendado:** primero funcional en producción (1.B.3 → 1.B.5 → 1.B.7),
-después cobertura (1.B.4 → 1.B.6).
+**Orden recomendado:** 1.B.4 → 1.B.6 → schema-first `tenant_id`.
 
 ---
 
-#### 1.B.3 — Script `seed_admin.py` (15 min)
-
-**Crear `scripts/seed_admin.py`:**
-
-```python
-# scripts/seed_admin.py
-"""Crea el primer user admin leyendo credenciales de env vars.
-
-Uso local:
-    ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=xxx python scripts/seed_admin.py
-
-Uso en Railway (via Console del dashboard o `railway run`):
-    Mismas env vars + ejecutar el mismo comando.
-"""
-import os
-from sqlmodel import Session, select
-from app.db import engine, create_db_and_tables
-from app.models import User
-from app.auth import hash_password
-
-
-def main() -> None:
-    create_db_and_tables()
-    email = os.getenv("ADMIN_EMAIL")
-    password = os.getenv("ADMIN_PASSWORD")
-    if not email or not password:
-        raise SystemExit(
-            "ADMIN_EMAIL y ADMIN_PASSWORD son requeridos como env vars."
-        )
-    with Session(engine) as s:
-        existing = s.exec(select(User).where(User.email == email)).first()
-        if existing:
-            print(f"User {email} ya existe, skip")
-            return
-        s.add(User(email=email, hashed_password=hash_password(password)))
-        s.commit()
-        print(f"✅ User {email} creado")
-
-
-if __name__ == "__main__":
-    main()
-```
-
-Ejecutar en Railway desde Console del bloque web con las env vars seteadas.
-
-#### 1.B.5 — SECRET_KEY + COOKIE_SECURE en Railway (5 min)
-
-```bash
-# Generar secret de 64 chars hex (32 bytes)
-openssl rand -hex 32
-```
-
-En Railway → bloque web → Variables → + New Variable:
-
-| Variable | Valor |
-|:---|:---|
-| `SECRET_KEY` | resultado de `openssl rand -hex 32` |
-| `COOKIE_SECURE` | `true` |
-
-Después: click en **Deploy** (arriba a la izquierda del canvas) para aplicar.
-
-#### 1.B.7 — Verificar login en URL pública (20 min)
-
-```bash
-URL="https://web-production-bb6a7.up.railway.app"
-
-# 1. Seed del admin en Railway (via Console del dashboard web)
-#    Ver 1.B.3.
-
-# 2. Test login desde curl
-curl -s -X POST "$URL/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "admin@...", "password": "..."}' | python3 -m json.tool
-
-# 3. Verificar POST /chat/ sin token → 401
-curl -s -o /dev/null -w "POST /chat/ sin auth → %{http_code}\n" \
-  -X POST "$URL/chat/" --data-urlencode "query=test"
-
-# 4. Verificar GET / sin cookie → 302 redirect a /login
-curl -s -o /dev/null -w "GET / sin auth → %{http_code}\n" "$URL/"
-
-# 5. Verificación visual en navegador:
-#    - Abrir $URL → redirect a /login
-#    - Login con admin creado
-#    - Ver dashboard con navbar + tabla KPIs + chat IA
-#    - Chat IA funciona end-to-end
-#    - Logout → vuelve a /login
-```
-
 #### 1.B.4 — `tests/app/test_auth.py` formales (45 min)
 
-12-15 tests en CI:
+12-15 tests organizados:
 
 - **5 de login:** OK (200 + cookie), password incorrecta (401), email inexistente (401), password <8 chars (422), email inválido (422).
 - **4 de `/auth/me`:** con token (200), sin token (401), token inválido (401), token expirado (401).
 - **3 de endpoints protegidos:** `POST /kpis/` sin auth (401), `POST /chat/` sin auth (401), con auth (200/201).
 - **3 de `POST /auth/logout`:** idempotente, borra cookie, no requiere auth.
 
-Fixture `auth_headers` ya existe en `conftest.py`. Reutilizarla.
+Fixture `auth_headers` ya existe en `tests/app/conftest.py`. Reutilizarla. Todos los tests deben correr en CI sin pegarle a Groq real (usar `mock_llm_ok`).
 
 #### 1.B.6 — Rate limit `/chat/` con slowapi (30 min)
 
-- `SlowAPIMiddleware` en `main.py`.
+- `SlowAPIMiddleware` en `app/main.py`.
 - `@limiter.limit("30/minute")` en `POST /chat/`.
-- Exception handler para `RateLimitExceeded` → 429.
+- Exception handler para `RateLimitExceeded` → **429**.
 - 1-2 tests con `TestClient` verificando el 429.
+- Límite alineado con Groq tier gratis (30 RPM).
+
+#### Schema-first multi-tenant — `tenant_id` (30 min)
+
+**Objetivo:** preparar el schema para multi-tenant sin activar filtrado todavía (decisión estratégica: single-tenant con cliente #1, multi-tenant cuando llegue cliente #2).
+
+**Cambios:**
+
+- `app/models.py`: agregar `tenant_id: str = Field(default="default", index=True)` en `User` y `KPI`.
+- **ALTER manual en Postgres prod** (porque `create_all` no agrega columnas a tablas existentes):
+
+  ```sql
+  ALTER TABLE "user" ADD COLUMN tenant_id VARCHAR DEFAULT 'default';
+  CREATE INDEX ix_user_tenant_id ON "user"(tenant_id);
+  ALTER TABLE kpi ADD COLUMN tenant_id VARCHAR DEFAULT 'default';
+  CREATE INDEX ix_kpi_tenant_id ON kpi(tenant_id);
+  ```
+
+- Test: user/KPI nuevos tienen `tenant_id="default"`.
+- Commit: `feat(models): add tenant_id for multi-tenant readiness`.
+
+**No implementar todavía:**
+
+- Filtrado en queries (no hay 2do cliente).
+- Endpoint de creación de tenants.
+- Dependency `get_current_tenant`.
+
+**Razón:** multi-tenant prematuro es la causa #1 de reescritura en SaaS. Schema-first, filtering-later.
 
 ---
 
-⏱️ **Después de Bloque 1.B:**
+⏱️ **Después de Bloque 1.B.4 + 1.B.6 + Schema:**
 
 1. **IA.2** — Diagnóstico asistido por LLM (2 h).
 2. **Migración tab por tab Dash → FastAPI** (decisión 4.32).
@@ -1001,32 +991,25 @@ Fixture `auth_headers` ya existe en `conftest.py`. Reutilizarla.
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 4/8.
 
-Estado: Bloques 1.B.1 (endpoints POST protegidos) y 1.B.2 (Login UI + cookie
-HttpOnly) cerrados. HEAD 4314764. CI #126 verde. 495 tests passed
-(460 legacy + 35 app/).
+Estado: Bloque 1.B completo cerrado en producción. HEAD 4ba0cd9. CI #128 verde.
+495 tests passed (460 legacy + 35 app/).
 URL pública: https://web-production-bb6a7.up.railway.app/
 
-Cerrado en las últimas 3 sesiones:
-- Auth backend JWT (PyJWT + bcrypt directo): commit f00ea1e
-- Protección de POST /kpis/ y /chat/ con JWT: commit f6ac313
-- Login UI con cookie HttpOnly + dual auth + logout: commit 4314764
+Cerrado en las últimas 4 sesiones:
+- Auth backend JWT (PyJWT + bcrypt directo): f00ea1e
+- Protección de POST /kpis/ y /chat/ con JWT: f6ac313
+- Login UI con cookie HttpOnly + dual auth + logout: 4314764
+- Seed admin script: 4ba0cd9
+- SECRET_KEY real + COOKIE_SECURE=true en Railway (manual)
+- Login verificado end-to-end en prod (200 + cookie Secure)
 
-Estado del deploy:
-- URL pública operativa (Railway + Postgres).
-- Login UI verificada en localhost (login → dashboard → logout).
-- Pendiente en prod: seed admin + SECRET_KEY real + COOKIE_SECURE=true.
-
-Próximo paso: Bloque 1.B.3-6 — Cerrar auth en producción.
-Orden: 1.B.3 (seed_admin) → 1.B.5 (SECRET_KEY) → 1.B.7 (verificar)
-→ 1.B.4 (tests formales) → 1.B.6 (rate limit).
-Estimación total: ~2 h. Ver sección 11 del TRASPASO.
+Próximo paso: Bloque 1.B.4 + 1.B.6 + schema-first tenant_id.
+Orden: 1.B.4 (tests formales) → 1.B.6 (rate limit) → tenant_id.
+Estimación total: ~1.5 h. Ver sección 11 del TRASPASO.
 
 Deudas activas relevantes:
 - #30 rate limit /chat/ (alta, próximo)
-- #35 seed admin (alta, próximo)
 - #36 tests formales auth (media, próximo)
-- #37 SECRET_KEY en Railway (alta, próximo)
-- #38 COOKIE_SECURE=true (alta, próximo)
 - #11 eliminar schema_adapter.py (alta, legacy)
 - #15 debounce cascade (media, legacy)
 - #16 severidad individual KPIs (media, legacy)
@@ -1055,11 +1038,18 @@ Reglas clave (ver sección 8 completa):
 - algorithms=["HS256"] explícito
 - SECRET_KEY dev >32 bytes (RFC 7518)
 - Cookie HttpOnly + SameSite=Lax para navegador; Bearer para API
+- Cookie Secure condicional (env var COOKIE_SECURE)
 - HTMX con hx-ext="json-enc" si el endpoint espera JSON
 - HX-Redirect para navegación server-driven
 - GET / protegido con redirect 302 a /login
 - SQLModel table=True NO valida; usar schemas.py
 - FastAPI TestClient usa httpx2 (Starlette 1.6.0)
+- Nunca pegar bloques >50 líneas en la Terminal (usar pbpaste o TextEdit)
+- Nunca tipear secretos con input(); usar getpass
+- Nunca reutilizar password como SECRET_KEY
+- Railway aplica env vars vía redeploy, no en caliente
+- Write-verify en operaciones sobre credenciales
+- Seed admin idempotente
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -1087,7 +1077,7 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - ✅ **Migración a FastAPI + SQLModel + SQLite** (`a162f15`).
 - ✅ **Dashboard Jinja2 operativo** (`724f4ac`).
 - ✅ **17 tests iniciales para `app/`** (`0c59acc`).
-- ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126).
+- ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126, #128).
 - ✅ **Decisión estratégica de migración completa Dash → FastAPI** (4.32).
 - ✅ **Chat IA con Groq operativo** (`ed806ea`).
 - ✅ **HTMX integrado** (interactividad sin SPA).
@@ -1095,6 +1085,9 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - ✅ **Auth JWT backend operativo** (`f00ea1e`).
 - ✅ **Endpoints POST protegidos** (`f6ac313`).
 - ✅ **Login UI con cookie HttpOnly + dual auth + logout** (`4314764`).
+- ✅ **Seed admin script** (`4ba0cd9`).
+- ✅ **`SECRET_KEY` real + `COOKIE_SECURE=true` en Railway.**
+- ✅ **Login verificado end-to-end en producción.**
 - ✅ **495 tests, 0 regresiones.**
 
 ### 🔬 Lecciones metodológicas del ciclo Auth 1.B
@@ -1107,16 +1100,20 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - **El header `HX-Request` habilita respuestas polimórficas.** Mismo endpoint → HTML parcial para HTMX, JSON para curl/Swagger.
 - **Timing-safe login no es paranoia.** Los tiempos de respuesta filtran información. `_DUMMY_HASH` normaliza.
 - **Un "verde" en el TRASPASO es foto histórica.** Verificar CI con `curl` antes de cada push.
+- **Railway aplica env vars vía redeploy, no en caliente.** Verificar en el deployment nuevo (hash distinto, `Online` sin `Building`).
+- **Write-verify en operaciones sobre credenciales.** Sin verificación post-commit, no hay evidencia de éxito.
+- **La Terminal corrompe pastes grandes.** Usar `pbpaste` o TextEdit para bloques >50 líneas.
+- **`getpass` no ecoa; `input` sí.** Password siempre con `getpass`.
+- **Los códigos HTTP apuntan a capas distintas.** 401 = credenciales; 422 = payload; 500 = servidor. Diagnóstico por código.
 
-### 📊 Métricas del ciclo Auth 1.B (f6ac313 + 4314764)
+### 📊 Métricas del ciclo Auth 1.B.3-7
 
-- **Commits:** 2 (`f6ac313`, `4314764`).
-- **Archivos nuevos:** `app/templates/login.html`.
-- **Archivos modificados:** `app/main.py`, `app/routers/auth.py`, `app/routers/chat.py`, `app/auth.py`, `app/templates/index.html`, `tests/app/conftest.py`.
-- **Tests:** 490 → 494 → **495**.
-- **Deudas cerradas:** #32 (endpoints sin proteger), #34 (sin template login).
-- **Deudas nuevas:** #38 (`COOKIE_SECURE=true` en Railway).
-- **Scorecard:** Seguridad subió de 6.0 → 8.0.
+- **Commits:** 1 (`4ba0cd9`).
+- **Archivos nuevos:** `scripts/seed_admin.py`.
+- **Cambios manuales:** Railway Variables (`SECRET_KEY`, `COOKIE_SECURE`).
+- **Tests:** 495 → 495 (sin nuevos tests en este ciclo).
+- **Deudas cerradas:** #35 (seed admin), #37 (SECRET_KEY), #38 (COOKIE_SECURE).
+- **Scorecard:** Seguridad subió de 8.0 → 9.0.
 
 ### 📈 Scorecard de la oferta (Full Stack VI Región)
 
@@ -1128,17 +1125,17 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 | Tests / Calidad / Git | 10% | 9.5 | 0.95 |
 | **IA / Automatización IA** | **25%** | **7.5** | **1.88** |
 | **Cloud / Deployment** | **10%** | **8.0** | **0.80** |
-| Seguridad | 5% | 8.0 | 0.40 |
-| **TOTAL** | 100% | — | **8.61** |
+| Seguridad | 5% | 9.0 | 0.45 |
+| **TOTAL** | 100% | — | **8.66** |
 
-**Subió de 8.41 → ~8.6.** El bloque Seguridad pasó de 6 a 8 (login UI + cookie HttpOnly + dual auth + logout + entrypoint protegido). El bloque Cloud subió ligeramente (8.0) por la URL pública con login operativa.
+**Subió de 8.41 → ~8.66.** El bloque Seguridad subió de 8.0 a 9.0 tras cerrar el fallback de SECRET_KEY en producción (deuda #37), `COOKIE_SECURE=true` (deuda #38) y seed admin real (deuda #35).
 
-**Siguiente salto:** cerrar 1.B.3-6 (seed admin + SECRET_KEY + COOKIE_SECURE + rate limit + tests formales) → **~9.0**.
+**Siguiente salto:** cerrar 1.B.4 + 1.B.6 (tests formales + rate limit) → **~9.0**.
 
 **Techo alcanzable en 2 semanas:** 9.3 (con IA.2-4 + caso real + video demo).
 
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Bloque 1.B.1 + 1.B.2 cerrados (commit `4314764`). 495 tests verdes. CI 2/2 verde verificado (run #126).  
-> 🚀 **Próximo paso:** Bloque 1.B.3-6 — Cerrar auth en producción. Ver sección 11.
+> 🗓️ **Última actualización:** Bloque 1.B completo (Auth 1.B.1 a 1.B.7) cerrado en producción. Commit `4ba0cd9`. 495 tests verdes. CI verde verificado (run #128).  
+> 🚀 **Próximo paso:** Bloque 1.B.4 + 1.B.6 — tests formales de auth + rate limit `/chat/`. Ver sección 11.
