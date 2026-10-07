@@ -183,3 +183,49 @@ def test_dashboard_incluye_seccion_chat(
     assert "Asistente de planta" in response.text
     assert 'hx-post="/chat/"' in response.text
     assert "htmx.min.js" in response.text
+
+
+# ============================================================
+# Rate limiting (slowapi, 30/minute por IP)
+# ============================================================
+
+class TestRateLimit:
+    """Verifica que POST /chat/ respeta el límite de 30/minuto."""
+
+    def test_chat_bajo_limite_retorna_200(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        mock_llm_ok,
+    ) -> None:
+        """Un request aislado no debe tocar el límite."""
+        response = client.post(
+            "/chat/",
+            headers=auth_headers,
+            data={"query": "¿Cuál es el OEE?"},
+        )
+        assert response.status_code == 200
+
+    def test_chat_supera_limite_retorna_429(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        mock_llm_ok,
+    ) -> None:
+        """El request 31 dentro del mismo minuto debe devolver 429."""
+        # 30 requests permitidas (todas con mock instantáneo).
+        for i in range(30):
+            r = client.post(
+                "/chat/",
+                headers=auth_headers,
+                data={"query": f"query {i}"},
+            )
+            assert r.status_code == 200, f"request {i} esperaba 200, fue {r.status_code}"
+
+        # La 31° debe ser bloqueada por slowapi.
+        r = client.post(
+            "/chat/",
+            headers=auth_headers,
+            data={"query": "bloqueada"},
+        )
+        assert r.status_code == 429

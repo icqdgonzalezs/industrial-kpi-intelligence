@@ -13,6 +13,22 @@ from app.main import app
 from app.models import User
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter() -> Generator[None, None, None]:
+    """Resetea el storage del limiter entre tests.
+
+    Sin esto, el estado global de slowapi contamina los tests que
+    ejecutan POST /chat/ varias veces (como el de rate limit). El
+    limiter almacena contadores por IP en memoria y persisten entre
+    tests del mismo proceso pytest.
+    """
+    from app.limiter import reset_all
+
+    reset_all()
+    yield
+    reset_all()
+
+
 @pytest.fixture(name="session")
 def session_fixture() -> Generator[Session, None, None]:
     """Sesión contra SQLite en memoria. Aislada por test."""
