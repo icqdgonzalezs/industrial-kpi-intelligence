@@ -8,7 +8,7 @@ contrato real del modelo de tabla.
 """
 from datetime import datetime
 
-from app.models import KPI
+from app.models import KPI, User
 
 
 def test_kpi_creacion_valida():
@@ -87,3 +87,28 @@ def test_normalizar_url_sqlite_no_se_toca():
     from app.db import _normalizar_url_db
 
     assert _normalizar_url_db("sqlite:///./local.db") == "sqlite:///./local.db"
+
+
+# ============================================================
+# Multi-tenant readiness (tenant_id)
+# ============================================================
+
+def test_kpi_tiene_tenant_id_default() -> None:
+    """KPI nuevo sin tenant_id explícito debe usar 'default'."""
+    kpi = KPI(
+        nombre="OEE",
+        valor=85.5,
+        unidad="%",
+        timestamp=datetime(2026, 10, 7, 12, 0, 0),
+        linea_produccion="L1",
+    )
+    assert kpi.tenant_id == "default"
+
+
+def test_user_tiene_tenant_id_default() -> None:
+    """User nuevo sin tenant_id explícito debe usar 'default'."""
+    user = User(
+        email="tenant-test@example.com",
+        hashed_password="hash-de-prueba",
+    )
+    assert user.tenant_id == "default"
