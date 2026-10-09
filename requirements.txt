@@ -17,7 +17,6 @@ psycopg[binary]>=3.2,<4
 # --- Seguridad (auth + rate limit) ---
 PyJWT>=2.10,<3
 bcrypt>=4.0,<6
-slowapi>=0.1,<1
 
 # --- Stack Dash legacy (dashboard/ + src/) ---
 dash==4.4.1
