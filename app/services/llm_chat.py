@@ -20,15 +20,17 @@ from typing import Any
 from dotenv import load_dotenv
 from groq import AsyncGroq
 
-# Cargar .env una sola vez al importar el módulo
+# Cargar .env una sola vez al importar el módulo.
+# Debe ir ANTES de leer cualquier env var (incluida GROQ_MODEL).
 load_dotenv()
 
-# Modelo por defecto (producción en Groq).
+# Modelo del LLM. Configurable vía env var `GROQ_MODEL`.
 # Notas:
 #   - "llama-3.3-70b-versatile" y "llama-3.1-8b-instant" fueron deprecados
 #     el 2026-08-16. Groq recomienda "openai/gpt-oss-120b" como reemplazo.
 #   - Alternativa liviana (menor latencia, menor calidad): "openai/gpt-oss-20b".
-MODELO_DEFAULT = "openai/gpt-oss-120b"
+#   - Cambiar la env var en Railway UI requiere restart del proceso (redeploy).
+MODELO_DEFAULT = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 # Timeout de la llamada al LLM (segundos)
 TIMEOUT_LLM = 10.0
