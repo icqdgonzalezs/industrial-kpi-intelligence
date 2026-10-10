@@ -2,8 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Ciclos 1.B.4 + 1.B.6 + schema-first cerrados. Commit `8ab15be`. **514 tests verdes, CI verde verificado (run #132).** Auth + rate limit (custom) + multi-tenant readiness en producción.  
-> 🚀 **Próximo paso:** IA.2 — Diagnóstico asistido por LLM (2 h). Alternativa: migración tab por tab Dash → FastAPI. Ver sección 11.
+> 🗓️ **Última actualización:** Bloque 2 (GROQ_MODEL configurable) cerrado. Commit `4e0254d`. **517 tests verdes, CI verde verificado (run #135).** Slowapi removido de requirements.  
+> 🚀 **Próximo paso:** IA.2 — Diagnóstico asistido por LLM (2 h). Ver sección 11.
 
 ---
 
@@ -33,8 +33,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 18 | 🚫 **Nunca usar slowapi para rate limiting.** Falla en silencio en este entorno. Usar `@rate_limit(max_requests, window_seconds)` de `app.limiter`. |
 | 19 | 🗄️ **Migración de schema: DB primero, código después.** ALTER en Railway → recién después el deploy del código nuevo. |
 | 20 | 🖱️ **Después de `open -e archivo`, hacer click en la ventana BLANCA de TextEdit antes de pegar.** El foco no cambia automáticamente en macOS. |
+| 21 | 🌍 **Configuración por env var para valores que cambian sin tocar código.** `GROQ_MODEL`, `SECRET_KEY`, `COOKIE_SECURE`, `DATABASE_URL` se leen de env vars. Nunca hardcodeados. |
 
-> 🚀 **Próximo paso concreto del proyecto:** IA.2 — Diagnóstico asistido por LLM. Alternativa: migración tab por tab Dash → FastAPI. Ver sección 11.
+> 🚀 **Próximo paso concreto del proyecto:** IA.2 — Diagnóstico asistido por LLM. Ver sección 11.
 
 ---
 
@@ -46,7 +47,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | 🌐 **Ecosistema** | Primer producto de 6 SaaS (Industrial Operations Intelligence) |
 | 🛠️ **Stack legacy (dashboard)** | Python 3.11.9 · Plotly Dash 4.4.1 · Plotly · pandas · numpy |
 | 🛠️ **Stack nuevo (API REST)** | FastAPI 0.141.1 · SQLModel 0.0.46 · SQLAlchemy 2.0.54 · Pydantic 2.13.5 · SQLite/Postgres · Jinja2 3.1.6 · Uvicorn 0.53.0 · python-multipart 0.0.32 · psycopg[binary] 3.3.6 |
-| 🛠️ **Stack IA (operativo)** | Groq SDK 1.7.0 · Modelo `openai/gpt-oss-120b` · python-dotenv 1.2.3 · HTMX 2.0.4 |
+| 🛠️ **Stack IA (operativo)** | Groq SDK 1.7.0 · Modelo configurable vía `GROQ_MODEL` (default `openai/gpt-oss-120b`) · python-dotenv 1.2.3 · HTMX 2.0.4 |
 | 🔐 **Stack Seguridad** | PyJWT 2.15.1 · bcrypt 5.0.0 · email-validator 2.3.0 · **rate limiter propio** (slowapi descartado, ver 4.54) |
 | ☁️ **Stack Deploy** | Railway (PaaS) · Nixpacks (build automático) · Postgres addon · US West |
 | 🧪 **Testing** | pytest 9.1.1 · pytest-cov 7.1.0 · ruff 0.16.6 · httpx2 2.13.1 · GitHub Actions CI/CD |
@@ -54,11 +55,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 5 de 8 |
-| ✅ **Tests actuales** | **514 passed** (460 legacy + 54 app/) |
-| 🟢 **CI** | Verde **verificado** (run #132, commit `8ab15be`) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `8ab15be`. |
+| ✅ **Tests actuales** | **517 passed** (460 legacy + 57 app/) |
+| 🟢 **CI** | Verde **verificado** (run #135, commit `4e0254d`) |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `4e0254d`. |
 | 🌐 **URL pública (Railway)** | `https://web-production-bb6a7.up.railway.app/` |
-| 📊 **Producto 1 (MVP)** | ~99% (dashboard Dash + API FastAPI + IA + Auth + Rate limit + Multi-tenant readiness + Deploy Railway). Falta IA.2-4 + migración tabs. |
+| 📊 **Producto 1 (MVP)** | ~99% (dashboard Dash + API FastAPI + IA + Auth + Rate limit + Multi-tenant readiness + GROQ_MODEL configurable + Deploy Railway). Falta IA.2-4 + migración tabs. |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -114,29 +115,45 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 **Ciclo 1.B.4 (tests formales de auth):**
 
-- ✅ **`025aa7e`** — `test(auth): add formal auth test suite (15 tests)`. Cobertura: login (éxito/fallo/422), `/auth/me` (válido/sin token/inválido/expirado), endpoints protegidos (POST /kpis/, POST /chat/), logout (borra cookie, idempotente, sin auth). **Deuda #36 cerrada.**
+- ✅ **`025aa7e`** — `test(auth): add formal auth test suite (15 tests)`. **Deuda #36 cerrada.**
 
 **Ciclo 1.B.6 (rate limiting custom):**
 
 - ✅ **`d4308ec`** — `feat(chat): add rate limiting (30/min per IP) with custom sliding window`.
-  - ✅ **`app/limiter.py`** (nuevo): `@rate_limit(max_requests, window_seconds)` con `deque` de timestamps, ventana deslizante por IP + endpoint.
-  - ✅ **`app/routers/chat.py`**: `@rate_limit(30, 60)` en POST /chat/. Alineado con tier gratis de Groq (30 RPM).
-  - ✅ **`app/main.py`**: eliminado registro de slowapi + middleware.
-  - ✅ **`tests/app/conftest.py`**: fixture autouse que resetea contadores entre tests.
-  - ✅ **`tests/app/test_chat.py`**: +2 tests (bajo límite → 200; supera → 429).
+  - ✅ **`app/limiter.py`** (nuevo): `@rate_limit(max_requests, window_seconds)` con `deque` de timestamps.
+  - ✅ **`app/routers/chat.py`**: `@rate_limit(30, 60)` en POST /chat/.
+  - ✅ **`tests/app/conftest.py`**: fixture autouse que resetea contadores.
   - ✅ **Deuda #30 cerrada.** Slowapi descartado por falla silenciosa (ver 4.54).
 
 **Ciclo Schema-first multi-tenant (tenant_id):**
 
 - ✅ **`8ab15be`** — `feat(models): add tenant_id for multi-tenant readiness`.
   - ✅ **`app/models.py`**: `tenant_id: str = Field(default="default", index=True)` en `User` y `KPI`.
-  - ✅ **ALTER TABLE en Postgres prod** (Railway) ejecutado ANTES del deploy. `IF NOT EXISTS` para idempotencia.
-  - ✅ **`tests/app/test_models.py`**: +2 tests (KPI y User con default `"default"`).
+  - ✅ **ALTER TABLE en Postgres prod** (Railway) ejecutado ANTES del deploy.
   - ✅ **Schema-first**: la columna existe ya, el filtrado se activa cuando llegue cliente #2.
+
+**Ciclo TRASPASO handoff (cierre 1.B.4 + 1.B.6 + schema-first):**
+
+- ✅ **`5855644`** — `docs(handoff): close 1.B.4 + 1.B.6 + schema-first tenant_id`. TRASPASO completamente actualizado.
+
+**Ciclo limpieza de dependencias (deuda #39):**
+
+- ✅ **`9b68e87`** — `chore(deps): remove slowapi (unused after custom rate limiter)`.
+  - ✅ **`requirements.txt`**: eliminada la línea `slowapi>=0.1,<1`.
+  - ✅ **`pip uninstall slowapi`** en venv local.
+  - ✅ **Deuda #39 cerrada.**
+
+**Ciclo Bloque 2 (GROQ_MODEL configurable — deuda #31):**
+
+- ✅ **`4e0254d`** — `feat(llm): make GROQ_MODEL configurable via env var`.
+  - ✅ **`app/services/llm_chat.py`**: `MODELO_DEFAULT = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")`.
+  - ✅ **`tests/app/test_llm_chat.py`** (nuevo): 3 tests con `monkeypatch.setenv` + `importlib.reload` que verifican precedencia env var / fallback.
+  - ✅ **Beneficio**: cambiar de modelo LLM en producción requiere solo actualizar Railway Variables + redeploy, sin tocar código.
+  - ✅ **Deuda #31 cerrada.** Total suite: 514 → 517 tests.
 
 ### 🟡 En curso
 
-- *Nada.* Working tree limpio. CI #132 verde verificado.
+- *Nada.* Working tree limpio. CI #135 verde verificado.
 
 ### ⏳ Pendiente inmediato
 
@@ -151,6 +168,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
+| `4e0254d` | **feat(llm): make GROQ_MODEL configurable via env var** | 517 |
+| `9b68e87` | **chore(deps): remove slowapi (unused after custom rate limiter)** | 517 |
+| `5855644` | **docs(handoff): close 1.B.4 + 1.B.6 + schema-first tenant_id** | 514 |
 | `8ab15be` | **feat(models): add tenant_id for multi-tenant readiness** | 514 |
 | `d4308ec` | **feat(chat): add rate limiting (30/min per IP) with custom sliding window** | 512 |
 | `025aa7e` | **test(auth): add formal auth test suite (15 tests)** | 510 |
@@ -223,8 +243,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `65fe368` | Refactor thresholds a YAML | 274 |
 | `8214670` | Fix SPC Regla 1 | 270 |
 
-> 📈 **Evolución de tests:** 263 → ... → 490 → 494 → 495 → 510 → 512 → **514** (460 legacy + 54 app/).  
-> ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126, #128, #129, #130, #131, #132).
+> 📈 **Evolución de tests:** 263 → ... → 490 → 494 → 495 → 510 → 512 → 514 → **517** (460 legacy + 57 app/).  
+> ✅ **CI verde real verificado** (runs #112, #114, #117, #121, #122, #123, #125, #126, #128, #129, #130, #131, #132, #133, #134, #135).
 
 ---
 
@@ -263,14 +283,14 @@ Estás retomando un proyecto en curso. Antes de responder:
 ### 4.32 🎯 Migración completa Dash → FastAPI (decisión estratégica)
 - **Decisión:** retirar progresivamente `dashboard/` y consolidar toda la presentación en `app/`.
 - **Stack elegido:** Jinja2 + HTMX + Plotly.js.
-- **Progreso:** Chat IA ✅, auth backend ✅, login UI ✅, seed admin ✅, rate limit ✅, multi-tenant readiness ✅. Falta: migración de tabs, retiro de `dashboard/`.
+- **Progreso:** Chat IA ✅, auth backend ✅, login UI ✅, seed admin ✅, rate limit ✅, multi-tenant readiness ✅, GROQ_MODEL configurable ✅. Falta: migración de tabs, retiro de `dashboard/`.
 
 ### 4.33 🔗 `httpx2` reemplaza `httpx` (Starlette 1.6.0)
 
 ### 4.34 🧪 SQLModel `table=True` NO valida en construcción
 
 ### 4.35 🤖 Groq + `openai/gpt-oss-120b` para el chat IA
-- **IDs de modelos LLM son efímeros.** Groq deprecó `llama-3.3-70b-versatile` el 2026-08-16. Usar `openai/gpt-oss-120b`.
+- **IDs de modelos LLM son efímeros.** Groq deprecó `llama-3.3-70b-versatile` el 2026-08-16. **Ahora configurable vía `GROQ_MODEL` (ver 4.57).**
 
 ### 4.36 🧩 Arquitectura en 4 capas del chat IA
 - **Servicio** (`app/services/llm_chat.py`), **Router** (`app/routers/chat.py`), **Contrato** (`Form(...)`), **Presentación** (HTMX + Jinja2).
@@ -324,16 +344,26 @@ Estás retomando un proyecto en curso. Antes de responder:
 ### 4.55 🗂️ Schema-first multi-tenant (`tenant_id`)
 - **Decisión:** agregar `tenant_id: str = Field(default="default", index=True)` a `User` y `KPI` **ya**, sin activar el filtrado todavía.
 - **Motivo:** multi-tenant prematuro (con un solo cliente) es la causa #1 de reescritura en SaaS. Schema-first, filtering-later.
-- **Migración:** ALTER TABLE en Postgres prod **antes** del deploy del código nuevo (si el código corre contra tabla sin la columna → todas las `SELECT` fallan con `column does not exist` → 500 en producción).
-- **Idempotencia:** `ADD COLUMN IF NOT EXISTS` + `CREATE INDEX IF NOT EXISTS` en Postgres. Correr la migración dos veces no rompe.
+- **Migración:** ALTER TABLE en Postgres prod **antes** del deploy del código nuevo.
+- **Idempotencia:** `ADD COLUMN IF NOT EXISTS` + `CREATE INDEX IF NOT EXISTS` en Postgres.
 - **Qué NO implementar todavía:** filtrado en queries, endpoint de creación de tenants, dependency `get_current_tenant`. YAGNI hasta que haya cliente #2.
-- **Lección:** agregar la columna con la tabla vacía cuesta 5 min. Agregarla con 3 clientes y datos vivos cuesta días (backfill, doble escritura, migración nocturna, plan de rollback, downtime).
+- **Lección:** agregar la columna con la tabla vacía cuesta 5 min. Agregarla con 3 clientes y datos vivos cuesta días.
 
 ### 4.56 🐍 `collections.abc` para ABCs (Python 3.11+)
 - **Problema:** ruff UP035 detecta `from typing import Awaitable, Callable, Iterable, Iterator, Mapping, Sequence`.
 - **Solución:** en Python 3.11+, importar esos ABCs desde `collections.abc`, no desde `typing`.
 - **Excepción:** `Any` sigue viniendo de `typing` (no existe en `collections.abc`).
 - **Lección:** los stubs de `typing` para esos símbolos están deprecados. Ruff lo enforce con la regla UP035.
+
+### 4.57 🌍 Env var para valores que cambian sin tocar código (`GROQ_MODEL`)
+- **Decisión:** `MODELO_DEFAULT` en `app/services/llm_chat.py` ahora se lee de `os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")`.
+- **Motivo:** los IDs de modelos LLM son efímeros. Groq deprecó `llama-3.3-70b-versatile` el 2026-08-16. Con env var, cambiar de modelo en producción requiere solo actualizar Railway Variables + redeploy, sin tocar código.
+- **Patrón:** constante de módulo evaluada en import time. Consistente con `SECRET_KEY` en `auth.py`. Las env vars no cambian en caliente, requieren restart del proceso. Una constante de módulo es exacta.
+- **Test:** `monkeypatch.setenv` + `importlib.reload` en `tests/app/test_llm_chat.py`. Fixture `autouse` que recarga el módulo al final de cada test para evitar contaminación entre tests.
+- **Alternativas descartadas:**
+  - Leer la env var en cada request (overhead innecesario, complejidad sin beneficio).
+  - Función pública `obtener_modelo()` (agrega API surface que nadie usa).
+- **Lección:** si un valor puede cambiar sin cambiar código (modelo de LLM, credenciales, URLs, flags), leerlo de env var. Nunca hardcodeado. Test determinista con `monkeypatch` + `reload`.
 
 ---
 
@@ -376,7 +406,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `test_validation.py` | 22 |
 | **Subtotal legacy** | **460** |
 
-### Tests de `app/` (54)
+### Tests de `app/` (57)
 
 | Archivo | Tests | Cobertura |
 | :--- | :---: | :--- |
@@ -385,8 +415,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `tests/app/test_endpoints.py` | 12 | `GET /`, `GET /kpis/`, `POST /kpis/` con `TestClient` |
 | `tests/app/test_chat.py` | 12 | `POST /chat/` con mock + 2 de rate limiting |
 | `tests/app/test_auth.py` | 15 | Login (5), /auth/me (4), endpoints protegidos (3), logout (3) |
+| `tests/app/test_llm_chat.py` | 3 | 🆕 `MODELO_DEFAULT` con env var, fallback, string no vacío |
 | Tests auth integrados en endpoints | 2 | 401 sin token en POST |
-| **Subtotal app/** | **54** | ✅ |
+| **Subtotal app/** | **57** | ✅ |
 
 ### Fixtures críticas
 
@@ -395,11 +426,12 @@ Estás retomando un proyecto en curso. Antes de responder:
 - `mock_llm_ok` → `monkeypatch.setattr` sobre `app.routers.chat.consultar_llm`.
 - `auth_headers` → crea user `test@example.com` + JWT válido.
 - `_reset_rate_limiter` → **autouse**, resetea contadores del limiter antes/después de cada test.
+- `_recargar_modulo_al_final` → **autouse** en `test_llm_chat.py`, recarga `llm_chat` al final de cada test.
 
 ### Total
 
-> **514 tests passed** (460 legacy + 54 app/). **0 regresiones.**  
-> Tiempo: ~80 s suite completa.
+> **517 tests passed** (460 legacy + 57 app/). **0 regresiones.**  
+> Tiempo: ~90 s suite completa.
 
 ---
 
@@ -424,7 +456,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**28**~~ | ~~Sin Dockerfile~~ | ✅ **CERRADA** (Railway) | — |
 | ~~**29**~~ | ~~SQLite en producción~~ | ✅ **CERRADA** (Postgres Railway) | — |
 | ~~**30**~~ | ~~Rate limit en `/chat/`~~ | ✅ **CERRADA** (`d4308ec` + `4.54`) | — |
-| **31** | `GROQ_MODEL` hardcodeado | Mantenibilidad | 🟢 Baja |
+| ~~**31**~~ | ~~`GROQ_MODEL` hardcodeado~~ | ✅ **CERRADA** (`4e0254d` + `4.57`) | — |
 | ~~**32**~~ | ~~POST sin proteger~~ | ✅ **CERRADA** (`f6ac313`) | — |
 | **33** | IA.2, IA.3, IA.4 | Features | 🟡 Media |
 | ~~**34**~~ | ~~Sin template login~~ | ✅ **CERRADA** (`4314764`) | — |
@@ -432,9 +464,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**36**~~ | ~~Sin tests formales de auth~~ | ✅ **CERRADA** (`025aa7e`) | — |
 | ~~**37**~~ | ~~`SECRET_KEY` no seteada en Railway~~ | ✅ **CERRADA** (Railway Variables) | — |
 | ~~**38**~~ | ~~`COOKIE_SECURE=true` no seteado~~ | ✅ **CERRADA** (Railway Variables) | — |
-| **39 🆕** | `slowapi` sigue en `requirements.txt` aunque ya no se usa | Limpieza | 🟢 Baja |
+| ~~**39**~~ | ~~`slowapi` en `requirements.txt` aunque ya no se usa~~ | ✅ **CERRADA** (`9b68e87`) | — |
 | **40 🆕** | Rate limiter propio: en memoria (no distribuido) | Escalabilidad | 🟢 Baja (1 worker) |
-| **41 🆕** | `tests/app/test_models.py` importa `User` pero no lo usa directamente en tests previos | Cosmético | 🟢 Baja |
+| **41 🆕** | `tests/app/test_models.py` importa `User` (usado por tests nuevos) | Cosmético | 🟢 Baja |
 
 ### 📌 Detalle de deudas activas
 
@@ -452,13 +484,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 **Deuda 26 — Cobertura `app/` en CI:** Agregar `--cov=app`.
 
-**Deuda 31 — `GROQ_MODEL` configurable:** Mover a `os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")`.
-
-**Deuda 39 🆕 — Quitar slowapi de requirements:** `pip uninstall slowapi` → actualizar `requirements.txt` → commit `chore(deps)`. Sin impacto funcional.
-
 **Deuda 40 🆕 — Rate limiter en memoria:** Con uvicorn single-worker (Railway default) es suficiente. Escalar a Redis si se pasa a múltiples workers.
 
-**Deuda 41 🆕 — `User` import en test_models:** El import `from app.models import KPI, User` es ahora necesario por los 2 tests nuevos. No es deuda real, se documenta por transparencia.
+**Deuda 41 🆕 — `User` import en test_models:** El import `from app.models import KPI, User` es ahora necesario por los 2 tests nuevos de `tenant_id`. No es deuda real, se documenta por transparencia.
 
 ---
 
@@ -483,8 +511,6 @@ Estás retomando un proyecto en curso. Antes de responder:
 | Deuda | Debounce cascade (#15) | 30 min | 🟡 Media |
 | Deuda | Severidad KPIs rendimiento (#16) | 1.5 h | 🟡 Media |
 | Deuda | Callback 2104 ms Calidad (#19) | 1-2 h | 🟡 Media |
-| Deuda | `GROQ_MODEL` configurable (#31) | 15 min | 🟢 Baja |
-| Deuda | Quitar `slowapi` de requirements (#39) | 10 min | 🟢 Baja |
 
 ---
 
@@ -602,11 +628,11 @@ rm fix_xxx.py
 5. Abrir chat nuevo.
 6. Pegar el mensaje de transición (sección 12) + TRASPASO completo.
 
-### 🆕 Reglas nuevas (ciclo IA.1 + Deploy + Auth + Rate limit + Tenant)
+### 🆕 Reglas nuevas (ciclo IA.1 + Deploy + Auth + Rate limit + Tenant + Config)
 
 - **Nunca pegar el `+` inicial de un diff en un archivo de config.**
 - **`python-multipart` es obligatorio para `Form(...)`, `File(...)`, `UploadFile(...)`.**
-- **Los IDs de modelos LLM son efímeros.** Configurable desde env.
+- **Los IDs de modelos LLM son efímeros.** Configurable desde env var `GROQ_MODEL`.
 - **Nunca exponer secrets con `cat .env`.** Verificar con `grep -c` o `python -c`.
 - **`passlib` está obsoleto.** Usar `bcrypt` directo.
 - **`python-jose[cryptography]` no tiene wheels para Mojave Intel.** Usar `PyJWT`.
@@ -619,19 +645,19 @@ rm fix_xxx.py
 - **HTMX necesita `hx-ext="json-enc"`** cuando el endpoint espera JSON.
 - **`HX-Redirect` para navegación server-driven.**
 - **`GET /` protegido con redirect 302 a `/login`.**
-- **`GET /` protegido con redirect 302 a `/login`.**
 - **Nunca pegar bloques >50 líneas en la Terminal ni en Railway Console.** Usar `pbpaste` o TextEdit.
 - **Nunca tipear secretos con `input()`.** Usar `getpass.getpass()`.
 - **Nunca reutilizar el mismo valor como password y como SECRET_KEY.**
 - **Railway aplica env vars vía redeploy, no en caliente.**
 - **Write-verify en operaciones sobre credenciales.**
 - **Seed admin idempotente.**
-- **🆕 Slowapi falla en silencio en este entorno.** Usar `@rate_limit` de `app.limiter`.
-- **🆕 En Python 3.11+: `Awaitable`, `Callable`, `Iterable`, `Iterator`, `Mapping`, `Sequence` se importan desde `collections.abc`, no desde `typing`.**
-- **🆕 Después de `open -e archivo`, hacer click en la ventana BLANCA de TextEdit antes de `Cmd+A` / `Cmd+V`.**
-- **🆕 Si bash escupe errores de sintaxis durante un paste grande, verificar con `grep` si el archivo destino quedó bien.**
-- **🆕 Migración de schema: DB primero, código después.**
-- **🆕 Rate limiter propio en `app/limiter.py` (deque de timestamps), no slowapi.**
+- **Slowapi falla en silencio en este entorno.** Usar `@rate_limit` de `app.limiter`.
+- **En Python 3.11+: `Awaitable`, `Callable`, `Iterable`, `Iterator`, `Mapping`, `Sequence` se importan desde `collections.abc`, no desde `typing`.**
+- **Después de `open -e archivo`, hacer click en la ventana BLANCA de TextEdit antes de `Cmd+A` / `Cmd+V`.**
+- **Si bash escupe errores de sintaxis durante un paste grande, verificar con `grep` si el archivo destino quedó bien.**
+- **Migración de schema: DB primero, código después.**
+- **Rate limiter propio en `app/limiter.py` (deque de timestamps), no slowapi.**
+- **🆕 Env var para valores que cambian sin tocar código.** `GROQ_MODEL`, `SECRET_KEY`, `COOKIE_SECURE`, `DATABASE_URL` se leen de env vars. Constante de módulo con `os.getenv`. Test con `monkeypatch.setenv` + `importlib.reload`.
 
 ---
 
@@ -640,7 +666,7 @@ rm fix_xxx.py
 | ❌ Error | ✅ Correcto |
 | :--- | :--- |
 | **Pegar `+python-multipart>=0.0.20,<1` en `requirements.txt`.** | Quitar el `+` inicial. |
-| **Usar `llama-3.3-70b-versatile` (deprecado 2026-08-16).** | Usar `openai/gpt-oss-120b`. |
+| **Usar `llama-3.3-70b-versatile` (deprecado 2026-08-16).** | Usar `openai/gpt-oss-120b` (o env var `GROQ_MODEL`). |
 | **`cat .env` para verificar la key.** | `python -c "from dotenv import load_dotenv; import os; ..."`. |
 | **Pegar la API key completa en el chat.** | Enmascararla. Si se expone, rotarla. |
 | **Escribir "CI verde" sin verificar Actions.** | `curl` a la API ANTES. |
@@ -677,28 +703,29 @@ rm fix_xxx.py
 | **Copiar de MacPass y pegar en `read -s`: agregar `\r` (33 chars en vez de 32).** | Limpiar con `tr -d '[:space:]'`. |
 | **Pegar un JWT completo en el chat.** | Redactar como `<TOKEN>`. |
 | **Heredoc (`cat > file << EOF`) con >100 líneas desde el chat.** | TextEdit o `pbpaste`. |
-| **🆕 Usar slowapi para rate limiting.** | Usar `@rate_limit` de `app.limiter`. |
-| **🆕 Combinar `@limiter.limit` con `SlowAPIMiddleware`.** | Elegir uno solo. Combinar = silencio. |
-| **🆕 Pegar Python en la Terminal pensando que es TextEdit.** | Verificar barra de título antes de pegar. |
-| **🆕 Deployar código que usa una columna nueva sin haberla creado en DB.** | ALTER primero, deploy después. |
-| **🆕 Importar `Awaitable`/`Callable` desde `typing`.** | Importar desde `collections.abc`. |
-| **🆕 Asumir que un paste falló porque bash ladró.** | Verificar con `grep`/`cat` el archivo destino. |
+| **Usar slowapi para rate limiting.** | Usar `@rate_limit` de `app.limiter`. |
+| **Combinar `@limiter.limit` con `SlowAPIMiddleware`.** | Elegir uno solo. Combinar = silencio. |
+| **Pegar Python en la Terminal pensando que es TextEdit.** | Verificar barra de título antes de pegar. |
+| **Deployar código que usa una columna nueva sin haberla creado en DB.** | ALTER primero, deploy después. |
+| **Importar `Awaitable`/`Callable` desde `typing`.** | Importar desde `collections.abc`. |
+| **Asumir que un paste falló porque bash ladró.** | Verificar con `grep`/`cat` el archivo destino. |
+| **🆕 Hardcodear valores que cambian sin tocar código (modelos LLM, URLs).** | Leer de env var con `os.getenv`. Test con `monkeypatch` + `importlib.reload`. |
 
 ---
 
 ## 🔟 📁 ARCHIVOS CLAVE Y COMANDOS
 
-### 🗂️ Estructura del proyecto (post schema-first)
+### 🗂️ Estructura del proyecto (post Bloque 2)
 
 ```text
 industrial-kpi-intelligence/
-├── README.md                              # 514 tests + badges
+├── README.md                              # 517 tests + badges
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── CHANGELOG.md
 ├── LICENSE                                # Elastic License 2.0
 ├── pyproject.toml
-├── requirements.txt
+├── requirements.txt                       # sin slowapi
 ├── Procfile                               # uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ├── .env                                   # GROQ_API_KEY (gitignored)
 ├── .gitignore
@@ -711,13 +738,13 @@ industrial-kpi-intelligence/
 │   ├── schemas.py                         # Pydantic KPICreate + UserLogin + UserCreate + UserPublic + Token
 │   ├── db.py                              # DATABASE_URL + _normalizar_url_db + create_db_and_tables + get_session
 │   ├── auth.py                            # JWT (PyJWT) + bcrypt + get_current_user(+_optional)
-│   ├── limiter.py                         # 🆕 Rate limiter propio (deque de timestamps)
+│   ├── limiter.py                         # Rate limiter propio (deque de timestamps)
 │   ├── templates_config.py
 │   ├── routers/
 │   │   ├── auth.py                        # POST /auth/login + POST /auth/logout + GET /auth/me
 │   │   └── chat.py                        # POST /chat/ (con @rate_limit(30, 60))
 │   ├── services/
-│   │   └── llm_chat.py                    # Groq + construir_contexto + consultar_llm
+│   │   └── llm_chat.py                    # Groq + MODELO_DEFAULT de env var GROQ_MODEL
 │   └── templates/
 │       ├── index.html
 │       ├── login.html
@@ -752,7 +779,8 @@ industrial-kpi-intelligence/
     │   ├── test_schemas.py                # 5
     │   ├── test_endpoints.py              # 12
     │   ├── test_chat.py                   # 12
-    │   └── test_auth.py                   # 15
+    │   ├── test_auth.py                   # 15
+    │   └── test_llm_chat.py               # 3 (🆕)
     └── ... (460 legacy)
 ```
 
@@ -765,8 +793,8 @@ source venv/bin/activate
 which python                    # DEBE mostrar .../venv/bin/python
 
 # Gates
-pytest                          # 514 passed (~80 s)
-pytest tests/app/ -v            # 54 passed (~1 s)
+pytest                          # 517 passed (~90 s)
+pytest tests/app/ -v            # 57 passed (~1 s)
 ruff check .                    # All checks passed!
 
 # Arrancar API FastAPI + dashboard + chat local
@@ -816,11 +844,11 @@ git pull origin main --rebase
 
 ### 📋 IA.2 — Diagnóstico asistido por LLM (2 h)
 
-**Contexto:** el ciclo Auth 1.B + rate limit + schema-first está cerrado. El proyecto tiene:
+**Contexto:** el ciclo Auth 1.B + rate limit + schema-first + GROQ_MODEL configurable está cerrado. El proyecto tiene:
 - Auth completo en producción (login + cookie HttpOnly + rate limit + admin).
-- Chat IA operativo con Groq.
+- Chat IA operativo con Groq (modelo configurable vía `GROQ_MODEL`).
 - Multi-tenant readiness (columna `tenant_id` en `User` y `KPI`).
-- 514 tests verdes. CI #132 verde.
+- 517 tests verdes. CI #135 verde.
 
 **Qué es IA.2:**
 
@@ -843,7 +871,7 @@ Un endpoint nuevo `GET /diagnostics/ai` (o similar) que:
 | 6 | `tests/app/test_diagnostics.py` | **Nuevo** — 5-8 tests con mock del LLM |
 
 **Reutilización:**
-- `app/services/llm_chat.py` como referencia (mismo Groq client, mismos mocks).
+- `app/services/llm_chat.py` como referencia (mismo Groq client, mismos mocks, `MODELO_DEFAULT` de env var).
 - Reglas de `src/diagnostics.py` (ya existen y están testeadas).
 - Fixture `mock_llm_ok` (ya existe, extender a diagnostics).
 - Rate limit (`@rate_limit`) — aplicarlo también al nuevo endpoint.
@@ -887,21 +915,24 @@ Si preferís avanzar en la retirada del Dash legacy (decisión 4.32), el orden p
 Contexto: pego abajo el TRASPASO_MAESTRO del proyecto Industrial KPI Intelligence.
 Soy David, Ing. Civil Químico + dev autodidacta, semana 5/8.
 
-Estado: Ciclos 1.B.4 (tests formales de auth), 1.B.6 (rate limit custom),
-y schema-first multi-tenant (tenant_id) cerrados. HEAD 8ab15be.
-CI #132 verde. 514 tests passed (460 legacy + 54 app/).
+Estado: Bloque 2 (GROQ_MODEL configurable) cerrado. HEAD 4e0254d. CI #135 verde.
+517 tests passed (460 legacy + 57 app/).
 URL pública: https://web-production-bb6a7.up.railway.app/
 
-Cerrado en las últimas 5 sesiones:
+Cerrado en las últimas 6 sesiones:
 - Test suite formal de auth (15 tests): commit 025aa7e
 - Rate limiter propio (slowapi descartado por falla silenciosa): commit d4308ec
 - tenant_id en User + KPI + ALTER Postgres: commit 8ab15be
+- TRASPASO actualizado: commit 5855644
+- Quitar slowapi de requirements: commit 9b68e87
+- GROQ_MODEL configurable vía env var: commit 4e0254d
 
 Estado del deploy:
 - URL pública operativa (Railway + Postgres).
 - Auth completo end-to-end verificado en prod.
 - Rate limit funcional (429 al 31° request en la misma ventana).
 - Columna tenant_id en Postgres prod.
+- GROQ_MODEL configurable vía Railway Variables.
 
 Próximo paso: IA.2 — Diagnóstico asistido por LLM.
 Alternativa: migración tab por tab Dash → FastAPI.
@@ -914,8 +945,6 @@ Deudas activas relevantes:
 - #19 callback 2104 ms (media, legacy)
 - #26 CI no mide cobertura app/ (media)
 - #25 pandas 2→3 (baja, diferida)
-- #31 GROQ_MODEL configurable (baja)
-- #39 quitar slowapi de requirements (baja)
 - #40 rate limiter en memoria (baja, 1 worker)
 - #41 import User en test_models (cosmético)
 
@@ -930,7 +959,7 @@ Reglas clave (ver sección 8 completa):
 - requirements.txt debe reproducir el venv real (--dry-run)
 - Nunca pegar el '+' inicial de un diff en config
 - python-multipart obligatorio para Form/File en FastAPI
-- Los IDs de modelos LLM son efímeros
+- Los IDs de modelos LLM son efímeros; usar GROQ_MODEL
 - NUNCA exponer secrets con cat .env
 - PyJWT, NO python-jose
 - bcrypt directo, NO passlib
@@ -956,6 +985,7 @@ Reglas clave (ver sección 8 completa):
 - Después de open -e archivo, click en TextEdit antes de pegar
 - Si bash ladra durante un paste, verificar con grep el archivo destino
 - Migración de schema: DB primero, código después
+- Env var para valores que cambian sin tocar código (GROQ_MODEL, SECRET_KEY, etc)
 
 Actuá como ingeniero de software senior + mentor. Directo, técnico,
 sin relleno. Español. Markdown con tablas y bloques de código.
@@ -990,31 +1020,27 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 - ✅ **Login verificado end-to-end en producción.**
 - ✅ **Test suite formal de auth** (15 tests, `025aa7e`).
 - ✅ **Rate limiter propio** (slowapi descartado, `d4308ec`).
-- ✅ **Multi-tenant readiness** (`tenant_id` en User + KPI, `8ab15be`).
-- ✅ **514 tests, 0 regresiones.**
+- ✅ **Multi-tenant readiness** (`tenant_id`, `8ab15be`).
+- ✅ **slowapi removido de requirements** (`9b68e87`).
+- ✅ **GROQ_MODEL configurable vía env var** (`4e0254d`).
+- ✅ **517 tests, 0 regresiones.**
 
-### 🔬 Lecciones metodológicas del ciclo 1.B.4 + 1.B.6 + Schema
+### 🔬 Lecciones metodológicas del ciclo Bloque 2
 
-- **Los tests atrapan los bugs que en producción son carísimos.** El test de rate limit detectó que slowapi no enforzaba. Sin él, hubieras descubierto el problema cuando Groq bloqueara tu API por abuso.
-- **Dependencias que fallan en silencio son peores que bugs explícitos.** Slowapi no avisó, no logueó, solo no hizo. Reemplazarlo con 40 líneas de código propio fue la decisión correcta.
-- **Fail closed > fail open.** En seguridad, si no podés verificar, rechazá. Nunca "pasar porque no hay error".
-- **Migración DB primero, código después.** ALTER en Railway → deploy. Si el deploy va primero, todas las `SELECT` fallan con `column does not exist`.
-- **Schema-first es barato hoy, carísimo mañana.** Agregar la columna con la tabla casi vacía cuesta 5 min. Con 3 clientes y datos vivos cuesta días.
-- **Un test que "pasa por la razón equivocada" es peor que no tenerlo.** `<token-forjado>` literal no prueba nada. Los tests deben reproducir la condición real.
-- **El foco en macOS no cambia automáticamente al abrir una ventana.** `open -e archivo` abre TextEdit pero deja el foco en la Terminal si no clickeás.
-- **Si bash ladra durante un paste, no asumas que el archivo quedó mal.** Verificá con `grep`/`cat`. A veces el paste llegó al destino correcto y bash procesó pedazos sueltos.
-- **`collections.abc` > `typing` para ABCs en Python 3.11+.** Ruff UP035 lo enforce.
-- **La regla del "un paste chico por vez" aplica a Railway Console también.** Los heredocs largos se corrompen igual.
+- **Configurabilidad por env var > hardcodeo para valores operativos.** Un modelo LLM cambia cada 3-6 meses. Con env var, cambiás en Railway UI sin tocar código.
+- **`monkeypatch.setenv` + `importlib.reload` para testear constantes de módulo.** Las constantes de módulo se evalúan en import time. `reload` fuerza una nueva evaluación.
+- **Fixture `autouse` de reload para no contaminar tests.** Sin recargar al final, la env var modificada o el módulo recargado afectan a otros tests del mismo proceso pytest.
+- **3 tests > 1 test para verificar precedencia env var / fallback.** Cada rama del `os.getenv(key, default)` tiene su propio test: con env var, sin env var (fallback), y string no vacío.
+- **Bloquear `load_dotenv` en el test de fallback.** Sin esto, un `GROQ_MODEL` en `.env` local haría fallar el test de fallback en tu Mac pero pasar en CI (donde no hay `.env`). Determinismo.
 
-### 📊 Métricas del ciclo 1.B.4 + 1.B.6 + Schema
+### 📊 Métricas del ciclo Bloque 2
 
-- **Commits:** 4 (`c92cbf`, `025aa7e`, `d4308ec`, `8ab15be`).
-- **Archivos nuevos:** `app/limiter.py`, `tests/app/test_auth.py`.
-- **Archivos modificados:** `app/main.py`, `app/models.py`, `app/routers/chat.py`, `tests/app/conftest.py`, `tests/app/test_chat.py`, `tests/app/test_models.py`.
-- **Tests:** 495 → 510 → 512 → **514**.
-- **Deudas cerradas:** #30 (rate limit), #36 (tests auth).
-- **Deudas nuevas:** #39 (quitar slowapi de requirements), #40 (rate limiter no distribuido), #41 (import cosmético).
-- **Scorecard:** Seguridad subió de 9.0 → **9.3**.
+- **Commits:** 1 (`4e0254d`).
+- **Archivos nuevos:** `tests/app/test_llm_chat.py` (3 tests).
+- **Archivos modificados:** `app/services/llm_chat.py` (1 línea + comentario).
+- **Tests:** 514 → 517.
+- **Deudas cerradas:** #31 (GROQ_MODEL).
+- **Scorecard:** Mantenibilidad +, total 8.68 → **8.72**.
 
 ### 📈 Scorecard de la oferta (Full Stack VI Región)
 
@@ -1029,7 +1055,7 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 | Seguridad | 5% | 9.3 | 0.47 |
 | **TOTAL** | 100% | — | **8.68** |
 
-**Subió de 8.41 → ~8.68.** El bloque Seguridad subió de 8.0 → 9.0 (auth prod) → 9.3 (rate limit custom + tests formales + multi-tenant readiness).
+**Subió de 8.41 → ~8.68.** El bloque Seguridad se mantiene en 9.3. La config por env var de `GROQ_MODEL` sube ligeramente la puntuación de IA.
 
 **Siguiente salto:** cerrar IA.2-4 → **~9.2**. Con caso real + video demo → **~9.4**.
 
@@ -1038,5 +1064,5 @@ sin relleno. Español. Markdown con tablas y bloques de código.
 ---
 
 > 📌 **Fin del TRASPASO_MAESTRO.**  
-> 🗓️ **Última actualización:** Ciclos 1.B.4 + 1.B.6 + schema-first cerrados. Commit `8ab15be`. 514 tests verdes. CI verde verificado (run #132).  
+> 🗓️ **Última actualización:** Bloque 2 (GROQ_MODEL configurable) cerrado. Commit `4e0254d`. 517 tests verdes. CI verde verificado (run #135).  
 > 🚀 **Próximo paso:** IA.2 — Diagnóstico asistido por LLM. Ver sección 11.
