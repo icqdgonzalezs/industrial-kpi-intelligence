@@ -1,5 +1,10 @@
 """Módulo de carga del dataset canónico (ADR-0001, Camino A).
 
+Vive en ``src/`` (no en ``dashboard/``) porque sirve a la capa analítica
+compartida (``src/kpis.py``, ``src/capability.py``, ``src/diagnostics.py``)
+y es consumido tanto por el dashboard legacy como por la capa FastAPI
+nueva (``app/``).
+
 Lee el dataset canónico en inglés (generado por ``src/data_generator.py``)
 y lo traduce al contrato analítico interno en español que consumen
 ``src/validation.py``, ``src/kpis.py``, ``src/capability.py`` y

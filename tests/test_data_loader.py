@@ -3,13 +3,13 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-import dashboard.data_loader as data_loader
-from dashboard.data_loader import _adaptar_a_esquema_legacy
+import src.data_loader as data_loader
+from src.data_loader import _adaptar_a_esquema_legacy
 
 
 def _escribir_csv_canonico(path, n_filas: int = 2) -> None:
     """Escribe un CSV canónico mínimo pero válido (todas las columnas que
-    ``dashboard.data_loader._COLUMNAS_CANONICAS_REQUERIDAS`` exige, más
+    ``src.data_loader._COLUMNAS_CANONICAS_REQUERIDAS`` exige, más
     los 4 campos OEE), para tests rápidos que no dependen de generar el
     dataset completo de 18,078 filas."""
     filas = []

@@ -13,7 +13,6 @@ from dashboard.data_callbacks import (
 from dashboard.data_callbacks import (
     registrar_callbacks_datos,
 )
-from dashboard.data_loader import DATA_PATH, cargar_datos
 from dashboard.diagnostics_callbacks import registrar_callbacks_diagnostics
 from dashboard.filter_callbacks import (
     actualizar_equipos,
@@ -32,6 +31,7 @@ from dashboard.kpi_callbacks import (
 from dashboard.operational_analysis_callbacks import registrar_callbacks_operational_analysis
 from dashboard.quality_performance_callbacks import registrar_callbacks_quality_performance
 from dashboard.tabs_callbacks import registrar_callbacks_tabs
+from src.data_loader import DATA_PATH, cargar_datos
 from src.dataset_metadata import formatear_metadata_dataset
 
 __all__ = [

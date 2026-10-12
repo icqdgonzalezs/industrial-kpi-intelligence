@@ -231,8 +231,8 @@ def test_orden_prioriza_severidad_sobre_todo_lo_demas():
 
 
 def test_dataset_real_produce_diagnostico_valido():
-    from dashboard.data_loader import cargar_datos
     from src.capability import resumen_capacidad
+    from src.data_loader import cargar_datos
 
     df, config = cargar_datos()
     variables_criticas = config.get("quality", {}).get("variables_criticas", {})
