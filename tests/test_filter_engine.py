@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from dashboard.filter_engine import aplicar_filtro, aplicar_filtros
+from src.filter_engine import aplicar_filtro, aplicar_filtros
 
 
 @pytest.fixture

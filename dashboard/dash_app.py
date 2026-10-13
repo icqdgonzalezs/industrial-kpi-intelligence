@@ -21,7 +21,6 @@ from dashboard.filter_callbacks import (
     actualizar_turnos,
     registrar_callbacks_filtros,
 )
-from dashboard.filter_engine import aplicar_filtros
 from dashboard.kpi_callbacks import (
     actualizar_kpis as _actualizar_kpis,
 )
@@ -33,6 +32,7 @@ from dashboard.quality_performance_callbacks import registrar_callbacks_quality_
 from dashboard.tabs_callbacks import registrar_callbacks_tabs
 from src.data_loader import DATA_PATH, cargar_datos
 from src.dataset_metadata import formatear_metadata_dataset
+from src.filter_engine import aplicar_filtros
 
 __all__ = [
     "app",
