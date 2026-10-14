@@ -85,6 +85,10 @@
       padding: 1rem 1.25rem; border-radius: 4px;
     }
     .chat-error-query { color: #666; font-size: 0.8rem; margin-top: 0.5rem; }
+    .diagnostics-findings { margin-top: 1.25rem; }
+    .diagnostics-findings-title { font-size: 0.95rem; margin-bottom: 0.75rem; color: #666; }
+    .finding-titulo { margin: 0.25rem 0; }
+    .finding-mensaje { font-size: 0.875rem; color: #444; }
   </style>
 </head>
 <body>
@@ -133,5 +137,6 @@
   {% endif %}
 
   {% include "partials/_chat.html" %}
+  {% include "partials/_diagnostics_ai.html" %}
 </body>
 </html>

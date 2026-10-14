@@ -1,0 +1,53 @@
+{# Respuesta parcial del endpoint /diagnostics/ai.
+   Reemplaza el contenido de #diagnostics-result.
+   `ok` decide si mostramos el diagnóstico o el error.
+   En ambos casos se listan los findings crudos (auditabilidad). #}
+{% if ok %}
+  <div class="chat-answer">
+    <div class="chat-answer-header">
+      <strong>Diagnóstico</strong>
+      <span class="chat-metrics">
+        {% if meta.modelo %}{{ meta.modelo }}{% endif %}
+        {% if meta.tokens_prompt is not none %} · {{ (meta.tokens_prompt or 0) + (meta.tokens_completion or 0) }} tokens{% endif %}
+        {% if meta.elapsed_ms is not none %} · {{ meta.elapsed_ms }} ms{% endif %}
+      </span>
+    </div>
+
+    <div class="chat-answer-body">{{ diagnostico }}</div>
+
+    <div class="chat-answer-query">
+      {% if meta.linea %}Línea <strong>{{ meta.linea }}</strong>{% else %}Todas las líneas{% endif %}
+      · {{ meta.n_lotes }} lotes
+      {% if meta.desde %} · desde {{ meta.desde }}{% endif %}
+      {% if meta.hasta %} · hasta {{ meta.hasta }}{% endif %}
+    </div>
+
+    {% if findings %}
+      <div class="diagnostics-findings">
+        <h3 class="diagnostics-findings-title">
+          Hallazgos priorizados ({{ findings|length }})
+        </h3>
+        {% for f in findings %}
+          <div class="finding-card finding-{{ f.severidad|lower }}">
+            <div class="finding-header">
+              <span class="finding-badge">{{ f.severidad }}</span>
+              <span class="finding-category">{{ f.categoria }}</span>
+            </div>
+            <div class="finding-titulo"><strong>{{ f.titulo }}</strong></div>
+            <div class="finding-mensaje">{{ f.mensaje }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="chat-error">
+    <strong>⚠️ Error</strong>
+    <p>{{ error }}</p>
+    {% if findings %}
+      <p class="chat-error-query">
+        {{ findings|length }} hallazgos disponibles sin narración.
+      </p>
+    {% endif %}
+  </div>
+{% endif %}

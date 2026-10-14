@@ -1,0 +1,49 @@
+{# Formulario del diagnóstico asistido por LLM (IA.2).
+   Se incluye desde index.html. Envía GET a /diagnostics/ai
+   con filtros opcionales (línea + rango temporal) y reemplaza
+   #diagnostics-result con la respuesta. #}
+<section class="chat-section">
+  <h2 class="chat-title">
+    <span class="chat-icon">🩺</span> Diagnóstico asistido por IA
+  </h2>
+  <p class="chat-subtitle">
+    Analiza los hallazgos priorizados y propone acciones concretas.
+    Los filtros son opcionales: sin filtro se analiza toda la planta.
+  </p>
+
+  <form
+    class="chat-form"
+    hx-get="/diagnostics/ai"
+    hx-target="#diagnostics-result"
+    hx-swap="innerHTML"
+    hx-indicator="#diagnostics-spinner"
+  >
+    <input
+      type="text"
+      name="linea"
+      class="chat-input"
+      placeholder="Línea (ej: L1). Vacío = todas"
+      maxlength="10"
+      autocomplete="off"
+    />
+    <input
+      type="date"
+      name="desde"
+      class="chat-input"
+      style="max-width: 160px;"
+    />
+    <input
+      type="date"
+      name="hasta"
+      class="chat-input"
+      style="max-width: 160px;"
+    />
+    <button type="submit" class="chat-submit">Diagnosticar</button>
+  </form>
+
+  <div id="diagnostics-spinner" class="chat-spinner htmx-indicator">
+    Analizando hallazgos y consultando al ingeniero IA…
+  </div>
+
+  <div id="diagnostics-result" class="chat-result"></div>
+</section>
