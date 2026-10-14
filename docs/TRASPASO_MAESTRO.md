@@ -2,8 +2,8 @@
 
 > 📌 **Propósito:** documento autocontenido para arrancar un chat nuevo sin perder contexto.  
 > 📥 **Instrucción de uso:** pegar este archivo completo como **PRIMER** mensaje en un chat nuevo.  
-> 🗓️ **Última actualización:** Bloque 2 (GROQ_MODEL configurable) cerrado. Commit `4e0254d`. **517 tests verdes, CI verde verificado (run #135).** Slowapi removido de requirements.  
-> 🚀 **Próximo paso:** IA.2 — Diagnóstico asistido por LLM (2 h). Ver sección 11.
+> 🗓️ **Última actualización:** IA.2 (Diagnóstico asistido por LLM) cerrada. Commit `7855820`. **526 tests verdes, CI verde verificado (run #139).** Refactors preparatorios: `data_loader` y `filter_engine` movidos de `dashboard/` a `src/`.  
+> 🚀 **Próximo paso:** IA.3 — Reportes ejecutivos narrados (2 h). Ver sección 11.
 
 ---
 
@@ -55,11 +55,11 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ⚖️ **Licencia** | Elastic License 2.0 (nunca MIT) |
 | 👤 **Usuario** | David González Santibáñez — Ing. Civil Químico + dev autodidacta |
 | 📅 **Semana** | 5 de 8 |
-| ✅ **Tests actuales** | **517 passed** (460 legacy + 57 app/) |
-| 🟢 **CI** | Verde **verificado** (run #135, commit `4e0254d`) |
-| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `4e0254d`. |
+| ✅ **Tests actuales** | **526 passed** (460 legacy + 66 app/) |
+| 🟢 **CI** | Verde **verificado** (run #139, commit `7855820`) |
+| 🧹 **Working tree** | Limpio, rama `main` sincronizada con `origin/main`. HEAD: `7855820`. |
 | 🌐 **URL pública (Railway)** | `https://web-production-bb6a7.up.railway.app/` |
-| 📊 **Producto 1 (MVP)** | ~99% (dashboard Dash + API FastAPI + IA + Auth + Rate limit + Multi-tenant readiness + GROQ_MODEL configurable + Deploy Railway). Falta IA.2-4 + migración tabs. |
+| 📊 **Producto 1 (MVP)** | ~99.5% (dashboard Dash + API FastAPI + IA + Auth + Rate limit + Multi-tenant readiness + GROQ_MODEL configurable + IA.2 diagnóstico + Deploy Railway). Falta IA.3-4 + migración tabs. |
 | 🌍 **Ecosistema completo** | ~17% (1 de 6 productos completos, 6 definidos) |
 | 🔗 **Repo** | `github.com/icqdgonzalezs/industrial-kpi-intelligence` |
 | 📂 **Ruta local** | `/Users/violeta/Projects/industrial-operations-intelligence/industrial-kpi-intelligence` |
@@ -151,6 +151,18 @@ Estás retomando un proyecto en curso. Antes de responder:
   - ✅ **Beneficio**: cambiar de modelo LLM en producción requiere solo actualizar Railway Variables + redeploy, sin tocar código.
   - ✅ **Deuda #31 cerrada.** Total suite: 514 → 517 tests.
 
+**Ciclo IA.2 (Diagnóstico asistido por LLM):**
+
+- ✅ **`88ec714`** — `refactor(data): move data_loader from dashboard/ to src/`.
+- ✅ **`0dbec44`** — `refactor(data): move filter_engine from dashboard/ to src/`.
+- ✅ **`7855820`** — `feat(ai): add LLM-assisted diagnostics (IA.2)`.
+  - ✅ **`app/services/llm_diagnostics.py`** (nuevo): `construir_prompt` (puro, determinista) + `diagnosticar` (async; reutiliza `cliente_groq` y `MODELO_DEFAULT` de `llm_chat` — SSOT del LLM).
+  - ✅ **`app/services/dataset_loader.py`** (nuevo): wrapper de `src.data_loader` + `src.filter_engine` (sin reimplementar lógica).
+  - ✅ **`app/routers/diagnostics.py`** (nuevo): `GET /diagnostics/ai` con JWT + rate limit (30/min). Respuesta polimórfica HTML/JSON. Errores: 401, 422, 429, 200+`ok:false`.
+  - ✅ **`app/templates/partials/_diagnostics_ai.html`** + `_diagnostics_ai_response.html` (nuevos).
+  - ✅ **9 tests nuevos** (3 unidad `construir_prompt` + 6 integración con mock de Groq). Suite: 517 → 526.
+  - ✅ **Deuda #33 parcialmente cerrada** (IA.2 ✅, IA.3-4 pendientes).
+
 ### 🟡 En curso
 
 - *Nada.* Working tree limpio. CI #135 verde verificado.
@@ -168,6 +180,9 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Commit | Descripción | Tests |
 | :--- | :--- | :---: |
+| `7855820` | **feat(ai): add LLM-assisted diagnostics (IA.2)** | 526 |
+| `0dbec44` | **refactor(data): move filter_engine from dashboard/ to src/** | 517 |
+| `88ec714` | **refactor(data): move data_loader from dashboard/ to src/** | 517 |
 | `4e0254d` | **feat(llm): make GROQ_MODEL configurable via env var** | 517 |
 | `9b68e87` | **chore(deps): remove slowapi (unused after custom rate limiter)** | 517 |
 | `5855644` | **docs(handoff): close 1.B.4 + 1.B.6 + schema-first tenant_id** | 514 |
@@ -365,6 +380,29 @@ Estás retomando un proyecto en curso. Antes de responder:
   - Función pública `obtener_modelo()` (agrega API surface que nadie usa).
 - **Lección:** si un valor puede cambiar sin cambiar código (modelo de LLM, credenciales, URLs, flags), leerlo de env var. Nunca hardcodeado. Test determinista con `monkeypatch` + `reload`.
 
+### 4.58 🏗️ Refactor preparatorio: `dashboard/*` → `src/*`
+
+- **Problema:** `app/` necesitaba `data_loader` y `filter_engine`, pero vivían en `dashboard/`, capa en retirada (deuda #24).
+- **Solución:** `git mv` a `src/` en 2 commits atómicos, previos al feature.
+- **Lección:** antes de construir `app/`, verificar que cada dependencia legacy tenga su equivalente en `src/`. Refactor preparatorio ANTES del feature. Nunca en el mismo commit.
+
+### 4.59 🔄 Reutilización del cliente Groq (SSOT del LLM)
+
+- **Decisión:** `llm_diagnostics.py` importa `cliente_groq`, `MODELO_DEFAULT`, `TIMEOUT_LLM` de `llm_chat.py`. No duplica.
+- **Lección:** si dos features necesitan el mismo recurso externo, extraer a módulo compartido. No duplicar pool ni lectura de env var.
+
+### 4.60 🔀 `Response` como tipo de retorno polimórfico
+
+- **Problema:** `-> HTMLResponse | JSONResponse` rompe FastAPI (no son tipos Pydantic válidos).
+- **Solución:** `-> Response` (base Starlette). FastAPI no intenta inferir `response_model`.
+- **Lección:** endpoints polimórficos (HTML/JSON según `HX-Request`) → `-> Response`. Nunca `Union[Response, Response]`.
+
+### 4.61 📝 Heredoc para archivos nuevos en macOS
+
+- **Problema:** `open -e` no crea archivos; TextEdit RTF agrega `<!DOCTYPE html>`; `pbpaste` depende del clipboard.
+- **Solución:** `cat > archivo <<'EOF' ... EOF` para archivos <200 líneas. Determinista.
+- **Lección:** el método más simple que no interpreta el contenido gana. Heredoc > TextEdit.
+
 ---
 
 ## 5️⃣ ESTADO DE TESTS Y CALIDAD
@@ -415,9 +453,10 @@ Estás retomando un proyecto en curso. Antes de responder:
 | `tests/app/test_endpoints.py` | 12 | `GET /`, `GET /kpis/`, `POST /kpis/` con `TestClient` |
 | `tests/app/test_chat.py` | 12 | `POST /chat/` con mock + 2 de rate limiting |
 | `tests/app/test_auth.py` | 15 | Login (5), /auth/me (4), endpoints protegidos (3), logout (3) |
-| `tests/app/test_llm_chat.py` | 3 | 🆕 `MODELO_DEFAULT` con env var, fallback, string no vacío |
+| `tests/app/test_llm_chat.py` | 3 | `MODELO_DEFAULT` con env var, fallback, string no vacío |
+| `tests/app/test_diagnostics.py` | 9 | 🆕 IA.2: 3 unidad (`construir_prompt`) + 6 integración (endpoint + auth + rate limit + HX-Request + rango inválido) |
 | Tests auth integrados en endpoints | 2 | 401 sin token en POST |
-| **Subtotal app/** | **57** | ✅ |
+| **Subtotal app/** | **66** | ✅ |
 
 ### Fixtures críticas
 
@@ -430,8 +469,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### Total
 
-> **517 tests passed** (460 legacy + 57 app/). **0 regresiones.**  
-> Tiempo: ~90 s suite completa.
+> **526 tests passed** (460 legacy + 66 app/). **0 regresiones.**  
+> Tiempo: ~65 s suite completa.
 
 ---
 
@@ -458,7 +497,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**30**~~ | ~~Rate limit en `/chat/`~~ | ✅ **CERRADA** (`d4308ec` + `4.54`) | — |
 | ~~**31**~~ | ~~`GROQ_MODEL` hardcodeado~~ | ✅ **CERRADA** (`4e0254d` + `4.57`) | — |
 | ~~**32**~~ | ~~POST sin proteger~~ | ✅ **CERRADA** (`f6ac313`) | — |
-| **33** | IA.2, IA.3, IA.4 | Features | 🟡 Media |
+| **33** | IA.3, IA.4 (IA.2 ✅) | Features | 🟡 Media |
 | ~~**34**~~ | ~~Sin template login~~ | ✅ **CERRADA** (`4314764`) | — |
 | ~~**35**~~ | ~~Sin seed admin~~ | ✅ **CERRADA** (`4ba0cd9`) | — |
 | ~~**36**~~ | ~~Sin tests formales de auth~~ | ✅ **CERRADA** (`025aa7e`) | — |
@@ -466,7 +505,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 | ~~**38**~~ | ~~`COOKIE_SECURE=true` no seteado~~ | ✅ **CERRADA** (Railway Variables) | — |
 | ~~**39**~~ | ~~`slowapi` en `requirements.txt` aunque ya no se usa~~ | ✅ **CERRADA** (`9b68e87`) | — |
 | **40 🆕** | Rate limiter propio: en memoria (no distribuido) | Escalabilidad | 🟢 Baja (1 worker) |
-| **41 🆕** | `tests/app/test_models.py` importa `User` (usado por tests nuevos) | Cosmético | 🟢 Baja |
+| **41** | `tests/app/test_models.py` importa `User` (usado por tests nuevos) | Cosmético | 🟢 Baja |
+| **42 🆕** | IA.2 lee `data/raw/synthetic_production_data.csv` del filesystem. Migrar a tabla `Lote` en DB antes de activar multi-tenant filtering real o cliente #2 | Arquitectura | 🟡 Media |
 
 ### 📌 Detalle de deudas activas
 
@@ -494,8 +534,8 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 | Fase | Fix / Feature | Estimación | Prioridad |
 | :--- | :--- | :---: | :---: |
-| **IA.2** | **Diagnóstico asistido por LLM** | 2 h | 🟡 Media — **PRÓXIMO** |
-| **IA.3** | Reportes ejecutivos narrados | 2 h | 🟡 Media |
+| ~~**IA.2**~~ | ~~Diagnóstico asistido por LLM~~ | — | ✅ **CERRADA** (`7855820`) |
+| **IA.3** | Reportes ejecutivos narrados | 2 h | 🟡 Media — **PRÓXIMO** |
 | **IA.4** | Detección de anomalías ML | 3 h | 🟡 Media |
 | Seg.3 | CORS configurado | 30 min | 🟡 Media |
 | Auto | APScheduler (ingesta CSV programada) | 2 h | 🟡 Media |
@@ -657,7 +697,14 @@ rm fix_xxx.py
 - **Si bash escupe errores de sintaxis durante un paste grande, verificar con `grep` si el archivo destino quedó bien.**
 - **Migración de schema: DB primero, código después.**
 - **Rate limiter propio en `app/limiter.py` (deque de timestamps), no slowapi.**
-- **🆕 Env var para valores que cambian sin tocar código.** `GROQ_MODEL`, `SECRET_KEY`, `COOKIE_SECURE`, `DATABASE_URL` se leen de env vars. Constante de módulo con `os.getenv`. Test con `monkeypatch.setenv` + `importlib.reload`.
+- **Env var para valores que cambian sin tocar código.** `GROQ_MODEL`, `SECRET_KEY`, `COOKIE_SECURE`, `DATABASE_URL` se leen de env vars. Constante de módulo con `os.getenv`. Test con `monkeypatch.setenv` + `importlib.reload`.
+- **🆕 `open -e` NO crea archivos.** Solo abre existentes. Para crear: `touch archivo && open -e archivo`, o preferible `cat > archivo <<'EOF'` (heredoc).
+- **🆕 TextEdit en modo RTF agrega `<!DOCTYPE html>` al guardar.** Para archivos de código (HTML/YAML/JSON/Python), usar heredoc. Si usás TextEdit, `Cmd+Shift+T` (texto plano) antes de pegar.
+- **🆕 macOS `sed -i ''` NO interpreta `\n`.** Para insertar saltos de línea, usar `perl -i -pe 's/a/b\nc/'`.
+- **🆕 `Response` para endpoints polimórficos.** `Union[HTMLResponse, JSONResponse]` rompe FastAPI. Usar `-> Response` (base Starlette).
+- **🆕 Nunca `assert ... or True` en tests.** Falso positivo silencioso. Si no sabés qué assertear, borrá el test o usá `@pytest.mark.skip`.
+- **🆕 Refactor preparatorio antes de feature.** Si `app/` va a depender de un módulo legacy (`dashboard/*`), moverlo a `src/` primero (commit atómico separado).
+- **🆕 `pbpaste > archivo` sin verificar el clipboard.** El clipboard puede tener comandos viejos. Correr `pbpaste | head -3` antes.
 
 ---
 
@@ -709,7 +756,13 @@ rm fix_xxx.py
 | **Deployar código que usa una columna nueva sin haberla creado en DB.** | ALTER primero, deploy después. |
 | **Importar `Awaitable`/`Callable` desde `typing`.** | Importar desde `collections.abc`. |
 | **Asumir que un paste falló porque bash ladró.** | Verificar con `grep`/`cat` el archivo destino. |
-| **🆕 Hardcodear valores que cambian sin tocar código (modelos LLM, URLs).** | Leer de env var con `os.getenv`. Test con `monkeypatch` + `importlib.reload`. |
+| **Hardcodear valores que cambian sin tocar código (modelos LLM, URLs).** | Leer de env var con `os.getenv`. Test con `monkeypatch` + `importlib.reload`. |
+| **🆕 Asumir que `open -e archivo.py` crea el archivo.** | `open -e` solo abre existentes. Para crear: `touch archivo && open -e archivo`. |
+| **🆕 Pegar HTML en TextEdit sin `Cmd+Shift+T` (modo RTF).** | Agrega `<!DOCTYPE html><html><head>` al archivo. Usar heredoc. |
+| **🆕 macOS `sed -i '' 's/a/b\nc/'` inserta `n` literal.** | Usar `perl -i -pe` en macOS. |
+| **🆕 Anotar retorno de endpoint polimórfico como `Union[HTMLResponse, JSONResponse]`.** | Usar `-> Response` (base Starlette). |
+| **🆕 `assert X or True` para "no romper tests".** | Falso positivo silencioso. Escribir el assert real o skip. |
+| **🆕 `pbpaste > archivo` sin verificar el clipboard.** | Correr `pbpaste | head -3` antes de escribir. |
 
 ---
 
@@ -842,7 +895,7 @@ git pull origin main --rebase
 
 ## 1️⃣1️⃣ 🎯 PRÓXIMO PASO EXACTO
 
-### 📋 IA.2 — Diagnóstico asistido por LLM (2 h)
+### ✅ IA.2 — Diagnóstico asistido por LLM (CERRADA, `7855820`) — contexto histórico
 
 **Contexto:** el ciclo Auth 1.B + rate limit + schema-first + GROQ_MODEL configurable está cerrado. El proyecto tiene:
 - Auth completo en producción (login + cookie HttpOnly + rate limit + admin).
@@ -875,6 +928,43 @@ Un endpoint nuevo `GET /diagnostics/ai` (o similar) que:
 - Reglas de `src/diagnostics.py` (ya existen y están testeadas).
 - Fixture `mock_llm_ok` (ya existe, extender a diagnostics).
 - Rate limit (`@rate_limit`) — aplicarlo también al nuevo endpoint.
+
+**Estimación:** 2 h.
+
+---
+
+### 📋 IA.3 — Reportes ejecutivos narrados (2 h) — PRÓXIMO
+
+**Contexto:** IA.2 cerrada en `7855820`. El proyecto tiene:
+- Endpoint `GET /diagnostics/ai` operativo con findings narrados por Groq.
+- 526 tests verdes. CI #139 verde.
+- Patrón de referencia: `app/services/llm_diagnostics.py` + `app/routers/diagnostics.py`.
+
+**Qué es IA.3:**
+
+Endpoint `GET /reports/executive` que:
+1. Carga el dataset filtrado (`cargar_dataset_filtrado`).
+2. Calcula KPIs agregados (OEE, FPY, PPM, top defectos).
+3. Arma un prompt ejecutivo (tono CFO/COO, no ingeniero de planta).
+4. Llama a Groq y produce un resumen ejecutivo de 1 página.
+5. Renderiza en partial HTMX con opción de export PDF (fase 2).
+
+**Cambios (estimación):**
+
+| # | Archivo | Acción |
+|:---:|:---|:---|
+| 1 | `app/services/llm_reports.py` | **Nuevo** — prompt ejecutivo + llamada Groq |
+| 2 | `app/routers/reports.py` | **Nuevo** — `GET /reports/executive` |
+| 3 | `app/templates/partials/_reports_executive.html` | **Nuevo** |
+| 4 | `app/templates/index.html` | Sección nueva |
+| 5 | `app/main.py` | `include_router(reports_router)` |
+| 6 | `tests/app/test_reports.py` | **Nuevo** — ~8 tests |
+
+**Reutilización (mismo patrón que IA.2):**
+- `cargar_dataset_filtrado` de `app.services.dataset_loader`.
+- `cliente_groq` + `MODELO_DEFAULT` de `llm_chat`.
+- `@rate_limit` + `get_current_user`.
+- `Response` polimórfico HTML/JSON.
 
 **Estimación:** 2 h.
 
