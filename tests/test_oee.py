@@ -9,6 +9,7 @@ from src.oee import (
     CLASIFICACION_ACCEPTABLE,
     CLASIFICACION_LOW,
     CLASIFICACION_WORLD_CLASS,
+    adaptar_contrato_canonico,
     calcular_oee,
     calcular_oee_fila,
     calcular_oee_ponderado,
@@ -250,3 +251,58 @@ def test_calcular_oee_ponderado_incluye_totales(df_oee_valido):
 def test_calcular_oee_ponderado_clasificacion_consistente(df_oee_valido):
     resultado = calcular_oee_ponderado(df_oee_valido)
     assert resultado["clasificacion"] == clasificar_oee(resultado["oee"])
+
+# ---------------------------------------------------------------------
+# FRONTERA: adapter del contrato canónico
+# ---------------------------------------------------------------------
+
+def test_adaptar_contrato_canonico_renombra_y_no_muta() -> None:
+    """Renombra las 2 columnas ES→EN, preserva valores, no muta el input."""
+    df = pd.DataFrame(
+        {
+            "unidades_producidas": [100, 200],
+            "unidades_defectuosas": [5, 10],
+            "planned_time_min": [480.0, 480.0],
+        }
+    )
+
+    adaptado = adaptar_contrato_canonico(df)
+
+    assert "units_produced" in adaptado.columns
+    assert "units_defective" in adaptado.columns
+    assert "unidades_producidas" not in adaptado.columns
+    assert "unidades_defectuosas" not in adaptado.columns
+
+    # No mutación del input (regla del proyecto: nada de inplace=True)
+    assert "unidades_producidas" in df.columns
+    assert "units_produced" not in df.columns
+
+    # Valores preservados
+    assert adaptado["units_produced"].tolist() == [100, 200]
+    assert adaptado["units_defective"].tolist() == [5, 10]
+
+
+def test_adaptar_contrato_canonico_falla_si_faltan_columnas() -> None:
+    """Sin las columnas canónicas, falla explícito (no fabrica datos)."""
+    df = pd.DataFrame({"planned_time_min": [480.0]})
+
+    with pytest.raises(ValueError, match="Faltan columnas canónicas"):
+        adaptar_contrato_canonico(df)
+
+
+def test_frontera_dataset_real_pasa_por_oee() -> None:
+    """Frontera real: dataset canónico → adapter → OEE corre sin error.
+
+    Este test es el que hubiera detectado el bug de IA.3. Los tests
+    unitarios de test_oee.py usan DataFrames sintéticos en inglés y no
+    cruzan la frontera entre data_loader y oee.
+    """
+    from app.services.dataset_loader import cargar_dataset_filtrado
+
+    df, _ = cargar_dataset_filtrado(linea="L1")
+    adaptado = adaptar_contrato_canonico(df)
+    resultado = calcular_oee_ponderado(adaptado)
+
+    assert 0.0 <= resultado["oee"] <= 1.0
+    assert resultado["n_registros"] > 0
+    assert resultado["units_produced_total"] > 0

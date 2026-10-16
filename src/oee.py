@@ -51,12 +51,14 @@ Required input columns per equipment/period record:
     units_produced           : int
     units_defective          : int
 
-These columns do not exist yet in data/calidad_muestra.csv. Until the
-data model is extended (see Fix #1 recommendation), calcular_oee() will
-raise ValueError rather than silently fabricating a number — consistent
-with the project's golden rule #5 ("No calcular KPIs con denominadores
-invalidos") and rule #58 in the master plan ("no calcularemos OEE si no
-tenemos los componentes necesarios").
+The canonical dataset (see src/data_loader.py) carries these columns,
+but ``units_produced`` and ``units_defective`` are renamed to Spanish
+in the loader. Use ``adaptar_contrato_canonico(df)`` to translate back
+to this module's expected contract before calling ``calcular_oee_*``.
+
+Calling ``calcular_oee_*`` with the raw canonical dataset raises
+ValueError rather than silently fabricating a number — consistent with
+the project's golden rule #5 and rule #58 in the master plan.
 """
 
 from __future__ import annotations
@@ -378,3 +380,58 @@ def calcular_oee_ponderado(df: pd.DataFrame) -> dict:
         "units_produced_total": units_produced_total,
         "units_defective_total": units_defective_total,
     }
+
+# ---------------------------------------------------------------------
+# ADAPTER: contrato canónico (ES) → contrato OEE (EN)
+# ---------------------------------------------------------------------
+# El dataset canónico vive en español (ver src/data_loader.py), pero este
+# módulo fue diseñado contra el schema original del CSV (inglés). El loader
+# renombra 2 de las columnas que OEE necesita:
+#
+#     units_produced   → unidades_producidas
+#     units_defective  → unidades_defectuosas
+#
+# Los campos OEE-específicos (planned_time_min, planned_downtime_min,
+# unplanned_downtime_min, ideal_cycle_time_sec) NO se renombran: el loader
+# los deja en inglés porque no tienen equivalente en el contrato canónico.
+#
+# Regla arquitectónica (ver ADR): el adapter vive en el módulo que declara
+# el contrato destino. OEE declara necesitar units_produced; OEE provee la
+# traducción. El consumidor (app/services/executive_kpis.py, futuros tabs)
+# solo importa y llama.
+# ---------------------------------------------------------------------
+
+_COLUMNAS_CANONICAS_A_OEE = {
+    "unidades_producidas": "units_produced",
+    "unidades_defectuosas": "units_defective",
+}
+
+
+def adaptar_contrato_canonico(df: pd.DataFrame) -> pd.DataFrame:
+    """Traduce el dataset canónico (ES) al contrato de OEE (EN).
+
+    Renombra exclusivamente las 2 columnas que ``calcular_oee_*`` requiere
+    y que ``src/data_loader.py`` deja en español. Las columnas OEE-específicas
+    (planned_time_min, etc.) ya vienen en inglés desde el loader.
+
+    No muta el input: ``pd.DataFrame.rename`` devuelve copia por default.
+
+    Args:
+        df: DataFrame en contrato canónico (columnas en español).
+
+    Returns:
+        Copia del DataFrame con ``units_produced`` y ``units_defective``
+        en lugar de sus equivalentes en español.
+
+    Raises:
+        ValueError: si faltan columnas canónicas esperadas. Falla explícito
+            en vez de fabricar números (regla #5 del proyecto).
+    """
+    faltantes = [
+        c for c in _COLUMNAS_CANONICAS_A_OEE if c not in df.columns
+    ]
+    if faltantes:
+        raise ValueError(
+            f"Faltan columnas canónicas para adaptar a OEE: {faltantes}."
+        )
+    return df.rename(columns=_COLUMNAS_CANONICAS_A_OEE)
