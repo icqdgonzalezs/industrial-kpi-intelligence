@@ -1,0 +1,71 @@
+{# Respuesta parcial del endpoint /reports/executive.
+   Reemplaza #reports-result.
+   `ok` decide si mostramos el reporte o el error. #}
+{% if ok %}
+  <div class="chat-answer">
+    <div class="chat-answer-header">
+      <strong>Reporte ejecutivo</strong>
+      <span class="chat-metrics">
+        {% if meta.modelo %}{{ meta.modelo }}{% endif %}
+        {% if meta.tokens_prompt is not none %} · {{ (meta.tokens_prompt or 0) + (meta.tokens_completion or 0) }} tokens{% endif %}
+        {% if meta.elapsed_ms is not none %} · {{ meta.elapsed_ms }} ms{% endif %}
+      </span>
+    </div>
+
+    <div class="chat-answer-body">{{ reporte }}</div>
+
+    <div class="chat-answer-query">
+      {% if meta.linea %}Línea <strong>{{ meta.linea }}</strong>{% else %}Todas las líneas{% endif %}
+      · {{ meta.n_lotes }} registros
+      {% if meta.desde %} · desde {{ meta.desde }}{% endif %}
+      {% if meta.hasta %} · hasta {{ meta.hasta }}{% endif %}
+    </div>
+
+    {% if kpis and kpis.oee %}
+      <div class="diagnostics-findings">
+        <h3 class="diagnostics-findings-title">Métricas agregadas</h3>
+        <table>
+          <tbody>
+            <tr>
+              <td>OEE</td>
+              <td class="num">{{ "%.2f"|format((kpis.oee.oee or 0) * 100) }}%</td>
+              <td>{{ kpis.oee.clasificacion or "—" }}</td>
+            </tr>
+            <tr>
+              <td>Disponibilidad</td>
+              <td class="num">{{ "%.2f"|format((kpis.oee.disponibilidad or 0) * 100) }}%</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Rendimiento</td>
+              <td class="num">{{ "%.2f"|format((kpis.oee.rendimiento or 0) * 100) }}%</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Calidad</td>
+              <td class="num">{{ "%.2f"|format((kpis.oee.calidad or 0) * 100) }}%</td>
+              <td></td>
+            </tr>
+            {% if kpis.operacional %}
+              <tr>
+                <td>FPY</td>
+                <td class="num">{{ "%.2f"|format((kpis.operacional.fpy or 0) * 100) }}%</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>PPM</td>
+                <td class="num">{{ "%.1f"|format(kpis.operacional.ppm or 0) }}</td>
+                <td></td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="chat-error">
+    <strong>⚠️ No se pudo generar el reporte</strong>
+    <p>{{ error }}</p>
+  </div>
+{% endif %}

@@ -1,0 +1,50 @@
+{# Formulario del reporte ejecutivo narrado por LLM (IA.3).
+   Se incluye desde index.html. Envía GET a /reports/executive
+   con filtros opcionales (línea + rango temporal) y reemplaza
+   #reports-result con la respuesta. #}
+<section class="chat-section">
+  <h2 class="chat-title">
+    <span class="chat-icon">📈</span> Reporte ejecutivo narrado por IA
+  </h2>
+  <p class="chat-subtitle">
+    Resumen de una página para CFO/COO a partir de los KPIs del período.
+    Los filtros son opcionales: sin filtro se analiza toda la planta.
+  </p>
+
+  <form
+    class="chat-form"
+    hx-get="/reports/executive"
+    hx-trigger="submit"
+    hx-target="#reports-result"
+    hx-swap="innerHTML"
+    hx-indicator="#reports-spinner"
+  >
+    <input
+      type="text"
+      name="linea"
+      class="chat-input"
+      placeholder="Línea (ej: L1). Vacío = todas"
+      maxlength="10"
+      autocomplete="off"
+    />
+    <input
+      type="date"
+      name="desde"
+      class="chat-input"
+      style="max-width: 160px;"
+    />
+    <input
+      type="date"
+      name="hasta"
+      class="chat-input"
+      style="max-width: 160px;"
+    />
+    <button type="submit" class="chat-submit">Generar reporte</button>
+  </form>
+
+  <div id="reports-spinner" class="chat-spinner htmx-indicator">
+    Agregando KPIs y redactando el reporte ejecutivo…
+  </div>
+
+  <div id="reports-result" class="chat-result"></div>
+</section>
