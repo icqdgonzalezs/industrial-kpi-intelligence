@@ -181,8 +181,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### ⏳ Pendiente inmediato
 
-- ⏳ **IA.2** — Diagnóstico asistido por LLM (2 h). **PRÓXIMO**.
-- - ⏳ **IA.4** — Detección de anomalías ML (3 h).
+- ⏳ **IA.4** — Detección de anomalías ML (3 h). **PRÓXIMO**.
 - ⏳ **Migración tab por tab** Dash → FastAPI (decisión 4.32).
 
 ---
