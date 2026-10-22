@@ -1,0 +1,28 @@
+{% if anomalias %}
+<table class="table-anomalies">
+    <thead>
+        <tr>
+            <th>Severidad</th>
+            <th>Línea</th>
+            <th>KPI</th>
+            <th>Valor</th>
+            <th>Esperado</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in anomalias %}
+        <tr class="severity-{{ a.severidad }}">
+            <td><span class="badge badge-{{ a.severidad }}">{{ a.severidad | upper }}</span></td>
+            <td>{{ a.linea }}</td>
+            <td>{{ a.kpi }}</td>
+            <td>{{ "%.2f" | format(a.valor) }}</td>
+            <td>{{ "%.2f" | format(a.esperado) }}</td>
+            <td>{{ a.descripcion }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">✅ No se encontraron anomalías para este KPI.</p>
+{% endif %}

@@ -89,6 +89,16 @@
     .diagnostics-findings-title { font-size: 0.95rem; margin-bottom: 0.75rem; color: #666; }
     .finding-titulo { margin: 0.25rem 0; }
     .finding-mensaje { font-size: 0.875rem; color: #444; }
+
+    /* --- Anomalías --- */
+    .anomalies-container { margin-top: 1rem; }
+    .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .badge-critica { background: #fef2f2; color: #dc2626; }
+    .badge-alta { background: #fff7ed; color: #ea580c; }
+    .badge-media { background: #fefce8; color: #ca8a04; }
+    .badge-baja { background: #f0fdf4; color: #16a34a; }
+    .table-anomalies { margin-top: 1rem; }
+    .text-muted { color: #666; font-style: italic; }
   </style>
 </head>
 <body>
@@ -139,5 +149,6 @@
   {% include "partials/_chat.html" %}
   {% include "partials/_diagnostics_ai.html" %}
   {% include "partials/_reports_executive.html" %}
+  {% include "partials/_anomalies.html" %}
 </body>
 </html>

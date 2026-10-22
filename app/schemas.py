@@ -5,6 +5,7 @@ Separados de los modelos SQLModel: la validación de entrada (Pydantic)
 es responsabilidad de esta capa, no de la capa de persistencia.
 """
 from datetime import datetime
+from typing import Literal  # <-- AGREGAR ESTO
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -52,3 +53,19 @@ class Token(BaseModel):
     """Respuesta de login exitoso."""
     access_token: str
     token_type: str = "bearer"
+
+
+# ============================================================
+# Anomalías (IA.4)
+# ============================================================
+
+class Anomalia(BaseModel):
+    """Resultado de la detección estadística de anomalías."""
+    kpi: str
+    linea: str | None = None
+    metodo: Literal["zscore", "iqr", "regla_we"]
+    severidad: Literal["critica", "alta", "media", "baja"]
+    valor: float
+    esperado: float
+    desviacion: float
+    descripcion: str

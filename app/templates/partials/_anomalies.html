@@ -1,0 +1,12 @@
+<div class="anomalies-container">
+    <form hx-get="/anomalies/" hx-target="#anomalies-result" hx-swap="innerHTML">
+        <label for="kpi">KPI:</label>
+        <select name="kpi" id="kpi">
+            <option value="oee">OEE</option>
+            <option value="ppm">PPM</option>
+            <option value="cpk">Cpk</option>
+        </select>
+        <button type="submit" class="btn-primary">Detectar Anomalías</button>
+    </form>
+    <div id="anomalies-result" style="margin-top: 1rem;"></div>
+</div>
