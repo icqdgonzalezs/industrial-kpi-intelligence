@@ -40,6 +40,33 @@
     }
     .navbar-logout:hover { background: #f3f4f6; border-color: #9ca3af; }
 
+    /* --- Tabs Navigation --- */
+    .tabs-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e5e5; }
+    .tab-btn {
+      background: transparent; border: none; padding: 0.75rem 1rem;
+      font-size: 0.95rem; font-weight: 500; color: #666; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+    }
+    .tab-btn:hover { color: #1a1a1a; }
+    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+
+    /* --- Tab Content (Diagnóstico) --- */
+    .tab-pane { margin-top: 1rem; }
+    .findings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .finding-card { border: 1px solid #e5e5e5; padding: 1rem; border-radius: 6px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .finding-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .finding-dimension { font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: 600; }
+    .finding-title { font-size: 1rem; margin: 0.25rem 0; color: #1a1a1a; }
+    .finding-message { font-size: 0.875rem; color: #444; line-height: 1.5; }
+    
+    /* Severity styles */
+    .severity-priority { border-left: 4px solid #dc2626; }
+    .severity-watch { border-left: 4px solid #ea580c; }
+    .severity-info { border-left: 4px solid #2563eb; }
+    .badge-priority { background: #fef2f2; color: #dc2626; }
+    .badge-watch { background: #fff7ed; color: #ea580c; }
+    .badge-info { background: #eff6ff; color: #2563eb; }
+
     /* --- Chat --- */
     .chat-section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e5e5; }
     .chat-title { font-size: 1.25rem; margin-bottom: 0.25rem; }
@@ -114,37 +141,56 @@
       >Cerrar sesión</button>
     </div>
   </nav>
+  
   <h1>Industrial KPI Intelligence</h1>
-  <p class="subtitle">API REST · FastAPI + SQLModel + SQLite</p>
+  <p class="subtitle">API REST · FastAPI + SQLModel + SQLite + IA</p>
 
-  {% if kpis %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th class="num">Valor</th>
-          <th>Unidad</th>
-          <th>Timestamp</th>
-          <th>Línea</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for kpi in kpis %}
+  <!-- Navegación de Tabs (Migración Fase 1) -->
+  <div class="tabs-nav">
+      <button class="tab-btn active" hx-get="/tabs/diagnostics" hx-target="#tab-content" hx-trigger="load">Diagnóstico</button>
+      <button class="tab-btn" hx-get="/tabs/quality" hx-target="#tab-content">Calidad</button>
+      <button class="tab-btn" hx-get="/tabs/capability" hx-target="#tab-content">Capacidad</button>
+      <button class="tab-btn" hx-get="/tabs/control" hx-target="#tab-content">Control</button>
+      <button class="tab-btn" hx-get="/tabs/operational" hx-target="#tab-content">Operacional</button>
+  </div>
+
+  <!-- Contenedor donde se inyectan los partials de cada tab -->
+  <div id="tab-content" style="margin-bottom: 3rem; min-height: 250px; background: #fdfdfd; padding: 1rem; border-radius: 8px; border: 1px solid #f0f0f0;">
+      <p class="text-muted">Cargando diagnóstico de planta...</p>
+  </div>
+
+  <!-- Tabla de KPIs -->
+  <div style="margin-top: 4rem;">
+    <h2>📋 Registro de KPIs</h2>
+    {% if kpis %}
+      <table>
+        <thead>
           <tr>
-            <td>{{ kpi.id }}</td>
-            <td>{{ kpi.nombre }}</td>
-            <td class="num">{{ "%.2f"|format(kpi.valor) }}</td>
-            <td>{{ kpi.unidad }}</td>
-            <td>{{ kpi.timestamp.strftime("%Y-%m-%d %H:%M") }}</td>
-            <td>{{ kpi.linea_produccion }}</td>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th class="num">Valor</th>
+            <th>Unidad</th>
+            <th>Timestamp</th>
+            <th>Línea</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="empty">No hay KPIs registrados todavía.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for kpi in kpis %}
+            <tr>
+              <td>{{ kpi.id }}</td>
+              <td>{{ kpi.nombre }}</td>
+              <td class="num">{{ "%.2f"|format(kpi.valor) }}</td>
+              <td>{{ kpi.unidad }}</td>
+              <td>{{ kpi.timestamp.strftime("%Y-%m-%d %H:%M") }}</td>
+              <td>{{ kpi.linea_produccion }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No hay KPIs registrados todavía.</p>
+    {% endif %}
+  </div>
 
   {% include "partials/_chat.html" %}
   {% include "partials/_diagnostics_ai.html" %}
