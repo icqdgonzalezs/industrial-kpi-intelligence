@@ -3,6 +3,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.auth import get_current_user
 from app.services.dataset_loader import cargar_dataset_filtrado
+from src.capability import resumen_capacidad
 from src.diagnostics import generar_diagnostico
 
 router = APIRouter(prefix="/tabs", tags=["Tabs"])
@@ -17,8 +18,12 @@ async def tab_diagnostics(
     """Tab de Diagnóstico: carga datos, genera hallazgos y renderiza el partial."""
     df, config = cargar_dataset_filtrado()
 
-    # Reutilizamos la lógica pura de src/ (SSOT)
-    hallazgos = generar_diagnostico(df, config) if not df.empty else []
+    if not df.empty:
+        # Calculamos la tabla de capacidad (DataFrame) que diagnostics.py necesita
+        capacidad = resumen_capacidad(df, config)
+        hallazgos = generar_diagnostico(df, capacidad)
+    else:
+        hallazgos = []
 
     return templates.TemplateResponse(
         request=request,

@@ -1,0 +1,21 @@
+<div class="tab-pane">
+    <h2>🔍 Diagnóstico de Planta</h2>
+    <p class="text-muted">Hallazgos priorizados por severidad.</p>
+
+    {% if hallazgos %}
+        <div class="findings-grid">
+            {% for h in hallazgos %}
+            <div class="card finding-card severity-{{ h.severidad | lower }}">
+                <div class="card-header">
+                    <span class="badge badge-{{ h.severidad | lower }}">{{ h.severidad | upper }}</span>
+                    <span class="finding-dimension">{{ h.dimension }}</span>
+                </div>
+                <h3 class="finding-title">{{ h.titulo }}</h3>
+                <p class="finding-message">{{ h.mensaje }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">✅ No se encontraron hallazgos críticos en la planta.</p>
+    {% endif %}
+</div>

@@ -14,6 +14,7 @@ from app.routers.auth import router as auth_router
 from app.routers.chat import router as chat_router
 from app.routers.diagnostics import router as diagnostics_router
 from app.routers.reports import router as reports_router
+from app.routers.tabs import router as tabs_router
 from app.schemas import KPICreate
 from app.templates_config import templates
 
@@ -40,6 +41,7 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(diagnostics_router)
 app.include_router(reports_router)
+app.include_router(tabs_router)
 app.include_router(anomalies_router) # <-- NUEVO ROUTER
 
 
