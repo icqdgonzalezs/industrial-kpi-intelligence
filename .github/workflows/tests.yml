@@ -39,4 +39,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Correr suite de tests con cobertura
-        run: pytest tests/ -v --cov=src --cov=dashboard --cov-report=term-missing
+        run: pytest tests/ -v --cov=src --cov=dashboard --cov=app --cov-report=term-missing
