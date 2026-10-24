@@ -571,7 +571,7 @@ Estás retomando un proyecto en curso. Antes de responder:
 
 ### 📌 Detalle de deudas activas
 
-**Deuda 11 — `schema_adapter.py`:** ✅ CERRADA. El archivo ya no existía.
+**Deuda 11 — `schema_adapter.py`:** ✅ CERRADA. El archivo ya no existe.
 
 **Deuda 15 — Doble spinner:** Cascade equipo + reset → 2 fires del store. Fix candidato: `debounce` 200ms.
 
